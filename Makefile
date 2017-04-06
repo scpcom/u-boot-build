@@ -1,4 +1,15 @@
 TAG=2017.03
+TAGPREFIX=v
+REVISION=001
+
+MK_ARCH="${shell uname -m}"
+ifneq ("aarch64", $(MK_ARCH))
+	export ARCH=arm64
+	export CROSS_COMPILE=aarch64-linux-gnu-
+endif
+undefine MK_ARCH
+
+export LOCALVERSION:=-R$(REVISION)
 
 all: prepare build fip_create sign
 
@@ -16,17 +27,17 @@ prepare:
 	cd meson-tools && git fetch
 
 build:
-	cd denx && git verify-tag v$(TAG) 2>&1 | \
+	cd denx && git verify-tag $(TAGPREFIX)$(TAG) 2>&1 | \
 	grep 'E872 DB40 9C1A 687E FBE8  6336 87F9 F635 D31D 7652'
 	cd denx && git reset --hard
-	cd denx && git checkout v$(TAG)
+	cd denx && git checkout $(TAGPREFIX)$(TAG)
 	cd denx && ( git branch -D build || true )
 	cd denx && git checkout -b build
 	test ! -f patch/patch-$(TAG) || ( cd denx && ../patch/patch-$(TAG) )
 	cd denx && make distclean
 	cp config/config-$(TAG) denx/.config
 	cd denx && make oldconfig
-	cd denx && ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- make -j6
+	cd denx && make -j6
 
 fip_create:
 	cd hardkernel && git reset --hard
