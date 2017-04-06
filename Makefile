@@ -55,3 +55,9 @@ fip_create:
 sign:
 	cd meson-tools && make
 	meson-tools/amlbootsig hardkernel/fip/gxb/boot_new.bin u-boot.img
+
+clean:
+	cd denx && make clean
+	cd hardkernel && make clean
+	cd meson-tools && make clean
+	rm -f u-boot.bin
