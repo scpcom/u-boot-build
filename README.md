@@ -15,6 +15,7 @@ Cross toolchain
     sudo apt-get install crossbuild-essential-arm64
 
 Other dependencies
+
     sudo apt-get install bc build-essential device-tree-compiler \
     git libncurses5-dev
 
