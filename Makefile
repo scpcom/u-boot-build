@@ -54,10 +54,17 @@ fip_create:
 
 sign:
 	cd meson-tools && make
-	meson-tools/amlbootsig hardkernel/fip/gxb/boot_new.bin u-boot.img
+	meson-tools/amlbootsig hardkernel/fip/gxb/boot_new.bin u-boot.bin
 
 clean:
 	cd denx && make clean
 	cd hardkernel && make clean
 	cd meson-tools && make clean
 	rm -f u-boot.bin
+
+install:
+	mkdir -p $(DESTDIR)/usr/lib/u-boot/odroid-c2/
+	cp u-boot.bin $(DESTDIR)/usr/lib/u-boot/odroid-c2/
+
+uninstall:
+	rm -rf $(DESTDIR)/usr/lib/u-boot/odroid-c2/
