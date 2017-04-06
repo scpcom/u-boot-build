@@ -1,0 +1,54 @@
+From 90f8b21ddfaade0b1f1a311b062a3f1792a1ff66 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 6 Apr 2017 21:12:31 +0200
+Subject: [U-Boot,v6,2/3] mmc: meson: add MMC driver for Meson GX (S905)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+From: Carlo Caione <carlo@caione.org>
+This driver implements MMC support on Meson GX (S905) based systems.
+It's based on Carlo Caione's work, changes:
+- BLK support added
+- general refactoring
+
+Signed-off-by: Carlo Caione <carlo@caione.org>
+Signed-off-by: Andreas Färber <afaerber@suse.de>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/mmc/Kconfig  | 6 ++++++
+ drivers/mmc/Makefile | 1 +
+ 2 files changed, 7 insertions(+)
+
+diff --git a/drivers/mmc/Kconfig b/drivers/mmc/Kconfig
+index 01d1dbf..aedd7a7 100644
+--- a/drivers/mmc/Kconfig
++++ b/drivers/mmc/Kconfig
+@@ -105,6 +105,12 @@ config MMC_DW_SOCFPGA
+ 	  Synopsys DesignWare Memory Card Interface driver. Select this option
+ 	  for platforms based on Altera SOCFPGA.
+ 
++config MMC_MESON_GX
++	bool "Meson GX EMMC controller support"
++	depends on DM_MMC && BLK && ARCH_MESON
++	help
++	 Support for EMMC host controller on Meson GX ARM SoCs platform (S905)
++
+ config MMC_MXC
+ 	bool "Freescale i.MX21/27/31 or MPC512x Multimedia Card support"
+ 	help
+diff --git a/drivers/mmc/Makefile b/drivers/mmc/Makefile
+index 8e922db..a0c9daf 100644
+--- a/drivers/mmc/Makefile
++++ b/drivers/mmc/Makefile
+@@ -29,6 +29,7 @@ ifdef CONFIG_SUPPORT_EMMC_BOOT
+ obj-$(CONFIG_GENERIC_MMC) += mmc_boot.o
+ endif
+ obj-$(CONFIG_GENERIC_ATMEL_MCI) += gen_atmel_mci.o
++obj-$(CONFIG_MMC_MESON_GX) += meson_gx_mmc.o
+ obj-$(CONFIG_MMC_SPI) += mmc_spi.o
+ obj-$(CONFIG_MVEBU_MMC) += mvebu_mmc.o
+ obj-$(CONFIG_MMC_OMAP_HS)		+= omap_hsmmc.o
+-- 
+2.1.4
+
