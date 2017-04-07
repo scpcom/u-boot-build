@@ -3,8 +3,6 @@ u-boot-odroid-c2
 
 Build U-Boot for Odroid C2.
 
-This project is work in progress and not yet completely usable.
-
 Install prerequisites
 ---------------------
 
@@ -23,4 +21,15 @@ Build
 -----
 
     make
+    sudo make install
 
+Write to SD card
+----------------
+
+    cd /usr/lib/u-boot/odroid-c2/
+    sudo ./sd_fusing.sh DEVICE
+
+Replace DEVICE by the relevant SD card (e.g. /dev/sdg).
+
+Specifying the wrong device may lead to data loss or may render your
+computer non bootable.
