@@ -1,0 +1,24 @@
+From ca503b1b2ab1f28f15dc187803cff38001437cbc Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 7 Apr 2017 05:12:44 +0200
+Subject: [PATCH 5/5] odroid-c2: increase CONFIG_SYS_BOOTM_LEN
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/configs/meson-gxbb-common.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/configs/meson-gxbb-common.h b/include/configs/meson-gxbb-common.h
+index c3229ea..e993263 100644
+--- a/include/configs/meson-gxbb-common.h
++++ b/include/configs/meson-gxbb-common.h
+@@ -54,4 +54,6 @@
+ 	MESON_FDTFILE_SETTING \
+ 	BOOTENV
+ 
++#define CONFIG_SYS_BOOTM_LEN    (64 << 20)      /* Increase max gunzip size */
++
+ #endif /* __MESON_GXBB_COMMON_CONFIG_H */
+-- 
+2.1.4
+
