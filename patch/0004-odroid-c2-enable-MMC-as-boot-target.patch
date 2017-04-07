@@ -1,0 +1,26 @@
+From 8b5e6f8a9401cfaa2cbe4ca5f417bbb68da6a8a2 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 7 Apr 2017 04:37:18 +0200
+Subject: [PATCH 4/4] odroid-c2: enable MMC as boot target
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/configs/meson-gxbb-common.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/configs/meson-gxbb-common.h b/include/configs/meson-gxbb-common.h
+index cc2b5b6..388f239 100644
+--- a/include/configs/meson-gxbb-common.h
++++ b/include/configs/meson-gxbb-common.h
+@@ -39,6 +39,8 @@
+ #include <config_distro_defaults.h>
+ 
+ #define BOOT_TARGET_DEVICES(func) \
++	func(MMC, mmc, 0) \
++	func(MMC, mmc, 1) \
+ 	func(DHCP, dhcp, na)
+ 
+ #include <config_distro_bootcmd.h>
+-- 
+2.1.4
+
