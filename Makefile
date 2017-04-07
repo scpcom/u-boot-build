@@ -64,7 +64,9 @@ clean:
 
 install:
 	mkdir -p $(DESTDIR)/usr/lib/u-boot/odroid-c2/
-	cp u-boot.bin $(DESTDIR)/usr/lib/u-boot/odroid-c2/
+	dd if=u-boot.bin of=$(DESTDIR)/usr/lib/u-boot/odroid-c2/u-boot.bin skip=96
+	cp hardkernel/sd_fuse/bl1.bin.hardkernel $(DESTDIR)/usr/lib/u-boot/odroid-c2/
+	cp hardkernel/sd_fuse/sd_fusing.sh $(DESTDIR)/usr/lib/u-boot/odroid-c2/
 
 uninstall:
 	rm -rf $(DESTDIR)/usr/lib/u-boot/odroid-c2/
