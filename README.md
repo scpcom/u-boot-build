@@ -15,7 +15,7 @@ Cross toolchain
 Other dependencies
 
     sudo apt-get install bc build-essential device-tree-compiler \
-    git libncurses5-dev
+    git libncurses5-dev libssl-dev
 
 Build
 -----
