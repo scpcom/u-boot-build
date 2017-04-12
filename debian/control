@@ -3,7 +3,7 @@ Section: kernel
 Priority: optional
 Maintainer: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Build-Depends: debhelper, git, device-tree-compiler,
- libncurses5-dev
+ libncurses5-dev, libssl-dev
 Standards-Version: 3.9.4.0
 Homepage: https://www.kernel.org/
 
