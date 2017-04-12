@@ -1,32 +1,36 @@
 From 559cfc3002ec1b4e219445191238b4f427fd7fa7 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 6 Apr 2017 21:20:22 +0200
-Subject: [U-Boot,v6,3/3] Enable new Meson GX MMC driver in Odroid C2 defconfig.
+Subject: [U-Boot,v7,3/4] Enable new Meson GX MMC driver in Odroid C2 defconfig.
 
 This patch is based on
 [U-Boot,v6,3/3] odroid-c2: enable new Meson GX MMC driver in board defconfig
 by Heiner Kallweit <hkallweit1@gmail.com>
 
+CC: Heiner Kallweit <hkallweit1@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v7:
+- made applicable to current U-boot master
+v6:
+- no changes
 ---
  configs/odroid-c2_defconfig | 5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/configs/odroid-c2_defconfig b/configs/odroid-c2_defconfig
-index 2cf5011..fe8bd07 100644
+index 2cf5011..00da76e 100644
 --- a/configs/odroid-c2_defconfig
 +++ b/configs/odroid-c2_defconfig
-@@ -12,9 +12,12 @@ CONFIG_DEFAULT_DEVICE_TREE="meson-gxbb-odroidc2"
- # CONFIG_CMD_LOADS is not set
- # CONFIG_CMD_FPGA is not set
+@@ -14,7 +14,10 @@ CONFIG_DEFAULT_DEVICE_TREE="meson-gxbb-odroidc2"
  # CONFIG_CMD_SETEXPR is not set
-+CONFIG_CMD_MMC=y
  CONFIG_OF_CONTROL=y
  CONFIG_NET_RANDOM_ETHADDR=y
 -# CONFIG_MMC is not set
 +CONFIG_MMC=y
 +CONFIG_DM_MMC=y
 +CONFIG_MMC_MESON_GX=y
++CONFIG_CMD_MMC=y
  CONFIG_DM_ETH=y
  CONFIG_ETH_DESIGNWARE=y
  CONFIG_PINCTRL=y

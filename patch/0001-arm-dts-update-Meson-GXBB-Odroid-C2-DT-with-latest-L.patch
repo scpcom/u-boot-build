@@ -1,13 +1,13 @@
 From d0ced5f43d64a73c216db451538b38296522f72c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 6 Apr 2017 21:11:29 +0200
-Subject: [U-Boot,v6,1/3] arm: dts: update Meson GXBB / Odroid-C2 DT with latest
+Subject: [U-Boot][PATCH v7 1/4] arm: dts: update Meson GXBB / Odroid-C2 DT with latest
  Linux version
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-As a prerequisite for adding a Meson GX MMC driver update the
+As a prerequisite for adding a Meson GX MMC driver update the 
 Meson GXBB / Odroid-C2 device tree in Uboot with the latest
 version from Linux.
 
@@ -15,11 +15,483 @@ Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 Signed-off-by: Carlo Caione <carlo@endlessm.com>
 Signed-off-by: Andreas Färber <afaerber@suse.de>
 Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Tested-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- arch/arm/dts/meson-gxbb-odroidc2.dts | 147 ++++++-
- arch/arm/dts/meson-gxbb.dtsi         | 718 ++++++++++++++++++++++-------------
- 2 files changed, 590 insertions(+), 275 deletions(-)
+v7:
+- no changes
+v6:
+- changed prefix in subject
+v5:
+- no changes
+v4:
+- Added SoB of original authors
+---
+ arch/arm/dts/meson-gx.dtsi              | 447 ++++++++++++++++++++
+ arch/arm/dts/meson-gxbb-odroidc2.dts    | 147 ++++++-
+ arch/arm/dts/meson-gxbb.dtsi            | 718 ++++++++++++++++++++------------
+ include/dt-bindings/clock/gxbb-aoclkc.h |  66 +++
+ include/dt-bindings/clock/gxbb-clkc.h   |  34 ++
+ include/dt-bindings/reset/gxbb-aoclkc.h |  66 +++
+ 6 files changed, 1203 insertions(+), 275 deletions(-)
+ create mode 100644 arch/arm/dts/meson-gx.dtsi
+ create mode 100644 include/dt-bindings/clock/gxbb-aoclkc.h
+ create mode 100644 include/dt-bindings/clock/gxbb-clkc.h
+ create mode 100644 include/dt-bindings/reset/gxbb-aoclkc.h
 
+diff --git a/arch/arm/dts/meson-gx.dtsi b/arch/arm/dts/meson-gx.dtsi
+new file mode 100644
+index 0000000..c129100
+--- /dev/null
++++ b/arch/arm/dts/meson-gx.dtsi
+@@ -0,0 +1,447 @@
++/*
++ * Copyright (c) 2016 Andreas Färber
++ *
++ * Copyright (c) 2016 BayLibre, SAS.
++ * Author: Neil Armstrong <narmstrong@baylibre.com>
++ *
++ * Copyright (c) 2016 Endless Computers, Inc.
++ * Author: Carlo Caione <carlo@endlessm.com>
++ *
++ * This file is dual-licensed: you can use it either under the terms
++ * of the GPL or the X11 license, at your option. Note that this dual
++ * licensing only applies to this file, and not this project as a
++ * whole.
++ *
++ *  a) This library is free software; you can redistribute it and/or
++ *     modify it under the terms of the GNU General Public License as
++ *     published by the Free Software Foundation; either version 2 of the
++ *     License, or (at your option) any later version.
++ *
++ *     This library is distributed in the hope that it will be useful,
++ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *     GNU General Public License for more details.
++ *
++ * Or, alternatively,
++ *
++ *  b) Permission is hereby granted, free of charge, to any person
++ *     obtaining a copy of this software and associated documentation
++ *     files (the "Software"), to deal in the Software without
++ *     restriction, including without limitation the rights to use,
++ *     copy, modify, merge, publish, distribute, sublicense, and/or
++ *     sell copies of the Software, and to permit persons to whom the
++ *     Software is furnished to do so, subject to the following
++ *     conditions:
++ *
++ *     The above copyright notice and this permission notice shall be
++ *     included in all copies or substantial portions of the Software.
++ *
++ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ *     OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++#include <dt-bindings/interrupt-controller/arm-gic.h>
++
++/ {
++	interrupt-parent = <&gic>;
++	#address-cells = <2>;
++	#size-cells = <2>;
++
++	reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++
++		/* 16 MiB reserved for Hardware ROM Firmware */
++		hwrom_reserved: hwrom@0 {
++			reg = <0x0 0x0 0x0 0x1000000>;
++			no-map;
++		};
++
++		/* 2 MiB reserved for ARM Trusted Firmware (BL31) */
++		secmon_reserved: secmon@10000000 {
++			reg = <0x0 0x10000000 0x0 0x200000>;
++			no-map;
++		};
++	};
++
++	cpus {
++		#address-cells = <0x2>;
++		#size-cells = <0x0>;
++
++		cpu0: cpu@0 {
++			device_type = "cpu";
++			compatible = "arm,cortex-a53", "arm,armv8";
++			reg = <0x0 0x0>;
++			enable-method = "psci";
++			next-level-cache = <&l2>;
++			clocks = <&scpi_dvfs 0>;
++		};
++
++		cpu1: cpu@1 {
++			device_type = "cpu";
++			compatible = "arm,cortex-a53", "arm,armv8";
++			reg = <0x0 0x1>;
++			enable-method = "psci";
++			next-level-cache = <&l2>;
++			clocks = <&scpi_dvfs 0>;
++		};
++
++		cpu2: cpu@2 {
++			device_type = "cpu";
++			compatible = "arm,cortex-a53", "arm,armv8";
++			reg = <0x0 0x2>;
++			enable-method = "psci";
++			next-level-cache = <&l2>;
++			clocks = <&scpi_dvfs 0>;
++		};
++
++		cpu3: cpu@3 {
++			device_type = "cpu";
++			compatible = "arm,cortex-a53", "arm,armv8";
++			reg = <0x0 0x3>;
++			enable-method = "psci";
++			next-level-cache = <&l2>;
++			clocks = <&scpi_dvfs 0>;
++		};
++
++		l2: l2-cache0 {
++			compatible = "cache";
++		};
++	};
++
++	arm-pmu {
++		compatible = "arm,cortex-a53-pmu";
++		interrupts = <GIC_SPI 137 IRQ_TYPE_LEVEL_HIGH>,
++			     <GIC_SPI 138 IRQ_TYPE_LEVEL_HIGH>,
++			     <GIC_SPI 153 IRQ_TYPE_LEVEL_HIGH>,
++			     <GIC_SPI 154 IRQ_TYPE_LEVEL_HIGH>;
++		interrupt-affinity = <&cpu0>, <&cpu1>, <&cpu2>, <&cpu3>;
++	};
++
++	psci {
++		compatible = "arm,psci-0.2";
++		method = "smc";
++	};
++
++	timer {
++		compatible = "arm,armv8-timer";
++		interrupts = <GIC_PPI 13
++			(GIC_CPU_MASK_RAW(0xff) | IRQ_TYPE_LEVEL_LOW)>,
++			     <GIC_PPI 14
++			(GIC_CPU_MASK_RAW(0xff) | IRQ_TYPE_LEVEL_LOW)>,
++			     <GIC_PPI 11
++			(GIC_CPU_MASK_RAW(0xff) | IRQ_TYPE_LEVEL_LOW)>,
++			     <GIC_PPI 10
++			(GIC_CPU_MASK_RAW(0xff) | IRQ_TYPE_LEVEL_LOW)>;
++	};
++
++	xtal: xtal-clk {
++		compatible = "fixed-clock";
++		clock-frequency = <24000000>;
++		clock-output-names = "xtal";
++		#clock-cells = <0>;
++	};
++
++	firmware {
++		sm: secure-monitor {
++			compatible = "amlogic,meson-gx-sm", "amlogic,meson-gxbb-sm";
++		};
++	};
++
++	efuse: efuse {
++		compatible = "amlogic,meson-gx-efuse", "amlogic,meson-gxbb-efuse";
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		sn: sn@14 {
++			reg = <0x14 0x10>;
++		};
++
++		eth_mac: eth_mac@34 {
++			reg = <0x34 0x10>;
++		};
++
++		bid: bid@46 {
++			reg = <0x46 0x30>;
++		};
++	};
++
++	scpi {
++		compatible = "amlogic,meson-gxbb-scpi", "arm,scpi-pre-1.0";
++		mboxes = <&mailbox 1 &mailbox 2>;
++		shmem = <&cpu_scp_lpri &cpu_scp_hpri>;
++
++		scpi_clocks: clocks {
++			compatible = "arm,scpi-clocks";
++
++			scpi_dvfs: scpi_clocks@0 {
++				compatible = "arm,scpi-dvfs-clocks";
++				#clock-cells = <1>;
++				clock-indices = <0>;
++				clock-output-names = "vcpu";
++			};
++		};
++
++		scpi_sensors: sensors {
++			compatible = "arm,scpi-sensors";
++			#thermal-sensor-cells = <1>;
++		};
++	};
++
++	soc {
++		compatible = "simple-bus";
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++
++		cbus: cbus@c1100000 {
++			compatible = "simple-bus";
++			reg = <0x0 0xc1100000 0x0 0x100000>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			ranges = <0x0 0x0 0x0 0xc1100000 0x0 0x100000>;
++
++			reset: reset-controller@4404 {
++				compatible = "amlogic,meson-gx-reset", "amlogic,meson-gxbb-reset";
++				reg = <0x0 0x04404 0x0 0x20>;
++				#reset-cells = <1>;
++			};
++
++			uart_A: serial@84c0 {
++				compatible = "amlogic,meson-uart";
++				reg = <0x0 0x84c0 0x0 0x14>;
++				interrupts = <GIC_SPI 26 IRQ_TYPE_EDGE_RISING>;
++				clocks = <&xtal>;
++				status = "disabled";
++			};
++
++			uart_B: serial@84dc {
++				compatible = "amlogic,meson-uart";
++				reg = <0x0 0x84dc 0x0 0x14>;
++				interrupts = <GIC_SPI 75 IRQ_TYPE_EDGE_RISING>;
++				clocks = <&xtal>;
++				status = "disabled";
++			};
++
++			i2c_A: i2c@8500 {
++				compatible = "amlogic,meson-gxbb-i2c";
++				reg = <0x0 0x08500 0x0 0x20>;
++				interrupts = <GIC_SPI 21 IRQ_TYPE_EDGE_RISING>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++				status = "disabled";
++			};
++
++			pwm_ab: pwm@8550 {
++				compatible = "amlogic,meson-gx-pwm", "amlogic,meson-gxbb-pwm";
++				reg = <0x0 0x08550 0x0 0x10>;
++				#pwm-cells = <3>;
++				status = "disabled";
++			};
++
++			pwm_cd: pwm@8650 {
++				compatible = "amlogic,meson-gx-pwm", "amlogic,meson-gxbb-pwm";
++				reg = <0x0 0x08650 0x0 0x10>;
++				#pwm-cells = <3>;
++				status = "disabled";
++			};
++
++			pwm_ef: pwm@86c0 {
++				compatible = "amlogic,meson-gx-pwm", "amlogic,meson-gxbb-pwm";
++				reg = <0x0 0x086c0 0x0 0x10>;
++				#pwm-cells = <3>;
++				status = "disabled";
++			};
++
++			uart_C: serial@8700 {
++				compatible = "amlogic,meson-uart";
++				reg = <0x0 0x8700 0x0 0x14>;
++				interrupts = <GIC_SPI 93 IRQ_TYPE_EDGE_RISING>;
++				clocks = <&xtal>;
++				status = "disabled";
++			};
++
++			i2c_B: i2c@87c0 {
++				compatible = "amlogic,meson-gxbb-i2c";
++				reg = <0x0 0x087c0 0x0 0x20>;
++				interrupts = <GIC_SPI 214 IRQ_TYPE_EDGE_RISING>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++				status = "disabled";
++			};
++
++			i2c_C: i2c@87e0 {
++				compatible = "amlogic,meson-gxbb-i2c";
++				reg = <0x0 0x087e0 0x0 0x20>;
++				interrupts = <GIC_SPI 215 IRQ_TYPE_EDGE_RISING>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++				status = "disabled";
++			};
++
++			watchdog@98d0 {
++				compatible = "amlogic,meson-gx-wdt", "amlogic,meson-gxbb-wdt";
++				reg = <0x0 0x098d0 0x0 0x10>;
++				clocks = <&xtal>;
++			};
++		};
++
++		gic: interrupt-controller@c4301000 {
++			compatible = "arm,gic-400";
++			reg = <0x0 0xc4301000 0 0x1000>,
++			      <0x0 0xc4302000 0 0x2000>,
++			      <0x0 0xc4304000 0 0x2000>,
++			      <0x0 0xc4306000 0 0x2000>;
++			interrupt-controller;
++			interrupts = <GIC_PPI 9
++				(GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_HIGH)>;
++			#interrupt-cells = <3>;
++			#address-cells = <0>;
++		};
++
++		sram: sram@c8000000 {
++			compatible = "amlogic,meson-gxbb-sram", "mmio-sram";
++			reg = <0x0 0xc8000000 0x0 0x14000>;
++
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x0 0xc8000000 0x14000>;
++
++			cpu_scp_lpri: scp-shmem@0 {
++				compatible = "amlogic,meson-gxbb-scp-shmem";
++				reg = <0x13000 0x400>;
++			};
++
++			cpu_scp_hpri: scp-shmem@200 {
++				compatible = "amlogic,meson-gxbb-scp-shmem";
++				reg = <0x13400 0x400>;
++			};
++		};
++
++		aobus: aobus@c8100000 {
++			compatible = "simple-bus";
++			reg = <0x0 0xc8100000 0x0 0x100000>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			ranges = <0x0 0x0 0x0 0xc8100000 0x0 0x100000>;
++
++			uart_AO: serial@4c0 {
++				compatible = "amlogic,meson-uart";
++				reg = <0x0 0x004c0 0x0 0x14>;
++				interrupts = <GIC_SPI 193 IRQ_TYPE_EDGE_RISING>;
++				clocks = <&xtal>;
++				status = "disabled";
++			};
++
++			uart_AO_B: serial@4e0 {
++				compatible = "amlogic,meson-uart";
++				reg = <0x0 0x004e0 0x0 0x14>;
++				interrupts = <GIC_SPI 197 IRQ_TYPE_EDGE_RISING>;
++				clocks = <&xtal>;
++				status = "disabled";
++			};
++
++			ir: ir@580 {
++				compatible = "amlogic,meson-gxbb-ir";
++				reg = <0x0 0x00580 0x0 0x40>;
++				interrupts = <GIC_SPI 196 IRQ_TYPE_EDGE_RISING>;
++				status = "disabled";
++			};
++		};
++
++		periphs: periphs@c8834000 {
++			compatible = "simple-bus";
++			reg = <0x0 0xc8834000 0x0 0x2000>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			ranges = <0x0 0x0 0x0 0xc8834000 0x0 0x2000>;
++
++			rng {
++				compatible = "amlogic,meson-rng";
++				reg = <0x0 0x0 0x0 0x4>;
++			};
++		};
++
++
++		hiubus: hiubus@c883c000 {
++			compatible = "simple-bus";
++			reg = <0x0 0xc883c000 0x0 0x2000>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			ranges = <0x0 0x0 0x0 0xc883c000 0x0 0x2000>;
++
++			mailbox: mailbox@404 {
++				compatible = "amlogic,meson-gx-mhu", "amlogic,meson-gxbb-mhu";
++				reg = <0 0x404 0 0x4c>;
++				interrupts = <0 208 IRQ_TYPE_EDGE_RISING>,
++					     <0 209 IRQ_TYPE_EDGE_RISING>,
++					     <0 210 IRQ_TYPE_EDGE_RISING>;
++				#mbox-cells = <1>;
++			};
++		};
++
++		ethmac: ethernet@c9410000 {
++			compatible = "amlogic,meson-gx-dwmac", "amlogic,meson-gxbb-dwmac", "snps,dwmac";
++			reg = <0x0 0xc9410000 0x0 0x10000
++			       0x0 0xc8834540 0x0 0x4>;
++			interrupts = <0 8 1>;
++			interrupt-names = "macirq";
++			phy-mode = "rgmii";
++			status = "disabled";
++		};
++
++		apb: apb@d0000000 {
++			compatible = "simple-bus";
++			reg = <0x0 0xd0000000 0x0 0x200000>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			ranges = <0x0 0x0 0x0 0xd0000000 0x0 0x200000>;
++
++			sd_emmc_a: mmc@70000 {
++				compatible = "amlogic,meson-gx-mmc", "amlogic,meson-gxbb-mmc";
++				reg = <0x0 0x70000 0x0 0x2000>;
++				interrupts = <GIC_SPI 216 IRQ_TYPE_EDGE_RISING>;
++				status = "disabled";
++			};
++
++			sd_emmc_b: mmc@72000 {
++				compatible = "amlogic,meson-gx-mmc", "amlogic,meson-gxbb-mmc";
++				reg = <0x0 0x72000 0x0 0x2000>;
++				interrupts = <GIC_SPI 217 IRQ_TYPE_EDGE_RISING>;
++				status = "disabled";
++			};
++
++			sd_emmc_c: mmc@74000 {
++				compatible = "amlogic,meson-gx-mmc", "amlogic,meson-gxbb-mmc";
++				reg = <0x0 0x74000 0x0 0x2000>;
++				interrupts = <GIC_SPI 218 IRQ_TYPE_EDGE_RISING>;
++				status = "disabled";
++			};
++		};
++
++		vpu: vpu@d0100000 {
++			compatible = "amlogic,meson-gx-vpu";
++			reg = <0x0 0xd0100000 0x0 0x100000>,
++			      <0x0 0xc883c000 0x0 0x1000>,
++			      <0x0 0xc8838000 0x0 0x1000>;
++			reg-names = "vpu", "hhi", "dmc";
++			interrupts = <GIC_SPI 3 IRQ_TYPE_EDGE_RISING>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* CVBS VDAC output port */
++			cvbs_vdac_port: port@0 {
++				reg = <0>;
++			};
++		};
++	};
++};
 diff --git a/arch/arm/dts/meson-gxbb-odroidc2.dts b/arch/arm/dts/meson-gxbb-odroidc2.dts
 index 79bee64..c737183 100644
 --- a/arch/arm/dts/meson-gxbb-odroidc2.dts
@@ -947,6 +1419,190 @@ index e502c24..39a774a 100644
 +&vpu {
 +	compatible = "amlogic,meson-gxbb-vpu", "amlogic,meson-gx-vpu";
 +};
+diff --git a/include/dt-bindings/clock/gxbb-aoclkc.h b/include/dt-bindings/clock/gxbb-aoclkc.h
+new file mode 100644
+index 0000000..3175148
+--- /dev/null
++++ b/include/dt-bindings/clock/gxbb-aoclkc.h
+@@ -0,0 +1,66 @@
++/*
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright (c) 2016 BayLibre, SAS.
++ * Author: Neil Armstrong <narmstrong@baylibre.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ * The full GNU General Public License is included in this distribution
++ * in the file called COPYING.
++ *
++ * BSD LICENSE
++ *
++ * Copyright (c) 2016 BayLibre, SAS.
++ * Author: Neil Armstrong <narmstrong@baylibre.com>
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *   * Redistributions of source code must retain the above copyright
++ *     notice, this list of conditions and the following disclaimer.
++ *   * Redistributions in binary form must reproduce the above copyright
++ *     notice, this list of conditions and the following disclaimer in
++ *     the documentation and/or other materials provided with the
++ *     distribution.
++ *   * Neither the name of Intel Corporation nor the names of its
++ *     contributors may be used to endorse or promote products derived
++ *     from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#ifndef DT_BINDINGS_CLOCK_AMLOGIC_MESON_GXBB_AOCLK
++#define DT_BINDINGS_CLOCK_AMLOGIC_MESON_GXBB_AOCLK
++
++#define CLKID_AO_REMOTE		0
++#define CLKID_AO_I2C_MASTER	1
++#define CLKID_AO_I2C_SLAVE	2
++#define CLKID_AO_UART1		3
++#define CLKID_AO_UART2		4
++#define CLKID_AO_IR_BLASTER	5
++
++#endif
+diff --git a/include/dt-bindings/clock/gxbb-clkc.h b/include/dt-bindings/clock/gxbb-clkc.h
+new file mode 100644
+index 0000000..692846c
+--- /dev/null
++++ b/include/dt-bindings/clock/gxbb-clkc.h
+@@ -0,0 +1,34 @@
++/*
++ * GXBB clock tree IDs
++ */
++
++#ifndef __GXBB_CLKC_H
++#define __GXBB_CLKC_H
++
++#define CLKID_CPUCLK		1
++#define CLKID_HDMI_PLL		2
++#define CLKID_FCLK_DIV2		4
++#define CLKID_FCLK_DIV3		5
++#define CLKID_FCLK_DIV4		6
++#define CLKID_CLK81		12
++#define CLKID_MPLL2		15
++#define CLKID_SPI		34
++#define CLKID_I2C		22
++#define CLKID_SAR_ADC		23
++#define CLKID_ETH		36
++#define CLKID_USB0		50
++#define CLKID_USB1		51
++#define CLKID_USB		55
++#define CLKID_HDMI_PCLK		63
++#define CLKID_USB1_DDR_BRIDGE	64
++#define CLKID_USB0_DDR_BRIDGE	65
++#define CLKID_SANA		69
++#define CLKID_GCLK_VENCI_INT0	77
++#define CLKID_AO_I2C		93
++#define CLKID_SD_EMMC_A		94
++#define CLKID_SD_EMMC_B		95
++#define CLKID_SD_EMMC_C		96
++#define CLKID_SAR_ADC_CLK	97
++#define CLKID_SAR_ADC_SEL	98
++
++#endif /* __GXBB_CLKC_H */
+diff --git a/include/dt-bindings/reset/gxbb-aoclkc.h b/include/dt-bindings/reset/gxbb-aoclkc.h
+new file mode 100644
+index 0000000..9e3fd60
+--- /dev/null
++++ b/include/dt-bindings/reset/gxbb-aoclkc.h
+@@ -0,0 +1,66 @@
++/*
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * Copyright (c) 2016 BayLibre, SAS.
++ * Author: Neil Armstrong <narmstrong@baylibre.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ * The full GNU General Public License is included in this distribution
++ * in the file called COPYING.
++ *
++ * BSD LICENSE
++ *
++ * Copyright (c) 2016 BayLibre, SAS.
++ * Author: Neil Armstrong <narmstrong@baylibre.com>
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *   * Redistributions of source code must retain the above copyright
++ *     notice, this list of conditions and the following disclaimer.
++ *   * Redistributions in binary form must reproduce the above copyright
++ *     notice, this list of conditions and the following disclaimer in
++ *     the documentation and/or other materials provided with the
++ *     distribution.
++ *   * Neither the name of Intel Corporation nor the names of its
++ *     contributors may be used to endorse or promote products derived
++ *     from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#ifndef DT_BINDINGS_RESET_AMLOGIC_MESON_GXBB_AOCLK
++#define DT_BINDINGS_RESET_AMLOGIC_MESON_GXBB_AOCLK
++
++#define RESET_AO_REMOTE		0
++#define RESET_AO_I2C_MASTER	1
++#define RESET_AO_I2C_SLAVE	2
++#define RESET_AO_UART1		3
++#define RESET_AO_UART2		4
++#define RESET_AO_IR_BLASTER	5
++
++#endif
 -- 
 2.1.4
 

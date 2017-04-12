@@ -1,9 +1,15 @@
 From 8b5e6f8a9401cfaa2cbe4ca5f417bbb68da6a8a2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 7 Apr 2017 04:37:18 +0200
-Subject: [PATCH 4/4] odroid-c2: enable MMC as boot target
+Subject: [PATCH v7,4/4] odroid-c2: enable MMC as boot target
+
+To enable booting from MMC the MMC devices 0 and 1 are added to the
+BOOT_TARGET_DEVICES.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v7:
+- added this patch to patch series
 ---
  include/configs/meson-gxbb-common.h | 2 ++
  1 file changed, 2 insertions(+)

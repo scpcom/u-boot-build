@@ -1,7 +1,11 @@
 From ca503b1b2ab1f28f15dc187803cff38001437cbc Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 7 Apr 2017 05:12:44 +0200
-Subject: [PATCH 5/5] odroid-c2: increase CONFIG_SYS_BOOTM_LEN
+Subject: [U-Boot][PATCH 1/1] odroid-c2: increase CONFIG_SYS_BOOTM_LEN
+
+A feature rich Kernel for Linux needs more than 8 MiB.
+Hence enlarge CONFIG_SYS_BOOTM_LEN to 64 MiB for the Odroid C2.
+As the Odroid C2 has has 2 GiB of RAM this poses no problem.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
@@ -16,7 +20,7 @@ index c3229ea..e993263 100644
  	MESON_FDTFILE_SETTING \
  	BOOTENV
  
-+#define CONFIG_SYS_BOOTM_LEN    (64 << 20)      /* Increase max gunzip size */
++#define CONFIG_SYS_BOOTM_LEN    (64 << 20)      /* 64 MiB */
 +
  #endif /* __MESON_GXBB_COMMON_CONFIG_H */
 -- 

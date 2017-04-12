@@ -1,0 +1,43 @@
+From 561f7286ed9066436fbe0eaee11dae7ee55d2589 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 12 Apr 2017 18:14:44 +0200
+Subject: [U-Boot][PATCH v7 0/4] mmc: meson: add MMC driver for Meson GX (S905)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This patch series is a resubmission of the v6 patch series
+https://lists.denx.de/pipermail/u-boot/2017-February/281941.html
+by Heiner Kallweit.
+
+Patch 1 updates the device tree to a recent Linux version.
+Patch 2 add a MMC driver for the GXBB SOC
+Both patches are unchanged relative to version 6 of the patch series.
+Patch 3 enables the MMC driver in the Odroid C2 default configuration.
+This patch had to be rearranged to become applicable again.
+Patch 4 enables MMC as a boot target for the Odroid C2.
+This patch is new.
+
+I have tested the patch series against U-Boot v2017.3 and U-Boot master.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+
+Heiner Kallweit (2):
+  mmc: meson: add MMC driver for Meson GX (S905)
+  arm: dts: update Meson GXBB / Odroid-C2 DT with latest Linux version
+
+Heinrich Schuchardt (2):
+  Enable new Meson GX MMC driver in Odroid C2 defconfig.
+  odroid-c2: enable MMC as boot target
+
+ arch/arm/dts/meson-gxbb-odroidc2.dts | 147 ++++++-
+ arch/arm/dts/meson-gxbb.dtsi         | 718 ++++++++++++++++++++++-------------
+ configs/odroid-c2_defconfig          |   5 +-
+ drivers/mmc/Kconfig                  |   6 +
+ drivers/mmc/Makefile                 |   1 +
+ include/configs/meson-gxbb-common.h  |   2 +
+ 6 files changed, 603 insertions(+), 276 deletions(-)
+
+-- 
+2.1.4
+
