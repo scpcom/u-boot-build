@@ -23,7 +23,7 @@ prepare:
 	https://github.com/hardkernel/u-boot.git hardkernel
 	cd hardkernel && git fetch
 	test -d meson-tools || git clone -v \
-	https://github.com/afaerber/meson-tools.git meson-tools
+	https://github.com/xypron/meson-tools.git meson-tools
 	cd meson-tools && git fetch
 
 build:
