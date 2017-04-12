@@ -56,7 +56,7 @@ fip_create:
 	cd hardkernel/fip/gxb && cat bl2.package fip.bin > boot_new.bin
 
 sign:
-	cd meson-tools && make
+	cd meson-tools && make CC=gcc
 	meson-tools/amlbootsig hardkernel/fip/gxb/boot_new.bin u-boot.bin
 
 clean:
