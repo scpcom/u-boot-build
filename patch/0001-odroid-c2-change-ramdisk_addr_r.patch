@@ -1,0 +1,31 @@
+From c9796812e83c46d09f55e6d26105621bc0255c86 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 14 Apr 2017 18:54:04 +0200
+Subject: [PATCH] odroid-c2: change ramdisk_addr_r
+
+0x10000000 is the start of a 2 MiB area used by
+ARM Trusted Firmware (BL31).
+
+So we should not load the ramdisk here.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/configs/meson-gxbb-common.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/configs/meson-gxbb-common.h b/include/configs/meson-gxbb-common.h
+index 3fbfcef..66b37a6 100644
+--- a/include/configs/meson-gxbb-common.h
++++ b/include/configs/meson-gxbb-common.h
+@@ -50,7 +50,7 @@
+ 	"scriptaddr=0x1f000000\0" \
+ 	"kernel_addr_r=0x01080000\0" \
+ 	"pxefile_addr_r=0x01080000\0" \
+-	"ramdisk_addr_r=0x10000000\0" \
++	"ramdisk_addr_r=0x13000000\0" \
+ 	MESON_FDTFILE_SETTING \
+ 	BOOTENV
+ 
+-- 
+2.1.4
+

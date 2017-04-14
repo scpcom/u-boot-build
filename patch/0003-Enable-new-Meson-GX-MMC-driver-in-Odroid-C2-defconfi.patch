@@ -1,19 +1,13 @@
-From 559cfc3002ec1b4e219445191238b4f427fd7fa7 Mon Sep 17 00:00:00 2001
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Thu, 6 Apr 2017 21:20:22 +0200
-Subject: [U-Boot,v7,3/4] Enable new Meson GX MMC driver in Odroid C2 defconfig.
+From d0c5c8d529f16fa88ab52a3b5dd2d4fc03664f19 Mon Sep 17 00:00:00 2001
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Date: Wed, 12 Apr 2017 20:32:06 +0200
+Subject: [PATCH 3/3] odroid-c2: enable new Meson GX MMC driver in board
+ defconfig
 
-This patch is based on
-[U-Boot,v6,3/3] odroid-c2: enable new Meson GX MMC driver in board defconfig
-by Heiner Kallweit <hkallweit1@gmail.com>
+Enable new Meson GX MMC driver in Odroid C2 defconfig.
 
-CC: Heiner Kallweit <hkallweit1@gmail.com>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
----
-v7:
-- made applicable to current U-boot master
-v6:
-- no changes
 ---
  configs/odroid-c2_defconfig | 5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)

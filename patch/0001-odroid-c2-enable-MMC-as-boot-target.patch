@@ -1,15 +1,24 @@
 From 8b5e6f8a9401cfaa2cbe4ca5f417bbb68da6a8a2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 7 Apr 2017 04:37:18 +0200
-Subject: [PATCH v7,4/4] odroid-c2: enable MMC as boot target
+Subject: [PATCH v2 1/1] odroid-c2: enable MMC as boot target
 
-To enable booting from MMC the MMC devices 0 and 1 are added to the
-BOOT_TARGET_DEVICES.
+To enable automatic booting from SD card or eMMC the MMC devices 0 and 1
+are added to the BOOT_TARGET_DEVICES.
 
+Booting from SD card, eMMC, and DHCP are tried in sequence.
+A missing or failing device is gracefully handled.
+
+Cc: Andreas Färber <afaerber@suse.de>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
-v7:
-- added this patch to patch series
+v2:
+  Enhance commit message to clearly indicate how the
+  boot targets are sequenced.
+v1:
+  This is a resubmission of
+  https://lists.denx.de/pipermail/u-boot/2017-April/287315.html
+  where this patch was part of patch series which was no longer applicable.
 ---
  include/configs/meson-gxbb-common.h | 2 ++
  1 file changed, 2 insertions(+)

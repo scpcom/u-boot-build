@@ -1,13 +1,13 @@
-From d0ced5f43d64a73c216db451538b38296522f72c Mon Sep 17 00:00:00 2001
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Thu, 6 Apr 2017 21:11:29 +0200
-Subject: [U-Boot][PATCH v7 1/4] arm: dts: update Meson GXBB / Odroid-C2 DT with latest
+From a3b02a1d49269c769d1890ee05b74dc067538ed7 Mon Sep 17 00:00:00 2001
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Date: Wed, 12 Apr 2017 20:28:36 +0200
+Subject: [PATCH 1/3] arm: dts: update Meson GXBB / Odroid-C2 DT with recent
  Linux version
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-As a prerequisite for adding a Meson GX MMC driver update the 
+As a prerequisite for adding a Meson GX MMC driver update the
 Meson GXBB / Odroid-C2 device tree in Uboot with the latest
 version from Linux.
 
@@ -15,17 +15,7 @@ Signed-off-by: Neil Armstrong <narmstrong@baylibre.com>
 Signed-off-by: Carlo Caione <carlo@endlessm.com>
 Signed-off-by: Andreas Färber <afaerber@suse.de>
 Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-Tested-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
----
-v7:
-- no changes
-v6:
-- changed prefix in subject
-v5:
-- no changes
-v4:
-- Added SoB of original authors
 ---
  arch/arm/dts/meson-gx.dtsi              | 447 ++++++++++++++++++++
  arch/arm/dts/meson-gxbb-odroidc2.dts    | 147 ++++++-

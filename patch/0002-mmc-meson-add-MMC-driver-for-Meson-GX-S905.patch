@@ -1,12 +1,11 @@
-From 90f8b21ddfaade0b1f1a311b062a3f1792a1ff66 Mon Sep 17 00:00:00 2001
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Thu, 6 Apr 2017 21:12:31 +0200
-Subject: [U-Boot][PATCH v7 2/4] mmc: meson: add MMC driver for Meson GX (S905)
-MIME-Version: 1.0 
+From 937386204dab93bc8362230aa5fa899e302177af Mon Sep 17 00:00:00 2001
+From: Carlo Caione <carlo@caione.org>
+Date: Wed, 12 Apr 2017 20:30:42 +0200
+Subject: [PATCH 2/3] mmc: meson: add MMC driver for Meson GX (S905)
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Carlo Caione <carlo@caione.org>
 This driver implements MMC support on Meson GX (S905) based systems.
 It's based on Carlo Caione's work, changes:
 - BLK support added
@@ -15,14 +14,8 @@ It's based on Carlo Caione's work, changes:
 Signed-off-by: Carlo Caione <carlo@caione.org>
 Signed-off-by: Andreas Färber <afaerber@suse.de>
 Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-Tested-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Tested-by: Vagrant Cascadian <vagrant@debian.org>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
----
-v7:
-no change
-v6:
-- remove DM_MMC_OPS from Kconfig dependencies
-- address two minor review comments of Jaehoon
 ---
  arch/arm/include/asm/arch-meson/sd_emmc.h |  89 +++++++++
  drivers/mmc/Kconfig                       |   6 +
@@ -128,7 +121,7 @@ index 0000000..a09e034
 +
 +#endif
 diff --git a/drivers/mmc/Kconfig b/drivers/mmc/Kconfig
-index 560391f..e05e6d3 100644
+index 560391f..077b184 100644
 --- a/drivers/mmc/Kconfig
 +++ b/drivers/mmc/Kconfig
 @@ -105,6 +105,12 @@ config MMC_DW_SOCFPGA
@@ -137,7 +130,7 @@ index 560391f..e05e6d3 100644
  
 +config MMC_MESON_GX
 +	bool "Meson GX EMMC controller support"
-+	depends on DM_MMC && BLK && ARCH_MESON
++	depends on DM_MMC && BLK && DM_MMC_OPS && ARCH_MESON
 +	help
 +	 Support for EMMC host controller on Meson GX ARM SoCs platform (S905)
 +
