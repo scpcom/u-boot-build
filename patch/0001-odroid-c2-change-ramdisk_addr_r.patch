@@ -1,14 +1,39 @@
 From c9796812e83c46d09f55e6d26105621bc0255c86 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 14 Apr 2017 18:54:04 +0200
-Subject: [PATCH] odroid-c2: change ramdisk_addr_r
+Subject: [PATCH v2 1/1] meson: gxbb: change ramdisk_addr_r
 
-0x10000000 is the start of a 2 MiB area used by
+0x10000000 is the start of a 2 MiB area used by the
 ARM Trusted Firmware (BL31).
+
+See
+https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git/tree/arch/arm64/boot/dts/amlogic/meson-gx.dtsi?id=refs/tags/v4.10.10
 
 So we should not load the ramdisk here.
 
+The legacy Ubuntu image for the Odroid C2 comes with the
+following line in boot.ini:
+setenv initrd_loadaddr "0x13000000"
+
+See
+http://odroid.in/ubuntu_16.04lts/ubuntu64-16.04-minimal-odroid-c2-20160815.img.xz
+http://deb.odroid.in/c2/pool/main/u/u-boot/u-boot_20170226-752a100-8_arm64.deb
+
+So let's use the same address.
+
+With the patch booting Linux with booti succeeds on an Odroid C2,
+without the patch Linux hangs.
+
+Cc: Andreas Färber <afaerber@suse.de>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2:
+  Title and commit message changed to reflect that this patch
+  applies to all Meson GXBB systems.
+v1:
+  Initial patch
+  [PATCH 1/1] odroid-c2: change ramdisk_addr_r
+  https://lists.denx.de/pipermail/u-boot/2017-April/287373.html
 ---
  include/configs/meson-gxbb-common.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

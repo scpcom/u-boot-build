@@ -5,3 +5,4 @@ git am ../patch/0002-mmc-meson-add-MMC-driver-for-Meson-GX-S905.patch
 git am ../patch/0003-Enable-new-Meson-GX-MMC-driver-in-Odroid-C2-defconfi.patch
 git am ../patch/0001-odroid-c2-enable-MMC-as-boot-target.patch
 git am ../patch/0001-odroid-c2-increase-CONFIG_SYS_BOOTM_LEN.patch
+git am ../patch/0001-odroid-c2-change-ramdisk_addr_r.patch
