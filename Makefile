@@ -3,7 +3,7 @@
 
 TAG=2017.05-rc1
 TAGPREFIX=v
-REVISION=003
+REVISION=004
 
 MK_ARCH="${shell uname -m}"
 ifneq ("aarch64", $(MK_ARCH))

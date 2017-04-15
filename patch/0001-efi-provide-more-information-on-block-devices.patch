@@ -1,0 +1,42 @@
+From 7c8ef0f3023a91137c971f31107aad2a7a194900 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 15 Apr 2017 21:45:07 +0200
+Subject: [PATCH] efi: provide more information on block devices
+
+Show on the console which efi block devices are created and
+which block device is used as boot device.
+
+Suggested-by: Alexander Graf <agraf@suse.de>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c             | 1 +
+ lib/efi_loader/efi_disk.c | 2 ++
+ 2 files changed, 3 insertions(+)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 3b777058f4..e9d7b70115 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -364,5 +364,6 @@ void efi_set_bootdev(const char *dev, const char *devnr, const char *path)
+ 	} else {
+ 		snprintf(devname, sizeof(devname), "%s", path);
+ 	}
++	printf("Setting boot device name to '%s'\n", devname);
+ 	ascii2unicode(bootefi_image_path[0].str, devname);
+ }
+diff --git a/lib/efi_loader/efi_disk.c b/lib/efi_loader/efi_disk.c
+index 39e602a868..16cf72f3ce 100644
+--- a/lib/efi_loader/efi_disk.c
++++ b/lib/efi_loader/efi_disk.c
+@@ -207,6 +207,8 @@ static void efi_disk_add_dev(const char *name,
+ 	if (!desc->lba)
+ 		return;
+ 
++	printf("Adding disk device '%s'\n", name);
++
+ 	diskobj = calloc(1, objlen);
+ 
+ 	/* Fill in object data */
+-- 
+2.11.0
+
