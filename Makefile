@@ -1,9 +1,9 @@
 # Build U-Boot for Odroid C2
 .POSIX:
 
-TAG=2017.05-rc1
+TAG=2017.05-rc2
 TAGPREFIX=v
-REVISION=004
+REVISION=012
 
 MK_ARCH="${shell uname -m}"
 ifneq ("aarch64", $(MK_ARCH))
