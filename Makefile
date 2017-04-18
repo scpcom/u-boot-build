@@ -60,9 +60,9 @@ sign:
 	meson-tools/amlbootsig hardkernel/fip/gxb/boot_new.bin u-boot.bin
 
 clean:
-	cd denx && make clean
-	cd hardkernel && make clean
-	cd meson-tools && make clean
+	test ! -d denx        || ( cd denx && make clean )
+	test ! -d hardkernel  || ( cd hardkernel && make clean )
+	test ! -d meson-tools || ( cd meson-tools && make clean )
 	rm -f u-boot.bin
 
 install:
