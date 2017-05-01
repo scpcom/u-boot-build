@@ -32,6 +32,10 @@ prepare:
 	cd meson-tools && git fetch
 	gpg --list-keys FA2ED12D3E7E013F || \
 	gpg --keyserver keys.gnupg.net --recv-key FA2ED12D3E7E013F
+	test -f ~/.gitconfig || \
+	  ( git config --global user.email "somebody@example.com"  && \
+	  git config --global user.name "somebody" )
+
 
 build:
 	cd denx && git verify-tag $(TAGPREFIX)$(TAG) 2>&1 | \
