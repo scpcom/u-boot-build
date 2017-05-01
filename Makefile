@@ -36,7 +36,6 @@ prepare:
 	  ( git config --global user.email "somebody@example.com"  && \
 	  git config --global user.name "somebody" )
 
-
 build:
 	cd denx && git verify-tag $(TAGPREFIX)$(TAG) 2>&1 | \
 	grep 'E872 DB40 9C1A 687E FBE8  6336 87F9 F635 D31D 7652'
