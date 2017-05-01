@@ -5,6 +5,8 @@ TAG=2017.05-rc2
 TAGPREFIX=v
 REVISION=012
 
+MESON_TOOLS_TAG=v0.1
+
 MK_ARCH="${shell uname -m}"
 ifneq ("aarch64", $(MK_ARCH))
 	export ARCH=arm64
@@ -26,8 +28,10 @@ prepare:
 	https://github.com/hardkernel/u-boot.git hardkernel
 	cd hardkernel && git fetch
 	test -d meson-tools || git clone -v \
-	https://github.com/xypron/meson-tools.git meson-tools
+	https://github.com/afaerber/meson-tools.git meson-tools
 	cd meson-tools && git fetch
+	gpg --list-keys FA2ED12D3E7E013F || \
+	gpg --keyserver keys.gnupg.net --recv-key FA2ED12D3E7E013F
 
 build:
 	cd denx && git verify-tag $(TAGPREFIX)$(TAG) 2>&1 | \
@@ -56,6 +60,10 @@ fip_create:
 	cd hardkernel/fip/gxb && cat bl2.package fip.bin > boot_new.bin
 
 sign:
+	cd meson-tools && git verify-tag $(MESON_TOOLS_TAG) 2>&1 | \
+	grep '174F 0347 1BCC 221A 6175  6F96 FA2E D12D 3E7E 013F'
+	cd meson-tools && git reset --hard
+	cd meson-tools && git checkout $(MESON_TOOLS_TAG)
 	cd meson-tools && make CC=gcc
 	meson-tools/amlbootsig hardkernel/fip/gxb/boot_new.bin u-boot.bin
 
