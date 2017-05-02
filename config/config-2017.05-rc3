@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2017.05-rc2 Configuration
+# U-Boot 2017.05-rc3 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
@@ -31,6 +31,7 @@ CONFIG_DMA_ADDR_T_64BIT=y
 CONFIG_SYS_ARM_ARCH=8
 CONFIG_SYS_CACHE_SHIFT_6=y
 CONFIG_SYS_CACHELINE_SIZE=64
+# CONFIG_ARM_SMCCC is not set
 # CONFIG_SEMIHOSTING is not set
 # CONFIG_SYS_L2CACHE_OFF is not set
 # CONFIG_ENABLE_ARM_SOC_BOOT0_HOOK is not set
@@ -76,16 +77,6 @@ CONFIG_ARM64_SUPPORT_AARCH32=y
 # CONFIG_TARGET_VEXPRESS_CA15_TC2 is not set
 # CONFIG_TARGET_VEXPRESS_CA5X2 is not set
 # CONFIG_TARGET_VEXPRESS_CA9X4 is not set
-# CONFIG_TARGET_BRXRE1 is not set
-# CONFIG_TARGET_BRPPT1 is not set
-# CONFIG_TARGET_DRACO is not set
-# CONFIG_TARGET_THUBAN is not set
-# CONFIG_TARGET_RASTABAN is not set
-# CONFIG_TARGET_ETAMIN is not set
-# CONFIG_TARGET_PXM2 is not set
-# CONFIG_TARGET_RUT is not set
-# CONFIG_TARGET_TI814X_EVM is not set
-# CONFIG_TARGET_TI816X_EVM is not set
 # CONFIG_TARGET_BCM23550_W1D is not set
 # CONFIG_TARGET_BCM28155_AP is not set
 # CONFIG_TARGET_BCMCYGNUS is not set
@@ -96,30 +87,18 @@ CONFIG_ARM64_SUPPORT_AARCH32=y
 # CONFIG_ARCH_HIGHBANK is not set
 # CONFIG_ARCH_INTEGRATOR is not set
 # CONFIG_ARCH_KEYSTONE is not set
+# CONFIG_ARCH_OMAP2PLUS is not set
 CONFIG_ARCH_MESON=y
 # CONFIG_ARCH_MX7ULP is not set
 # CONFIG_ARCH_MX7 is not set
 # CONFIG_ARCH_MX6 is not set
 # CONFIG_ARCH_MX5 is not set
-# CONFIG_TARGET_M53EVK is not set
-# CONFIG_TARGET_MX51EVK is not set
-# CONFIG_TARGET_MX53ARD is not set
-# CONFIG_TARGET_MX53EVK is not set
-# CONFIG_TARGET_MX53LOCO is not set
-# CONFIG_TARGET_MX53SMD is not set
-# CONFIG_OMAP34XX is not set
-# CONFIG_OMAP44XX is not set
-# CONFIG_OMAP54XX is not set
-# CONFIG_AM43XX is not set
-# CONFIG_AM33XX is not set
 # CONFIG_ARCH_RMOBILE is not set
 # CONFIG_TARGET_S32V234EVB is not set
 # CONFIG_ARCH_SNAPDRAGON is not set
 # CONFIG_ARCH_SOCFPGA is not set
-# CONFIG_TARGET_CM_T43 is not set
 # CONFIG_ARCH_SUNXI is not set
 # CONFIG_TARGET_TS4600 is not set
-# CONFIG_TARGET_TS4800 is not set
 # CONFIG_ARCH_VF610 is not set
 # CONFIG_ARCH_ZYNQ is not set
 # CONFIG_ARCH_ZYNQMP is not set
@@ -165,6 +144,7 @@ CONFIG_TARGET_ODROID_C2=y
 # CONFIG_SPL_ARMV8_SEC_FIRMWARE_SUPPORT is not set
 CONFIG_PSCI_RESET=y
 # CONFIG_ARMV8_PSCI is not set
+# CONFIG_CMD_DEKBLOB is not set
 CONFIG_IDENT_STRING=" odroid-c2"
 # CONFIG_PRE_CONSOLE_BUFFER is not set
 # CONFIG_VIDEO is not set
@@ -333,6 +313,7 @@ CONFIG_CMD_CRC32=y
 #
 # Device access commands
 #
+# CONFIG_CMD_CLK is not set
 CONFIG_CMD_DM=y
 # CONFIG_CMD_DEMO is not set
 CONFIG_CMD_LOADB=y
@@ -380,9 +361,12 @@ CONFIG_CMD_PING=y
 #
 # Misc commands
 #
+# CONFIG_CMD_BSP is not set
 # CONFIG_CMD_BKOPS_ENABLE is not set
 # CONFIG_CMD_CACHE is not set
+# CONFIG_CMD_DISPLAY is not set
 # CONFIG_CMD_LED is not set
+# CONFIG_CMD_DATE is not set
 # CONFIG_CMD_TIME is not set
 CONFIG_CMD_MISC=y
 # CONFIG_CMD_TIMER is not set
@@ -395,6 +379,8 @@ CONFIG_CMD_MISC=y
 #
 # Security commands
 #
+# CONFIG_CMD_AES is not set
+# CONFIG_CMD_BLOB is not set
 
 #
 # Firmware commands
@@ -408,6 +394,13 @@ CONFIG_CMD_EXT4=y
 # CONFIG_CMD_EXT4_WRITE is not set
 CONFIG_CMD_FAT=y
 CONFIG_CMD_FS_GENERIC=y
+# CONFIG_CMD_FS_UUID is not set
+
+#
+# Debug commands
+#
+# CONFIG_CMD_BEDBUG is not set
+# CONFIG_CMD_DIAG is not set
 # CONFIG_CMD_UBI is not set
 
 #
@@ -621,8 +614,11 @@ CONFIG_NETDEVICES=y
 CONFIG_ETH_DESIGNWARE=y
 # CONFIG_ETHOC is not set
 # CONFIG_MACB is not set
+# CONFIG_RGMII is not set
 # CONFIG_RTL8139 is not set
 # CONFIG_RTL8169 is not set
+# CONFIG_SUN7I_GMAC is not set
+# CONFIG_SUN4I_EMAC is not set
 # CONFIG_SUN8I_EMAC is not set
 # CONFIG_GMAC_ROCKCHIP is not set
 # CONFIG_PCI is not set
@@ -636,15 +632,15 @@ CONFIG_PINCTRL_FULL=y
 CONFIG_PINCTRL_GENERIC=y
 CONFIG_PINMUX=y
 # CONFIG_PINCONF is not set
-# CONFIG_ROCKCHIP_RK3036_PINCTRL is not set
-# CONFIG_ROCKCHIP_RK3188_PINCTRL is not set
-# CONFIG_ROCKCHIP_RK3288_PINCTRL is not set
 # CONFIG_PINCTRL_AT91 is not set
 # CONFIG_PINCTRL_AT91PIO4 is not set
-# CONFIG_ROCKCHIP_RK3328_PINCTRL is not set
-# CONFIG_ROCKCHIP_RK3399_PINCTRL is not set
-# CONFIG_PINCTRL_STM32 is not set
+# CONFIG_PINCTRL_ROCKCHIP_RK3036 is not set
+# CONFIG_PINCTRL_ROCKCHIP_RK3188 is not set
+# CONFIG_PINCTRL_ROCKCHIP_RK3288 is not set
+# CONFIG_PINCTRL_ROCKCHIP_RK3328 is not set
+# CONFIG_PINCTRL_ROCKCHIP_RK3399 is not set
 # CONFIG_PINCTRL_SINGLE is not set
+# CONFIG_PINCTRL_STM32 is not set
 CONFIG_PINCTRL_MESON=y
 CONFIG_PINCTRL_MESON_GXBB=y
 
@@ -657,9 +653,11 @@ CONFIG_PINCTRL_MESON_GXBB=y
 #
 # CONFIG_POWER_DOMAIN is not set
 # CONFIG_DM_PMIC is not set
+# CONFIG_PMIC_AS3722 is not set
 # CONFIG_POWER_MC34VR500 is not set
 # CONFIG_DM_REGULATOR is not set
 # CONFIG_DM_PWM is not set
+# CONFIG_PWM_SANDBOX is not set
 # CONFIG_RAM is not set
 
 #
@@ -753,6 +751,7 @@ CONFIG_MESON_SERIAL=y
 # Graphics support
 #
 # CONFIG_DM_VIDEO is not set
+# CONFIG_SYS_WHITE_ON_BLACK is not set
 
 #
 # TrueType Fonts
@@ -775,6 +774,8 @@ CONFIG_MESON_SERIAL=y
 #
 # File systems
 #
+# CONFIG_FS_CBFS is not set
+# CONFIG_FS_CRAMFS is not set
 
 #
 # Library routines
@@ -786,6 +787,11 @@ CONFIG_REGEX=y
 CONFIG_LIB_RAND=y
 # CONFIG_SPL_TINY_MEMSET is not set
 # CONFIG_CMD_DHRYSTONE is not set
+
+#
+# Security support
+#
+# CONFIG_AES is not set
 # CONFIG_RSA is not set
 # CONFIG_TPM is not set
 
