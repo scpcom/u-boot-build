@@ -1,5 +1,5 @@
-odroid-c2-u-boot (2017.05.015) unstable; urgency=medium
+odroid-c2-u-boot (2017.05.016) unstable; urgency=medium
 
   * 2017.05-rc3
 
- -- Heinrich Schuchardt <xypron.glpk@gmx.de>  Tue, 02 May 2017 22:52:33 +0200
+ -- Heinrich Schuchardt <xypron.glpk@gmx.de>  Mon, 08 May 2017 21:46:40 +0200
