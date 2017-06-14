@@ -51,7 +51,7 @@ build:
 
 fip_create:
 	cd hardkernel && git reset --hard
-	cd hardkernel && git checkout 205c7b3259559283161703a1a200b787c2c445a5
+	cd hardkernel && git checkout f9a34305b098cf3e78d2e53f467668ba51881e91
 	cd hardkernel && ( git branch -D build || true )
 	cd hardkernel && git checkout -b build
 	cd hardkernel/tools/fip_create && make
