@@ -1,0 +1,156 @@
+From 1fd3eb30bfd8882b0aae2ec3286dd2eafa9098cf Mon Sep 17 00:00:00 2001
+From: Simon Glass <sjg@chromium.org>
+Date: Sun, 23 Apr 2017 20:10:44 -0600
+Subject: [PATCH 2/3] dm: core: Test uclass_first/next_device() on probe
+ failure
+
+Add some tests which check the behaviour of uclass_first_device() and
+uclass_next_device() when probing of a device fails.
+
+Signed-off-by: Simon Glass <sjg@chromium.org>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ arch/sandbox/dts/test.dts | 19 +++++++++++++
+ include/dm/uclass-id.h    |  1 +
+ test/dm/test-fdt.c        | 72 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 92 insertions(+)
+
+diff --git a/arch/sandbox/dts/test.dts b/arch/sandbox/dts/test.dts
+index 7dde95d4..65b2f8ec 100644
+--- a/arch/sandbox/dts/test.dts
++++ b/arch/sandbox/dts/test.dts
+@@ -289,6 +289,25 @@
+ 		};
+ 	};
+ 
++	probing {
++		compatible = "simple-bus";
++		test1 {
++			compatible = "denx,u-boot-probe-test";
++		};
++
++		test2 {
++			compatible = "denx,u-boot-probe-test";
++		};
++
++		test3 {
++			compatible = "denx,u-boot-probe-test";
++		};
++
++		test4 {
++			compatible = "denx,u-boot-probe-test";
++		};
++	};
++
+ 	pwrdom: power-domain {
+ 		compatible = "sandbox,power-domain";
+ 		#power-domain-cells = <1>;
+diff --git a/include/dm/uclass-id.h b/include/dm/uclass-id.h
+index 1f7e32c3..2e6498b7 100644
+--- a/include/dm/uclass-id.h
++++ b/include/dm/uclass-id.h
+@@ -18,6 +18,7 @@ enum uclass_id {
+ 	UCLASS_TEST,
+ 	UCLASS_TEST_FDT,
+ 	UCLASS_TEST_BUS,
++	UCLASS_TEST_PROBE,
+ 	UCLASS_SPI_EMUL,	/* sandbox SPI device emulator */
+ 	UCLASS_I2C_EMUL,	/* sandbox I2C device emulator */
+ 	UCLASS_PCI_EMUL,	/* sandbox PCI device emulator */
+diff --git a/test/dm/test-fdt.c b/test/dm/test-fdt.c
+index 987a265b..7c9c5deb 100644
+--- a/test/dm/test-fdt.c
++++ b/test/dm/test-fdt.c
+@@ -12,6 +12,7 @@
+ #include <asm/io.h>
+ #include <dm/test.h>
+ #include <dm/root.h>
++#include <dm/device-internal.h>
+ #include <dm/uclass-internal.h>
+ #include <dm/util.h>
+ #include <test/ut.h>
+@@ -99,6 +100,36 @@ UCLASS_DRIVER(testfdt) = {
+ 	.flags		= DM_UC_FLAG_SEQ_ALIAS,
+ };
+ 
++struct dm_testprobe_pdata {
++	int probe_err;
++};
++
++static int testprobe_drv_probe(struct udevice *dev)
++{
++	struct dm_testprobe_pdata *pdata = dev_get_platdata(dev);
++
++	return pdata->probe_err;
++}
++
++static const struct udevice_id testprobe_ids[] = {
++	{ .compatible = "denx,u-boot-probe-test" },
++	{ }
++};
++
++U_BOOT_DRIVER(testprobe_drv) = {
++	.name	= "testprobe_drv",
++	.of_match	= testprobe_ids,
++	.id	= UCLASS_TEST_PROBE,
++	.probe	= testprobe_drv_probe,
++	.platdata_auto_alloc_size	= sizeof(struct dm_testprobe_pdata),
++};
++
++UCLASS_DRIVER(testprobe) = {
++	.name		= "testprobe",
++	.id		= UCLASS_TEST_PROBE,
++	.flags		= DM_UC_FLAG_SEQ_ALIAS,
++};
++
+ int dm_check_devices(struct unit_test_state *uts, int num_devices)
+ {
+ 	struct udevice *dev;
+@@ -267,3 +298,44 @@ static int dm_test_fdt_offset(struct unit_test_state *uts)
+ }
+ DM_TEST(dm_test_fdt_offset,
+ 	DM_TESTF_SCAN_PDATA | DM_TESTF_SCAN_FDT | DM_TESTF_FLAT_TREE);
++
++/**
++ * Test various error conditions with uclass_first_device() and
++ * uclass_next_device()
++ */
++static int dm_test_first_next_device(struct unit_test_state *uts)
++{
++	struct dm_testprobe_pdata *pdata;
++	struct udevice *dev, *parent = NULL;
++	int count;
++	int ret;
++
++	/* There should be 4 devices */
++	for (ret = uclass_first_device(UCLASS_TEST_PROBE, &dev), count = 0;
++	     dev;
++	     ret = uclass_next_device(&dev)) {
++		count++;
++		parent = dev_get_parent(dev);
++		}
++	ut_assertok(ret);
++	ut_asserteq(4, count);
++
++	/* Remove them and try again, with an error on the second one */
++	ut_assertok(uclass_get_device(UCLASS_TEST_PROBE, 1, &dev));
++	pdata = dev_get_platdata(dev);
++	pdata->probe_err = -ENOMEM;
++	device_remove(parent, DM_REMOVE_NORMAL);
++	ut_assertok(uclass_first_device(UCLASS_TEST_PROBE, &dev));
++	ut_asserteq(-ENOMEM, uclass_next_device(&dev));
++	ut_asserteq_ptr(dev, NULL);
++
++	/* Now an error on the first one */
++	ut_assertok(uclass_get_device(UCLASS_TEST_PROBE, 0, &dev));
++	pdata = dev_get_platdata(dev);
++	pdata->probe_err = -ENOENT;
++	device_remove(parent, DM_REMOVE_NORMAL);
++	ut_asserteq(-ENOENT, uclass_first_device(UCLASS_TEST_PROBE, &dev));
++
++	return 0;
++}
++DM_TEST(dm_test_first_next_device, DM_TESTF_SCAN_PDATA | DM_TESTF_SCAN_FDT);
+-- 
+2.11.0
+

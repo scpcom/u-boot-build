@@ -1,2 +1,0 @@
-#!/bin/sh
-git am ../patch/0001-meson-gx-reserved-memory-regions.patch

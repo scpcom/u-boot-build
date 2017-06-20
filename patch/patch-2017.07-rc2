@@ -1,0 +1,7 @@
+#!/bin/sh
+git am ../patch/0001-dm-core-Clarify-uclass_first-next_device-comments.patch
+git am ../patch/0002-dm-core-Test-uclass_first-next_device-on-probe-failu.patch
+git am ../patch/0003-dm-core-Add-uclass_first-next_device_check.patch
+
+git am ../patch/0001-meson-gx-reserved-memory-regions.patch
+git am ../patch/0001-efi_loader-disk-iterate-only-over-valid-block-device.patch
