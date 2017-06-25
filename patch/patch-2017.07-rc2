@@ -6,3 +6,6 @@ git am ../patch/0003-dm-core-Add-uclass_first-next_device_check.patch
 git am ../patch/0001-meson-gx-reserved-memory-regions.patch
 git am ../patch/0001-efi_loader-disk-iterate-only-over-valid-block-device.patch
 git am ../patch/0001-bootefi-allow-return-without-EFI_BOOT_SERVICES.Exit.patch
+
+git am ../patch/0001-efi_loader-abort-on-unsupported-relocation-type.patch
+git am ../patch/0001-efi_loader-provide-meaningful-return-code.patch
