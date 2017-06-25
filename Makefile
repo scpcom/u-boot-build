@@ -16,7 +16,11 @@ undefine MK_ARCH
 
 export LOCALVERSION:=-R$(REVISION)
 
-all: prepare build fip_create sign
+all:
+	make prepare
+	make build
+	make fip_create
+	make sign
 
 prepare:
 	test -d denx || git clone -v \
