@@ -37,6 +37,7 @@ prepare:
 	  git config --global user.name "somebody" )
 
 build:
+	cd denx && git fetch
 	cd denx && git verify-tag $(TAGPREFIX)$(TAG) 2>&1 | \
 	grep 'E872 DB40 9C1A 687E FBE8  6336 87F9 F635 D31D 7652'
 	cd denx && git reset --hard
@@ -50,6 +51,7 @@ build:
 	cd denx && make -j6
 
 fip_create:
+	cd hardkernel && git fetch
 	cd hardkernel && git reset --hard
 	cd hardkernel && git checkout f9a34305b098cf3e78d2e53f467668ba51881e91
 	cd hardkernel && ( git branch -D build || true )
@@ -63,6 +65,7 @@ fip_create:
 	cd hardkernel/fip/gxb && cat bl2.package fip.bin > boot_new.bin
 
 sign:
+	cd meson-tools && git fetch
 	cd meson-tools && git verify-tag $(MESON_TOOLS_TAG) 2>&1 | \
 	grep '174F 0347 1BCC 221A 6175  6F96 FA2E D12D 3E7E 013F'
 	cd meson-tools && git reset --hard
