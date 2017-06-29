@@ -60,6 +60,8 @@ fip_create:
 	cd hardkernel && git checkout f9a34305b098cf3e78d2e53f467668ba51881e91
 	cd hardkernel && ( git branch -D build || true )
 	cd hardkernel && git checkout -b build
+	test ! -f patch/patch-hardkernel || \
+	  ( cd hardkernel && ../patch/patch-hardkernel )
 	cd hardkernel/tools/fip_create && make
 	cp hardkernel/tools/fip_create/fip_create hardkernel/fip
 	cp denx/u-boot.bin hardkernel/fip/gxb/bl33.bin
