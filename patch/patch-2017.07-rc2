@@ -21,4 +21,5 @@ git am ../patch/0001-efi_loader-provide-meaningful-return-code.patch
 # EFI protocol services
 git am ../patch/0001-efi_loader-efi_handle_protocol-set-attributes.patch
 git am ../patch/0001-efi_loader-clean-up-efi_open_protocol.patch
-git am ../patch/001-efi_loader-implement-InstallProtocolInterface.patch 
+git am ../patch/0001-efi_loader-efi_open_protocol-parameter-checks.patch
+git am ../patch/0001-efi_loader-implement-InstallProtocolInterface.patch
