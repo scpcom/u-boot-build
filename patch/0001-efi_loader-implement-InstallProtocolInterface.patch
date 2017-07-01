@@ -1,0 +1,99 @@
+From d95327e0d00244f24bd4bc2a69331f1a91d2e3ad Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 1 Jul 2017 14:58:42 +0200
+Subject: [PATCH 1/1] efi_loader: implement InstallProtocolInterface
+
+efi_install_protocol_interface up to now only returned an error code.
+
+The patch implements the UEFI specification for InstallProtocolInterface
+with the exception that it will not create new handles.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h             |  2 +-
+ lib/efi_loader/efi_boottime.c | 55 ++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 53 insertions(+), 4 deletions(-)
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index de36559787..76bf612558 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -58,7 +58,7 @@ struct efi_boot_services {
+ 	efi_status_t (EFIAPI *signal_event)(void *event);
+ 	efi_status_t (EFIAPI *close_event)(void *event);
+ 	efi_status_t (EFIAPI *check_event)(void *event);
+-
++#define EFI_NATIVE_INTERFACE	0x00000000
+ 	efi_status_t (EFIAPI *install_protocol_interface)(
+ 			void **handle, efi_guid_t *protocol,
+ 			int protocol_interface_type, void *protocol_interface);
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 64c027227f..ea4008a669 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -301,10 +301,59 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+ 			efi_guid_t *protocol, int protocol_interface_type,
+ 			void *protocol_interface)
+ {
+-	EFI_ENTRY("%p, %p, %d, %p", handle, protocol, protocol_interface_type,
+-		  protocol_interface);
+-	return EFI_EXIT(EFI_OUT_OF_RESOURCES);
++	struct list_head *lhandle;
++	int i;
++	efi_status_t r;
++
++	EFI_ENTRY("%p->%p, %p, %d, %p", handle, handle ? *handle : NULL,
++		  protocol, protocol_interface_type, protocol_interface);
++
++	if (!handle || !protocol ||
++	    protocol_interface_type != EFI_NATIVE_INTERFACE) {
++		r = EFI_INVALID_PARAMETER;
++		goto out;
++	}
++
++	/* Create new handle if requested. */
++	if (!*handle) {
++		r = EFI_OUT_OF_RESOURCES;
++		goto out;
++	}
++	/* Find object. */
++	list_for_each(lhandle, &efi_obj_list) {
++		struct efi_object *efiobj;
++		efiobj = list_entry(lhandle, struct efi_object, link);
++
++		if (efiobj->handle != *handle)
++			continue;
++		/* Check if protocol is already installed on the handle. */
++		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
++			struct efi_handler *handler = &efiobj->protocols[i];
++
++			if (handler->guid == protocol) {
++				r = EFI_INVALID_PARAMETER;
++				goto out;
++			}
++		/* Install protocol in first empty slot. */
++		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
++			struct efi_handler *handler = &efiobj->protocols[i];
++
++			if (handler->guid)
++				continue;
++
++			handler->guid = protocol;
++			handler->protocol_interface = protocol_interface;
++			r = EFI_SUCCESS;
++			}
++		}
++		r = EFI_OUT_OF_RESOURCES;
++		goto out;
++	}
++	r = EFI_INVALID_PARAMETER;
++out:
++	return EFI_EXIT(r);
+ }
++
+ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
+ 			efi_guid_t *protocol, void *old_interface,
+ 			void *new_interface)
+-- 
+2.11.0
+
