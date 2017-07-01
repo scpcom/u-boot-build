@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Patch series to correctly create events
+git am ../patch/0001-efi_loader-run-CreateEvent-notify-function-based-on-.patch
+git am ../patch/0002-efi_loader-check-CreateEvent-parameters.patch
+
 # Patch series to correctly enumerate disks in bootefi
 git am ../patch/0001-dm-core-Clarify-uclass_first-next_device-comments.patch
 git am ../patch/0002-dm-core-Test-uclass_first-next_device-on-probe-failu.patch

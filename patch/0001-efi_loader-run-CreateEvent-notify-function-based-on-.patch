@@ -1,0 +1,52 @@
+From d832a991e2936499d2c03d959966ddde3faa6281 Mon Sep 17 00:00:00 2001
+From: Jonathan Gray <jsg@jsg.id.au>
+Date: Sun, 12 Mar 2017 19:26:06 +1100
+Subject: [PATCH 1/2] efi_loader: run CreateEvent() notify function based on
+ flags
+
+The UEFI specification states that the tpl, function and context
+arguments are to be ignored if neither EVT_NOTIFY_WAIT or
+EVT_NOTIFY_SIGNAL are specified.  This matches observed behaviour with
+an AMI EDK2 based UEFI implementation.
+
+Skip calling the notify function if neither flag is present.
+
+Signed-off-by: Jonathan Gray <jsg@jsg.id.au>
+Acked-By: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h             | 3 +++
+ lib/efi_loader/efi_boottime.c | 4 +++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index 5c3836a51b..f071b36b53 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -28,6 +28,9 @@ enum efi_event_type {
+ 	EFI_TIMER_RELATIVE = 2
+ };
+ 
++#define EVT_NOTIFY_WAIT		0x00000100
++#define EVT_NOTIFY_SIGNAL	0x00000200
++
+ /* EFI Boot Services table */
+ struct efi_boot_services {
+ 	struct efi_table_hdr hdr;
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 51080cbeed..eb5946a959 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -210,7 +210,9 @@ void efi_timer_check(void)
+ 		/* Triggering! */
+ 		if (efi_event.trigger_type == EFI_TIMER_PERIODIC)
+ 			efi_event.trigger_next += efi_event.trigger_time / 10;
+-		efi_event.notify_function(&efi_event, efi_event.notify_context);
++		if (efi_event.type & (EVT_NOTIFY_WAIT | EVT_NOTIFY_SIGNAL))
++			efi_event.notify_function(&efi_event,
++			                          efi_event.notify_context);
+ 	}
+ 
+ 	WATCHDOG_RESET();
+-- 
+2.11.0
+

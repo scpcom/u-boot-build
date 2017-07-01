@@ -1,0 +1,38 @@
+From 798aad0d9c708d15c5f251a7b659c0f26605c980 Mon Sep 17 00:00:00 2001
+From: Jonathan Gray <jsg@jsg.id.au>
+Date: Sun, 12 Mar 2017 19:26:07 +1100
+Subject: [PATCH 2/2] efi_loader: check CreateEvent() parameters
+
+Add some of the invalid parameter checks described in the UEFI
+specification for CreateEvent().  This does not include checking
+the validity of the type and tpl parameters.
+
+Signed-off-by: Jonathan Gray <jsg@jsg.id.au>
+---
+ lib/efi_loader/efi_boottime.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index eb5946a959..7172b690a5 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -189,6 +189,16 @@ static efi_status_t EFIAPI efi_create_event(
+ 		return EFI_EXIT(EFI_OUT_OF_RESOURCES);
+ 	}
+ 
++	if (event == NULL)
++		return EFI_EXIT(EFI_INVALID_PARAMETER);
++
++	if ((type & EVT_NOTIFY_SIGNAL) && (type & EVT_NOTIFY_WAIT))
++		return EFI_EXIT(EFI_INVALID_PARAMETER);
++
++	if ((type & (EVT_NOTIFY_SIGNAL|EVT_NOTIFY_WAIT)) &&
++	     notify_function == NULL)
++		return EFI_EXIT(EFI_INVALID_PARAMETER);
++
+ 	efi_event.type = type;
+ 	efi_event.notify_tpl = notify_tpl;
+ 	efi_event.notify_function = notify_function;
+-- 
+2.11.0
+
