@@ -13,6 +13,9 @@ git am ../patch/0001-efi_loader-disk-iterate-only-over-valid-block-device.patch
 # Rerved memory regions for Odroid C2
 git am ../patch/0001-meson-gx-reserved-memory-regions.patch
 
+# Enable debug messages in boottime services
+git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
+
 # Launching EFI application
 git am ../patch/0001-bootefi-allow-return-without-EFI_BOOT_SERVICES.Exit.patch
 git am ../patch/0001-efi_loader-abort-on-unsupported-relocation-type.patch

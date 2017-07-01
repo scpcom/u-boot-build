@@ -1,0 +1,25 @@
+From d6992a6b3b0657fec9a90e5d0342f76b4ea13ae4 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 1 Jul 2017 22:46:44 +0200
+Subject: [PATCH] efi_loader: switch on debug in efi_boottime
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 1fd31bb06b..85038efd6c 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -6,6 +6,7 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
+ #include <common.h>
+ #include <efi_loader.h>
+ #include <malloc.h>
+-- 
+2.11.0
+
