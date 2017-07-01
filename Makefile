@@ -14,7 +14,7 @@ ifneq ("aarch64", $(MK_ARCH))
 endif
 undefine MK_ARCH
 
-export LOCALVERSION:=-R$(REVISION)
+export LOCALVERSION:=-P$(REVISION)
 
 all:
 	make prepare
