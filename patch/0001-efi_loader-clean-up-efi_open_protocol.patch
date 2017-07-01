@@ -1,0 +1,286 @@
+From 15b622ea42eaf93ee3def6206a11c8858bcb862b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 1 Jul 2017 12:22:47 +0200
+Subject: [PATCH 1/1] efi_loader: clean up efi_open_protocol
+
+efi_open_protocol was implemented to call a protocol specific open
+function to retrieve the protocol interface.
+
+The UEFI specification does not know of such a function.
+
+It is not possible to implement InstallProtocolInterface with the
+current design.
+
+With the patch the protocol interface itself is stored in the list
+of installed protocols of an efi_object instead of an open function.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c                     | 14 +++-----------
+ include/efi_loader.h              | 17 ++---------------
+ lib/efi_loader/efi_boottime.c     | 10 ++++++----
+ lib/efi_loader/efi_disk.c         | 29 +++--------------------------
+ lib/efi_loader/efi_gop.c          |  2 +-
+ lib/efi_loader/efi_image_loader.c |  8 --------
+ lib/efi_loader/efi_net.c          | 30 +++---------------------------
+ 7 files changed, 18 insertions(+), 92 deletions(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 8a8dda3d7c..10076a461c 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -55,14 +55,6 @@ static struct efi_device_path_file_path bootefi_device_path[] = {
+ 	}
+ };
+ 
+-static efi_status_t EFIAPI bootefi_open_dp(void *handle, efi_guid_t *protocol,
+-			void **protocol_interface, void *agent_handle,
+-			void *controller_handle, uint32_t attributes)
+-{
+-	*protocol_interface = bootefi_device_path;
+-	return EFI_SUCCESS;
+-}
+-
+ /* The EFI loaded_image interface for the image executed via "bootefi" */
+ static struct efi_loaded_image loaded_image_info = {
+ 	.device_handle = bootefi_device_path,
+@@ -79,7 +71,7 @@ static struct efi_object loaded_image_info_obj = {
+ 			 * return handle which points to loaded_image_info
+ 			 */
+ 			.guid = &efi_guid_loaded_image,
+-			.open = &efi_return_handle,
++			.protocol_interface = &loaded_image_info,
+ 		},
+ 		{
+ 			/*
+@@ -87,7 +79,7 @@ static struct efi_object loaded_image_info_obj = {
+ 			 * bootefi_device_path
+ 			 */
+ 			.guid = &efi_guid_device_path,
+-			.open = &bootefi_open_dp,
++			.protocol_interface = bootefi_device_path,
+ 		},
+ 	},
+ };
+@@ -100,7 +92,7 @@ static struct efi_object bootefi_device_obj = {
+ 			/* When asking for the device path interface, return
+ 			 * bootefi_device_path */
+ 			.guid = &efi_guid_device_path,
+-			.open = &bootefi_open_dp,
++			.protocol_interface = bootefi_device_path
+ 		}
+ 	},
+ };
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 47245049ab..1badb0b90f 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -49,15 +49,10 @@ struct efi_class_map {
+ /*
+  * When the UEFI payload wants to open a protocol on an object to get its
+  * interface (usually a struct with callback functions), this struct maps the
+- * protocol GUID to the respective protocol handler open function for that
+- * object protocol combination.
+- */
++ * protocol GUID to the respective protocol interface */
+ struct efi_handler {
+ 	const efi_guid_t *guid;
+-	efi_status_t (EFIAPI *open)(void *handle,
+-			efi_guid_t *protocol, void **protocol_interface,
+-			void *agent_handle, void *controller_handle,
+-			uint32_t attributes);
++	void *protocol_interface;
+ };
+ 
+ /*
+@@ -91,14 +86,6 @@ void efi_smbios_register(void);
+ /* Called by networking code to memorize the dhcp ack package */
+ void efi_net_set_dhcp_ack(void *pkt, int len);
+ 
+-/*
+- * Stub implementation for a protocol opener that just returns the handle as
+- * interface
+- */
+-efi_status_t EFIAPI efi_return_handle(void *handle,
+-		efi_guid_t *protocol, void **protocol_interface,
+-		void *agent_handle, void *controller_handle,
+-		uint32_t attributes);
+ /* Called from places to check whether a timer expired */
+ void efi_timer_check(void);
+ /* PE loader implementation */
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index c98cecef14..beb79492bc 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -440,7 +440,6 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
+ 		.protocols = {
+ 			{
+ 				.guid = &efi_guid_loaded_image,
+-				.open = &efi_return_handle,
+ 			},
+ 		},
+ 	};
+@@ -450,6 +449,7 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
+ 	EFI_ENTRY("%d, %p, %p, %p, %ld, %p", boot_policy, parent_image,
+ 		  file_path, source_buffer, source_size, image_handle);
+ 	info = malloc(sizeof(*info));
++	loaded_image_info_obj.protocols[0].protocol_interface = info;
+ 	obj = malloc(sizeof(loaded_image_info_obj));
+ 	memset(info, 0, sizeof(*info));
+ 	memcpy(obj, &loaded_image_info_obj, sizeof(loaded_image_info_obj));
+@@ -734,9 +734,11 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 			if (!hprotocol)
+ 				break;
+ 			if (!guidcmp(hprotocol, protocol)) {
+-				r = handler->open(handle, protocol,
+-				    protocol_interface, agent_handle,
+-				    controller_handle, attributes);
++				if (handler->protocol_interface) {
++					r = EFI_SUCCESS;
++					*protocol_interface =
++						handler->protocol_interface;
++					}
+ 				goto out;
+ 			}
+ 		}
+diff --git a/lib/efi_loader/efi_disk.c b/lib/efi_loader/efi_disk.c
+index 4e8e7d0ad6..18ece00f11 100644
+--- a/lib/efi_loader/efi_disk.c
++++ b/lib/efi_loader/efi_disk.c
+@@ -35,29 +35,6 @@ struct efi_disk_obj {
+ 	const struct blk_desc *desc;
+ };
+ 
+-static efi_status_t EFIAPI efi_disk_open_block(void *handle,
+-			efi_guid_t *protocol, void **protocol_interface,
+-			void *agent_handle, void *controller_handle,
+-			uint32_t attributes)
+-{
+-	struct efi_disk_obj *diskobj = handle;
+-
+-	*protocol_interface = &diskobj->ops;
+-
+-	return EFI_SUCCESS;
+-}
+-
+-static efi_status_t EFIAPI efi_disk_open_dp(void *handle, efi_guid_t *protocol,
+-			void **protocol_interface, void *agent_handle,
+-			void *controller_handle, uint32_t attributes)
+-{
+-	struct efi_disk_obj *diskobj = handle;
+-
+-	*protocol_interface = diskobj->dp;
+-
+-	return EFI_SUCCESS;
+-}
+-
+ static efi_status_t EFIAPI efi_disk_reset(struct efi_block_io *this,
+ 			char extended_verification)
+ {
+@@ -210,10 +187,11 @@ static void efi_disk_add_dev(const char *name,
+ 	diskobj = calloc(1, objlen);
+ 
+ 	/* Fill in object data */
++	dp = (void *)&diskobj[1];
+ 	diskobj->parent.protocols[0].guid = &efi_block_io_guid;
+-	diskobj->parent.protocols[0].open = efi_disk_open_block;
++	diskobj->parent.protocols[0].protocol_interface = &diskobj->ops;
+ 	diskobj->parent.protocols[1].guid = &efi_guid_device_path;
+-	diskobj->parent.protocols[1].open = efi_disk_open_dp;
++	diskobj->parent.protocols[1].protocol_interface = dp;
+ 	diskobj->parent.handle = diskobj;
+ 	diskobj->ops = block_io_disk_template;
+ 	diskobj->ifname = if_typename;
+@@ -230,7 +208,6 @@ static void efi_disk_add_dev(const char *name,
+ 	diskobj->ops.media = &diskobj->media;
+ 
+ 	/* Fill in device path */
+-	dp = (void*)&diskobj[1];
+ 	diskobj->dp = dp;
+ 	dp[0].dp.type = DEVICE_PATH_TYPE_MEDIA_DEVICE;
+ 	dp[0].dp.sub_type = DEVICE_PATH_SUB_TYPE_FILE_PATH;
+diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
+index 286ad83097..c491ca0815 100644
+--- a/lib/efi_loader/efi_gop.c
++++ b/lib/efi_loader/efi_gop.c
+@@ -172,7 +172,7 @@ int efi_gop_register(void)
+ 
+ 	/* Fill in object data */
+ 	gopobj->parent.protocols[0].guid = &efi_gop_guid;
+-	gopobj->parent.protocols[0].open = efi_return_handle;
++	gopobj->parent.protocols[0].open = &gopobj->ops;
+ 	gopobj->parent.handle = &gopobj->ops;
+ 	gopobj->ops.query_mode = gop_query_mode;
+ 	gopobj->ops.set_mode = gop_set_mode;
+diff --git a/lib/efi_loader/efi_image_loader.c b/lib/efi_loader/efi_image_loader.c
+index fa081ff165..2438abb5ff 100644
+--- a/lib/efi_loader/efi_image_loader.c
++++ b/lib/efi_loader/efi_image_loader.c
+@@ -94,14 +94,6 @@ const char *efi_status_to_str(efi_status_t r)
+ 	}
+ }
+ 
+-efi_status_t EFIAPI efi_return_handle(void *handle, efi_guid_t *protocol,
+-			void **protocol_interface, void *agent_handle,
+-			void *controller_handle, uint32_t attributes)
+-{
+-	*protocol_interface = handle;
+-	return EFI_SUCCESS;
+-}
+-
+ static efi_status_t efi_loader_relocate(const IMAGE_BASE_RELOCATION *rel,
+ 			unsigned long rel_size, void *efi_reloc)
+ {
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index 604ac6e040..0b949d86e8 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -199,30 +199,6 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
+ 	return EFI_EXIT(EFI_SUCCESS);
+ }
+ 
+-static efi_status_t EFIAPI efi_net_open_dp(void *handle, efi_guid_t *protocol,
+-			void **protocol_interface, void *agent_handle,
+-			void *controller_handle, uint32_t attributes)
+-{
+-	struct efi_simple_network *net = handle;
+-	struct efi_net_obj *netobj = container_of(net, struct efi_net_obj, net);
+-
+-	*protocol_interface = &netobj->dp_mac;
+-
+-	return EFI_SUCCESS;
+-}
+-
+-static efi_status_t EFIAPI efi_net_open_pxe(void *handle, efi_guid_t *protocol,
+-			void **protocol_interface, void *agent_handle,
+-			void *controller_handle, uint32_t attributes)
+-{
+-	struct efi_simple_network *net = handle;
+-	struct efi_net_obj *netobj = container_of(net, struct efi_net_obj, net);
+-
+-	*protocol_interface = &netobj->pxe;
+-
+-	return EFI_SUCCESS;
+-}
+-
+ void efi_net_set_dhcp_ack(void *pkt, int len)
+ {
+ 	int maxsize = sizeof(*dhcp_ack);
+@@ -258,11 +234,11 @@ int efi_net_register(void **handle)
+ 
+ 	/* Fill in object data */
+ 	netobj->parent.protocols[0].guid = &efi_net_guid;
+-	netobj->parent.protocols[0].open = efi_return_handle;
++	netobj->parent.protocols[0].protocol_interface = &netobj->net;
+ 	netobj->parent.protocols[1].guid = &efi_guid_device_path;
+-	netobj->parent.protocols[1].open = efi_net_open_dp;
++	netobj->parent.protocols[1].protocol_interface = &netobj->dp_mac;
+ 	netobj->parent.protocols[2].guid = &efi_pxe_guid;
+-	netobj->parent.protocols[2].open = efi_net_open_pxe;
++	netobj->parent.protocols[2].protocol_interface = &netobj->pxe;
+ 	netobj->parent.handle = &netobj->net;
+ 	netobj->net.start = efi_net_start;
+ 	netobj->net.stop = efi_net_stop;
+-- 
+2.11.0
+
