@@ -1,7 +1,7 @@
-From 1fa7f622f5fec7c36e6e2db25077a0b0206912d6 Mon Sep 17 00:00:00 2001
+From a1b72afefa7c9c2c256a30b543d4063beb3c4855 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 15:40:19 +0200
-Subject: [PATCH] efi_loader: implement UninstallProtocolInterface
+Subject: [PATCH 1/1] efi_loader: implement UninstallProtocolInterface
 
 Without the patch efi_uninstall_protocol_interface always returns an
 error.
@@ -14,7 +14,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 35 insertions(+), 2 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 5e789e48f5..19187a0401 100644
+index 86dd56bf4b..7f75240383 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -366,8 +366,41 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
@@ -44,9 +44,9 @@ index 5e789e48f5..19187a0401 100644
 +			struct efi_handler *handler = &efiobj->protocols[i];
 +			const efi_guid_t *hprotocol = handler->guid;
 +			if (!guidcmp(hprotocol, protocol)) {
-+				if (handler->protocol_interface)
++				if (handler->protocol_interface) {
 +					r = EFI_ACCESS_DENIED;
-+				else {
++				} else {
 +					handler->guid = 0;
 +					r = EFI_SUCCESS;
 +				}
@@ -60,15 +60,15 @@ index 5e789e48f5..19187a0401 100644
  }
  
  static efi_status_t EFIAPI efi_register_protocol_notify(efi_guid_t *protocol,
-@@ -810,7 +843,7 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -808,7 +841,7 @@ static efi_status_t EFIAPI efi_open_protocol(
  			struct efi_handler *handler = &efiobj->protocols[i];
  			const efi_guid_t *hprotocol = handler->guid;
  			if (!hprotocol)
 -				break;
 +				continue;
  			if (!guidcmp(hprotocol, protocol)) {
- 				if (attributes != EFI_BOOT_TEST_PROTOCOL) {
- 					*protocol_interface =
+ 				if (attributes !=
+ 				    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
 -- 
 2.11.0
 

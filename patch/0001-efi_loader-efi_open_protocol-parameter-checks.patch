@@ -1,6 +1,6 @@
-From 77b09da579df6d2a8e2de2793b22795a9f014cf1 Mon Sep 17 00:00:00 2001
+From 698d665bcf00d6bb94189570144dd481b35e5bf5 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Sat, 1 Jul 2017 17:37:31 +0200
+Date: Sat, 1 Jul 2017 18:46:57 +0200
 Subject: [PATCH 1/1] efi_loader: efi_open_protocol: parameter checks
 
 Add all parameter checks for function efi_open_protocol that do not
@@ -8,14 +8,14 @@ depend on a locking table.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 32 +++++++++++++++++++++++++++++---
- 1 file changed, 29 insertions(+), 3 deletions(-)
+ lib/efi_loader/efi_boottime.c | 31 +++++++++++++++++++++++++++----
+ 1 file changed, 27 insertions(+), 4 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 2394fe3378..28025d3736 100644
+index da85d84248..98bfcef7b8 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -716,14 +716,37 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -716,15 +716,35 @@ static efi_status_t EFIAPI efi_open_protocol(
  {
  	struct list_head *lhandle;
  	int i;
@@ -26,37 +26,36 @@ index 2394fe3378..28025d3736 100644
  		  protocol_interface, agent_handle, controller_handle,
  		  attributes);
  
--	if (!protocol_interface && attributes != EFI_BOOT_TEST_PROTOCOL) {
+-	if (!protocol_interface && attributes !=
+-	    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
 -		r = EFI_INVALID_PARAMETER;
 +	if (!handle || !protocol ||
-+	    (!protocol_interface && attributes != EFI_BOOT_TEST_PROTOCOL)) {
++	    (!protocol_interface && attributes !=
++	     EFI_OPEN_PROTOCOL_TEST_PROTOCOL)) {
 +		goto out;
 +	}
 +
-+	switch(attributes) {
++	switch (attributes) {
 +	case EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL:
-+	case EFI_BOOT_PROTOCOL_GET_PROTOCOL:
-+	case EFI_BOOT_PROTOCOL_TEST_PROTOCOL:
++	case EFI_OPEN_PROTOCOL_GET_PROTOCOL:
++	case EFI_OPEN_PROTOCOL_TEST_PROTOCOL:
 +		break;
-+	case EFI_BOOT_PROTOCOL_BY_CHILD_CONTROLER:
-+		if (controler_handle == handle) {
++	case EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER:
++		if (controller_handle == handle)
 +			goto out;
-+		}
-+	case EFI_BOOT_PROTOCOL_BY_DRIVER:
-+	case EFI_BOOT_PROTOCOL_BY_DRIVER | EFI_BOOT_PROTOCOL_EXLUSIVE:
-+		if (controler_handle == NULL) {
++	case EFI_OPEN_PROTOCOL_BY_DRIVER:
++	case EFI_OPEN_PROTOCOL_BY_DRIVER | EFI_OPEN_PROTOCOL_EXCLUSIVE:
++		if (controller_handle == NULL)
 +			goto out;
-+		}
-+	case EFI_BOOT_PROTOCOL_EXLUSIVE:
-+		if (agent_handle == NULL) {
++	case EFI_OPEN_PROTOCOL_EXCLUSIVE:
++		if (agent_handle == NULL)
 +			goto out;
-+		}
 +		break;
-+	case default:
++	default:
  		goto out;
  	}
  
-@@ -748,8 +771,11 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -750,8 +770,11 @@ static efi_status_t EFIAPI efi_open_protocol(
  				goto out;
  			}
  		}
