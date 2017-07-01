@@ -11,6 +11,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
 v2:
 	remove unnecessary CONFIG_OF_LIBFDT=y
+---
  configs/odroid-c2_defconfig | 1 +
  1 file changed, 1 insertion(+)
 
