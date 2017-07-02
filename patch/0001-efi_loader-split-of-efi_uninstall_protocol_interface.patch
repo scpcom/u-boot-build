@@ -1,0 +1,60 @@
+From 899a4850b3d747c1f3150b00374dd223454709f5 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 2 Jul 2017 11:31:37 +0200
+Subject: [PATCH 1/1] efi_loader: split of efi_uninstall_protocol_interface_ext
+
+For the implementation of InstallMultipleProtocolIntefaces we need to
+call efi_uninstall_protocol_interface. In internal calls we should not
+pass through EFI_EXIT.
+
+The patch introduces a wrapper function
+efi_uninstall_protocol_interface_ext.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 0c8fe33059..d9a3a67fbb 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -381,8 +381,6 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(void *handle,
+ 	int i;
+ 	efi_status_t r = EFI_NOT_FOUND;
+ 
+-	EFI_ENTRY("%p, %p, %p", handle, protocol, protocol_interface);
+-
+ 	if (!handle || !protocol) {
+ 		r = EFI_INVALID_PARAMETER;
+ 		goto out;
+@@ -411,7 +409,16 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(void *handle,
+ 	}
+ 
+ out:
+-	return EFI_EXIT(r);
++	return r;
++}
++
++static efi_status_t EFIAPI efi_uninstall_protocol_interface_ext(void *handle,
++			efi_guid_t *protocol, void *protocol_interface)
++{
++	EFI_ENTRY("%p, %p, %p", handle, protocol, protocol_interface);
++
++	return EFI_EXIT(efi_uninstall_protocol_interface(handle, protocol,
++							 protocol_interface));
+ }
+ 
+ static efi_status_t EFIAPI efi_register_protocol_notify(efi_guid_t *protocol,
+@@ -899,7 +906,7 @@ static const struct efi_boot_services efi_boot_services = {
+ 	.check_event = efi_check_event,
+ 	.install_protocol_interface = efi_install_protocol_interface_ext,
+ 	.reinstall_protocol_interface = efi_reinstall_protocol_interface,
+-	.uninstall_protocol_interface = efi_uninstall_protocol_interface,
++	.uninstall_protocol_interface = efi_uninstall_protocol_interface_ext,
+ 	.handle_protocol = efi_handle_protocol,
+ 	.reserved = NULL,
+ 	.register_protocol_notify = efi_register_protocol_notify,
+-- 
+2.11.0
+
