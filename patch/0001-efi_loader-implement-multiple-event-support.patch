@@ -1,7 +1,7 @@
-From 5d4443fc1022360fe6016075e76711abebaeffaa Mon Sep 17 00:00:00 2001
+From d981a64c399c9a6cb8aef759c09803383565152c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 14:48:05 +0200
-Subject: [PATCH 1/1] efi_loader: implement multiple event support
+Subject: [PATCH] efi_loader: implement multiple event support
 
 Up to now the boot time supported only a single event.
 This patch now allows four events.
@@ -67,7 +67,7 @@ index 1badb0b90f..77081eda3d 100644
  extern struct list_head efi_obj_list;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 70c84a4455..a194dd7906 100644
+index 70c84a4455..36658b2634 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -161,21 +161,10 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
@@ -162,10 +162,10 @@ index 70c84a4455..a194dd7906 100644
 +				efi_events[i].trigger_time / 10;
 +		efi_events[i].signaled = 1;
 +		if (efi_events[i].type & EVT_NOTIFY_SIGNAL) {
-+			EFI_EXIT(EFI_SUCCESS)
++			EFI_EXIT(EFI_SUCCESS);
 +			efi_events[i].notify_function(&efi_events[i],
 +					efi_events[i].notify_context);
-+			EFI_ENTRY("returning from notify function");
++			efi_restore_gd();
 +			}
  	}
 -
@@ -265,7 +265,7 @@ index 70c84a4455..a194dd7906 100644
 +			EFI_EXIT(EFI_SUCCESS);
 +			efi_events[i].notify_function(&efi_events[i],
 +					efi_events[i].notify_context);
-+			EFI_ENTRY("returning from notify function");
++			efi_restore_gd();
 +		}
 +		break;
 +	}
