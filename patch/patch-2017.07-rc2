@@ -28,4 +28,5 @@ git am ../patch/0001-efi_loader-efi_open_protocol-parameter-checks.patch
 git am ../patch/0001-efi_loader-implement-InstallProtocolInterface.patch
 git am ../patch/0001-efi_loader-implement-UninstallProtocolInterface.patch
 git am ../patch/0001-efi_loader-implement-InstallMultipleProtocolInterfac.patch
+git am ../patch/0001-efi_loader-split-of-efi_locate_handle_ext.patch
 git am ../patch/0001-efi_loader-implement-LocateHandleBuffer.patch
