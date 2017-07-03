@@ -20,7 +20,7 @@ diff --git a/cmd/bootefi.c b/cmd/bootefi.c
 index fcb223e999..51353b1217 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
-@@ -247,8 +247,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
+@@ -247,7 +247,6 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
  	debug("%s:%d Jumping to 0x%lx\n", __func__, __LINE__, (long)entry);
  
  	if (setjmp(&loaded_image_info.exit_jmp)) {
@@ -28,7 +28,6 @@ index fcb223e999..51353b1217 100644
 -		return status == EFI_SUCCESS ? 0 : -EINVAL;
 +		return loaded_image_info.exit_status;
  	}
- 	loaded_image_info.entry = entry;
  
 @@ -277,7 +276,7 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  {
