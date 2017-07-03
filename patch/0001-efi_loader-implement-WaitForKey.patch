@@ -35,8 +35,8 @@ index a194dd7906..0f41795795 100644
   * Our event capabilities are very limited. Only a small limited
   * number of events is allowed to coexist.
   */
--static struct efi_event efi_events[4];
-+struct efi_event efi_events[4] = {
+-static struct efi_event efi_events[16];
++struct efi_event efi_events[16] = {
 +	{
 +		/* WaitForKey */
 +		.type = EVT_NOTIFY_WAIT,

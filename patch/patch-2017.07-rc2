@@ -36,3 +36,4 @@ git am ../patch/0001-efi_loader-implement-LocateHandleBuffer.patch
 # EFI event services
 git am ../patch/0001-efi_loader-implement-multiple-event-support.patch
 git am ../patch/0001-efi_loader-implement-WaitForKey.patch
+git am ../patch/0001-efi_loader-no-debug-message-on-wait-for-key.patch

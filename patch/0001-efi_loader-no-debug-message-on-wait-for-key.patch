@@ -1,0 +1,36 @@
+From 7a342d28c402d0646e4b4e47ce22fd345ac56952 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 3 Jul 2017 12:07:58 +0200
+Subject: [PATCH 1/1] efi_loader: no debug message on wait for key
+
+If efi_check_event is called in a loop waiting for keyboard input
+the screen is flooded with debug messages.
+
+So only write debug message for other events.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 132ec70918..18f8647fa6 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -338,7 +338,12 @@ static efi_status_t EFIAPI efi_check_event(void *event)
+ {
+ 	int i;
+ 
+-	EFI_ENTRY("%p", event);
++	/* Dont spam us on wait for key */
++	if (event == &efi_events[0])
++		efi_restore_gd();
++	else
++		EFI_ENTRY("%p", event);
++
+ 	efi_timer_check();
+ 	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
+ 		if (event != &efi_events[i])
+-- 
+2.11.0
+

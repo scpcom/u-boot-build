@@ -91,7 +91,7 @@ index 70c84a4455..36658b2634 100644
 -	/* Disable timers on bootup */
 -	.trigger_next = -1ULL,
 -};
-+static struct efi_event efi_events[4];
++static struct efi_event efi_events[16];
  
  static efi_status_t EFIAPI efi_create_event(
  			enum efi_event_type type, ulong notify_tpl,
