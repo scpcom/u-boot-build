@@ -1,2 +1,0 @@
-#!/bin/sh
-git am ../patch/0001-odroid-c2-sd_fusing.sh-avoid-truncating-image.patch
