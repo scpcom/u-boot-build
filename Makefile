@@ -47,6 +47,7 @@ build:
 	cd denx && git reset --hard
 	cd denx && git checkout $(TAGPREFIX)$(TAG)
 	cd denx && ( git branch -D build || true )
+	cd denx && ( git am --abort || true )
 	cd denx && git checkout -b build
 	test ! -f patch/patch-$(TAG) || ( cd denx && ../patch/patch-$(TAG) )
 	cd denx && make distclean
