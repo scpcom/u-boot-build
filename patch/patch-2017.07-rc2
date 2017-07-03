@@ -20,6 +20,7 @@ git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 git am ../patch/0001-bootefi-allow-return-without-EFI_BOOT_SERVICES.Exit.patch
 git am ../patch/0001-efi_loader-abort-on-unsupported-relocation-type.patch
 git am ../patch/0001-efi_loader-provide-meaningful-return-code.patch
+git am ../patch/0001-efi_loader-define-all-known-status-codes.patch
 
 # EFI protocol services
 git am ../patch/0001-efi_loader-efi_handle_protocol-set-attributes.patch
