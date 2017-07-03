@@ -1,0 +1,85 @@
+From 2499852c8858e0b5069fca7ecc923dafe6d91d86 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 3 Jul 2017 15:34:48 +0200
+Subject: [PATCH 1/1] efi_loader: split of efi_cout_output_string_ext
+
+To output Unicode strings internally we need a function that
+does not switch gd.
+
+So let us use efi_cout_output_string_ext as a wrapper for
+efi_cout_output_string.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h         |  5 +++++
+ lib/efi_loader/efi_console.c | 18 +++++++++++++-----
+ 2 files changed, 18 insertions(+), 5 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index e5b1ebe279..858da2621a 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -168,6 +168,11 @@ static inline void ascii2unicode(u16 *unicode, const char *ascii)
+ 		*(unicode++) = *(ascii++);
+ }
+ 
++/* Write Unicode string to console */
++efi_status_t EFIAPI efi_cout_output_string(
++			const struct efi_simple_text_output_protocol *this,
++			const unsigned short *string);
++
+ /*
+  * Use these to indicate that your code / data should go into the EFI runtime
+  * section and thus still be available when the OS is running
+diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
+index b2d9ff5497..e2920dd6ba 100644
+--- a/lib/efi_loader/efi_console.c
++++ b/lib/efi_loader/efi_console.c
+@@ -155,15 +155,14 @@ static void print_unicode_in_utf8(u16 c)
+ 	puts(utf8);
+ }
+ 
+-static efi_status_t EFIAPI efi_cout_output_string(
+-			struct efi_simple_text_output_protocol *this,
++efi_status_t EFIAPI efi_cout_output_string(
++			const struct efi_simple_text_output_protocol *this,
+ 			const unsigned short *string)
+ {
+ 	struct cout_mode *mode;
+ 	u16 ch;
+ 
+ 	mode = &efi_cout_modes[efi_con_mode.mode];
+-	EFI_ENTRY("%p, %p", this, string);
+ 	for (;(ch = *string); string++) {
+ 		print_unicode_in_utf8(ch);
+ 		efi_con_mode.cursor_column++;
+@@ -178,7 +177,16 @@ static efi_status_t EFIAPI efi_cout_output_string(
+ 			efi_con_mode.cursor_row = mode->rows;
+ 	}
+ 
+-	return EFI_EXIT(EFI_SUCCESS);
++	return EFI_SUCCESS;
++}
++
++static efi_status_t EFIAPI efi_cout_output_string_ext(
++			struct efi_simple_text_output_protocol *this,
++			const unsigned short *string)
++{
++	EFI_ENTRY("%p, %p", this, string);
++
++	return EFI_EXIT(efi_cout_output_string(this, string));
+ }
+ 
+ static efi_status_t EFIAPI efi_cout_test_string(
+@@ -331,7 +339,7 @@ static efi_status_t EFIAPI efi_cout_enable_cursor(
+ 
+ const struct efi_simple_text_output_protocol efi_con_out = {
+ 	.reset = efi_cout_reset,
+-	.output_string = efi_cout_output_string,
++	.output_string = efi_cout_output_string_ext,
+ 	.test_string = efi_cout_test_string,
+ 	.query_mode = efi_cout_query_mode,
+ 	.set_mode = efi_cout_set_mode,
+-- 
+2.11.0
+

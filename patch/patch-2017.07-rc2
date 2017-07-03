@@ -37,3 +37,7 @@ git am ../patch/0001-efi_loader-implement-LocateHandleBuffer.patch
 git am ../patch/0001-efi_loader-implement-multiple-event-support.patch
 git am ../patch/0001-efi_loader-implement-WaitForKey.patch
 git am ../patch/0001-efi_loader-no-debug-message-on-wait-for-key.patch
+
+# EFI console
+git am ../patch/0001-efi_loader-split-of-efi_cout_output_string_ext.patch
+git am ../patch/0001-efi_loader-write-reboot-reason.patch
