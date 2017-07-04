@@ -1,4 +1,4 @@
-From a68b64ab2537f01fcd2fc7c4ee7f06e9f38583bb Mon Sep 17 00:00:00 2001
+From ab2398abcd665090345fef4d306310cac5f824e2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 3 Jul 2017 21:36:07 +0200
 Subject: [PATCH 1/1] efi_loader: provide meaningful status code
@@ -12,18 +12,18 @@ is printed.
 Cc: Alexander Graf <agraf@suse.de>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v3:	Use constant EFI_ERROR_MASK to convert status code to
+	remove hight bit.
 v2:
-	Do not output mnemonic of status code as suggested by
-	Alexander. This reduces the code size.
-
-	In a later patch we might add a configuration option
-	for text output.
+        Do not output status code mnemonic.
+        Alexander suggested this to reduce code size.
+        We may add a CONFIG option for mnemonic output later.
 ---
  cmd/bootefi.c | 16 ++++++++--------
  1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index f52da205c9..7ddeead671 100644
+index 4df468307c..802b5f245f 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -252,8 +252,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
@@ -51,7 +51,7 @@ index f52da205c9..7ddeead671 100644
  	r = do_bootefi_exec((void *)addr, (void*)fdt_addr);
 -	printf("## Application terminated, r = %d\n", r);
 +	printf("## Application terminated, r = %lu\n",
-+	       r & ~(1UL << (EFI_BITS_PER_LONG - 1)));
++	       r & ~EFI_ERROR_MASK);
  
 -	if (r != 0)
 -		r = 1;

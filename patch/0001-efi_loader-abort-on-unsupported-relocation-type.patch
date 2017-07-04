@@ -1,6 +1,6 @@
-From d99ab54cdece468c62b7e33ee3afb237deed03cc Mon Sep 17 00:00:00 2001
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Sun, 25 Jun 2017 20:04:59 +0200
+From da684a646d0c94f7a6126e7ecf110278691465a6 Mon Sep 17 00:00:00 2001
+From: "xypron.glpk@gmx.de" <xypron.glpk@gmx.de>
+Date: Tue, 4 Jul 2017 00:12:58 +0200
 Subject: [PATCH 1/1] efi_loader: abort on unsupported relocation type
 
 If a relocation type is not supported loading the EFI binary
@@ -9,12 +9,16 @@ should be aborted.
 Writing a message only is insufficient.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+[agraf: use a() != b coding style]
+Signed-off-by: Alexander Graf <agraf@suse.de>
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_loader/efi_image_loader.c | 10 ++++++++--
  1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/lib/efi_loader/efi_image_loader.c b/lib/efi_loader/efi_image_loader.c
-index 3262d76bca..bc8e04d6d9 100644
+index 3262d76bca..d4c62e677c 100644
 --- a/lib/efi_loader/efi_image_loader.c
 +++ b/lib/efi_loader/efi_image_loader.c
 @@ -26,7 +26,7 @@ efi_status_t EFIAPI efi_return_handle(void *handle, efi_guid_t *protocol,
@@ -45,8 +49,8 @@ index 3262d76bca..bc8e04d6d9 100644
  
  	/* Run through relocations */
 -	efi_loader_relocate(rel, rel_size, efi_reloc);
-+	if (EFI_SUCCESS != efi_loader_relocate(rel, rel_size, efi_reloc)) {
-+		efi_free_pages((uint64_t) efi_reloc,
++	if (efi_loader_relocate(rel, rel_size, efi_reloc) != EFI_SUCCESS) {
++		efi_free_pages((uintptr_t) efi_reloc,
 +			       (virt_size + EFI_PAGE_MASK) >> EFI_PAGE_SHIFT);
 +		return NULL;
 +	}
