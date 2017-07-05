@@ -1,0 +1,34 @@
+From 3a99bb4b99b4815754938ce8367cd5aacb48acf6 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 5 Jul 2017 19:04:33 +0200
+Subject: [PATCH 0/3] efi_loader: event services
+
+Currently U-Boot only allows a single event. This is sufficient to run
+grub but not for other workloads as iPXE.
+
+The EFI_SIMPLE_TEXT_INPUT_PROTOCOL requires an event WaitForKey. This
+is used for instance by the iPXE shell.
+
+With the 1st patch events are stored in an array. Four events seems to be
+enough for now.
+
+The 2nd patch implements the WaitForKey event for
+the EFI_SIMPLE_TEXT_INPUT_PROTOCOL.
+
+The 3rd patch disables debug output for the WaitForKey event in function
+efi_check_event.
+
+Heinrich Schuchardt (3):
+  efi_loader: implement multiple event support
+  efi_loader: implement WaitForKey
+  efi_loader: no debug message on wait for key
+
+ include/efi_api.h             |   8 +-
+ include/efi_loader.h          |  26 +++++++
+ lib/efi_loader/efi_boottime.c | 177 ++++++++++++++++++++++++++++--------------
+ lib/efi_loader/efi_console.c  |   2 +-
+ 4 files changed, 151 insertions(+), 62 deletions(-)
+
+-- 
+2.11.0
+

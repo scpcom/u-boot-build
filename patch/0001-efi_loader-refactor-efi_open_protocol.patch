@@ -55,7 +55,7 @@ index 7ddeead671..7cf0129a18 100644
 +			.protocol_interface = &loaded_image_info,
  		},
  		{
- 			//*
+ 			/*
 @@ -86,7 +78,7 @@ static struct efi_object loaded_image_info_obj = {
  			 * bootefi_device_path
  			 */
