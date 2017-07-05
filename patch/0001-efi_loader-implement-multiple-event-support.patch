@@ -112,7 +112,7 @@ index 70c84a4455..72fe0ce7e1 100644
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  
 @@ -200,13 +186,20 @@ static efi_status_t EFIAPI efi_create_event(
- 	     notify_function == NULL)
+ 	    notify_function == NULL)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  
 -	efi_event.type = type;

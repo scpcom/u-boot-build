@@ -50,7 +50,7 @@ index 72fe0ce7e1..22885367b8 100644
  static efi_status_t EFIAPI efi_create_event(
  			enum efi_event_type type, ulong notify_tpl,
 @@ -186,7 +192,8 @@ static efi_status_t EFIAPI efi_create_event(
- 	     notify_function == NULL)
+ 	    notify_function == NULL)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  
 -	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
