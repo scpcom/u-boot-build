@@ -1,7 +1,7 @@
-From 4a276735e00637276a06d459b72f94d93df19554 Mon Sep 17 00:00:00 2001
+From ed0e6d2fa5124e0bb54ac330ae8660b3f3041c3d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 19:11:30 +0200
-Subject: [PATCH 1/1] efi_loader: implement WaitForKey
+Subject: [PATCH 2/3] efi_loader: implement WaitForKey
 
 The EFI_SIMPLE_TEXT_INPUT_PROTOCOL requires an event WaitForKey.
 
@@ -15,7 +15,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  3 files changed, 19 insertions(+), 5 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 77081eda3d..e5b1ebe279 100644
+index a35b971f7e..d7344d54e4 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -92,7 +92,10 @@ struct efi_event {
@@ -31,10 +31,10 @@ index 77081eda3d..e5b1ebe279 100644
  /* This list contains all UEFI objects we know of */
  extern struct list_head efi_obj_list;
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 72fe0ce7e1..22885367b8 100644
+index ef3e7d9d52..f509d457a7 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -164,7 +164,13 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
+@@ -165,7 +165,13 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
   * Our event capabilities are very limited. Only a small limited
   * number of events is allowed to coexist.
   */
@@ -49,7 +49,7 @@ index 72fe0ce7e1..22885367b8 100644
  
  static efi_status_t EFIAPI efi_create_event(
  			enum efi_event_type type, ulong notify_tpl,
-@@ -186,7 +192,8 @@ static efi_status_t EFIAPI efi_create_event(
+@@ -187,7 +193,8 @@ static efi_status_t EFIAPI efi_create_event(
  	    notify_function == NULL)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  
@@ -59,7 +59,7 @@ index 72fe0ce7e1..22885367b8 100644
  		if (efi_events[i].type)
  			continue;
  		efi_events[i].type = type;
-@@ -211,6 +218,10 @@ void efi_timer_check(void)
+@@ -212,6 +219,10 @@ void efi_timer_check(void)
  	int i;
  	u64 now = timer_get_us();
  
@@ -70,7 +70,7 @@ index 72fe0ce7e1..22885367b8 100644
  	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
  		if (!(efi_events[i].type & EVT_TIMER) ||
  		    efi_events[i].trigger_type == EFI_TIMER_STOP ||
-@@ -314,7 +325,7 @@ static efi_status_t EFIAPI efi_close_event(void *event)
+@@ -315,7 +326,7 @@ static efi_status_t EFIAPI efi_close_event(void *event)
  	int i;
  
  	EFI_ENTRY("%p", event);
