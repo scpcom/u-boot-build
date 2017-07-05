@@ -1,7 +1,7 @@
-From 698d665bcf00d6bb94189570144dd481b35e5bf5 Mon Sep 17 00:00:00 2001
+From e8b77798bd404184fd381958b22fb51a5f10d0c5 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 18:46:57 +0200
-Subject: [PATCH 1/1] efi_loader: efi_open_protocol: parameter checks
+Subject: [PATCH 2/9] efi_loader: efi_open_protocol: parameter checks
 
 Add all parameter checks for function efi_open_protocol that do not
 depend on a locking table.
@@ -12,10 +12,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 27 insertions(+), 4 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index da85d84248..98bfcef7b8 100644
+index 5c72f92474..22e9e6001d 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -716,15 +716,35 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -718,15 +718,35 @@ static efi_status_t EFIAPI efi_open_protocol(
  {
  	struct list_head *lhandle;
  	int i;
@@ -55,7 +55,7 @@ index da85d84248..98bfcef7b8 100644
  		goto out;
  	}
  
-@@ -750,8 +770,11 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -752,8 +772,11 @@ static efi_status_t EFIAPI efi_open_protocol(
  				goto out;
  			}
  		}

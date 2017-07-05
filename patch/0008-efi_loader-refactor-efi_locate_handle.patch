@@ -1,12 +1,13 @@
-From 3b701b56675364cce1763385270b2ec268a28bea Mon Sep 17 00:00:00 2001
+From 80fa9ee8be69166c431cddee02295eb55fcd94dc Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 10:55:27 +0200
-Subject: [PATCH] efi_loader: split of efi_locate_handle_ext
+Subject: [PATCH 8/9] efi_loader: refactor efi_locate_handle
 
 To implement LocateHandleBuffer we need to call efi_locate_handle
 internally without running through EFI_EXIT.
 
-So put EFI_ENTRY and EFI_EXIT into a new wrapper function.
+So put EFI_ENTRY and EFI_EXIT into a new wrapper function
+efi_locate_handle_ext.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
@@ -14,10 +15,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 15 insertions(+), 6 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 1377dd2db7..f82fb8dcd7 100644
+index 74b9620ad8..888207681c 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -444,9 +444,6 @@ static efi_status_t EFIAPI efi_locate_handle(
+@@ -461,9 +461,6 @@ static efi_status_t EFIAPI efi_locate_handle(
  	struct list_head *lhandle;
  	unsigned long size = 0;
  
@@ -27,7 +28,7 @@ index 1377dd2db7..f82fb8dcd7 100644
  	/* Count how much space we need */
  	list_for_each(lhandle, &efi_obj_list) {
  		struct efi_object *efiobj;
-@@ -458,7 +455,7 @@ static efi_status_t EFIAPI efi_locate_handle(
+@@ -475,7 +472,7 @@ static efi_status_t EFIAPI efi_locate_handle(
  
  	if (*buffer_size < size) {
  		*buffer_size = size;
@@ -36,7 +37,7 @@ index 1377dd2db7..f82fb8dcd7 100644
  	}
  
  	/* Then fill the array */
-@@ -471,7 +468,19 @@ static efi_status_t EFIAPI efi_locate_handle(
+@@ -488,7 +485,19 @@ static efi_status_t EFIAPI efi_locate_handle(
  	}
  
  	*buffer_size = size;
@@ -57,7 +58,7 @@ index 1377dd2db7..f82fb8dcd7 100644
  }
  
  static efi_status_t EFIAPI efi_locate_device_path(efi_guid_t *protocol,
-@@ -931,7 +940,7 @@ static const struct efi_boot_services efi_boot_services = {
+@@ -948,7 +957,7 @@ static const struct efi_boot_services efi_boot_services = {
  	.handle_protocol = efi_handle_protocol,
  	.reserved = NULL,
  	.register_protocol_notify = efi_register_protocol_notify,

@@ -1,7 +1,7 @@
-From 3aacf02486df9f0c0314bf1a062cddab5bc5c7b2 Mon Sep 17 00:00:00 2001
+From f5d9c0444d1f9ea3bad1a774089a4052b428aabe Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 24 Jun 2017 15:29:15 +0200
-Subject: [PATCH 1/1] bootefi: allow return without EFI_BOOT_SERVICES.Exit
+Subject: [PATCH v3 1/3] bootefi: allow return without EFI_BOOT_SERVICES.Exit
 
 The Unified Extensible Firmware Interface Specification, version 2.7,
 defines in chapter 2.1.2 - UEFI Application that an EFI application may
@@ -29,35 +29,31 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 v3:
 	change sequence of arguments for efi_do_enter to save 12
 	bytes of object code on armv8 as suggested by alexander.
-
-	scripts/checkpatch.pl unfortunately shows an incorrect warning
-	"storage class should be at the beginning of the declaration".
-	asmlinkage is at the beginning of the parameter.
 v2:
 	do not store entry in loaded_image_info but use additonal
 	function parameter as suggested by Alexander
 ---
-
- cmd/bootefi.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ cmd/bootefi.c | 23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 771300ee94..4df468307c 100644
+index 771300ee94..7869cb4279 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
-@@ -147,15 +147,27 @@ static void *copy_fdt(void *fdt)
+@@ -147,15 +147,28 @@ static void *copy_fdt(void *fdt)
  	return new_fdt;
  }
  
-+static asmlinkage ulong efi_do_enter(void *image_handle,
-+			struct efi_system_table *st, asmlinkage ulong (*entry)(
-+			void *image_handle, struct efi_system_table *st))
++static ulong efi_do_enter(void *image_handle,
++			  struct efi_system_table *st,
++			  asmlinkage ulong (*entry)(void *image_handle,
++				struct efi_system_table *st))
 +{
 +	efi_status_t ret = EFI_LOAD_ERROR;
 +
 +	if (entry)
 +		ret = entry(image_handle, st);
-+	st->boottime->exit(image_handle, ret, 0 , NULL);
++	st->boottime->exit(image_handle, ret, 0, NULL);
 +	return ret;
 +}
 +
@@ -77,7 +73,7 @@ index 771300ee94..4df468307c 100644
  }
  #endif
  
-@@ -260,7 +272,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
+@@ -260,7 +273,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
  	}
  #endif
  

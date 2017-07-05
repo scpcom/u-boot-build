@@ -1,7 +1,7 @@
-From 48dc190e79c4782fd64d15bd6c9e400823789ffe Mon Sep 17 00:00:00 2001
+From b7988670e12b119a93aee2e7c4660a002899c351 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 14:58:42 +0200
-Subject: [PATCH 1/1] efi_loader: implement InstallProtocolInterface
+Subject: [PATCH 3/9] efi_loader: implement InstallProtocolInterface
 
 efi_install_protocol_interface up to now only returned an error code.
 
@@ -15,7 +15,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  2 files changed, 52 insertions(+), 2 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index de36559787..76bf612558 100644
+index f071b36b53..42cd47ff08 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
 @@ -58,7 +58,7 @@ struct efi_boot_services {
@@ -28,10 +28,10 @@ index de36559787..76bf612558 100644
  			void **handle, efi_guid_t *protocol,
  			int protocol_interface_type, void *protocol_interface);
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 2ae55f09c2..6edcc217cb 100644
+index 22e9e6001d..7596f16b84 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -302,10 +302,60 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+@@ -303,10 +303,60 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
  			efi_guid_t *protocol, int protocol_interface_type,
  			void *protocol_interface)
  {

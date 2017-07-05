@@ -1,0 +1,65 @@
+From 62864494951a665a88bc2ec6a44a3504626a6060 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 5 Jul 2017 17:06:16 +0200
+Subject: [PATCH 0/9] EFI protocol services
+
+Currently only a small fraction of the UEFI specification is
+implemented in U-Boot. It is sufficient to load grub but it
+fails on iPXE.
+
+With this patch series all EFI protocol services are implemented
+that are needed to reach the console prompt of the
+bin-<ARCH>-efi/snponly.efi target of iPXE.
+
+Futher patches for event services are needed to use the iPXE
+console. These will be provided in a separate patch series.
+
+The 1st patch refactors efi_open_protocol to enable the implementation
+of InstallProtocolInterface. This patch eliminates the open protocol
+functions in efi_disk, efi_gop, and efi_net.
+
+The 2nd patch adds missing parameter checks to efi_open_protocol.
+
+The 3rd patch implements InstallProtocolInteface.
+
+The 4th patch partially implements UninstallProtocolInterface.
+
+The 5th patch refactors efi_install_protocol_interface to make it
+callable internally.
+
+The 6th patch refactors efi_uninstall_protocol_interface to make
+it callable internally.
+
+The 7th patch implements InstallMultipleProtocolInterfaces by
+calling efi_install_protocol_interface.
+
+The 8th patch refactors efi_locate_handle to make it
+callable internally.
+
+The 9th patch implements LocateHandleBuffer.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+
+Heinrich Schuchardt (9):
+  efi_loader: refactor efi_open_protocol
+  efi_loader: efi_open_protocol: parameter checks
+  efi_loader: implement InstallProtocolInterface
+  efi_loader: implement UninstallProtocolInterface
+  efi_loader: refactor efi_install_protocol_interface
+  efi_loader: refactor efi_uninstall_protocol_interface
+  efi_loader: implement InstallMultipleProtocolInterfaces
+  efi_loader: refactor efi_locate_handle
+  efi_loader: implement LocateHandleBuffer
+
+ cmd/bootefi.c                 |  14 +--
+ include/efi_api.h             |   2 +-
+ include/efi_loader.h          |  17 +--
+ lib/efi_loader/efi_boottime.c | 237 ++++++++++++++++++++++++++++++++++++++----
+ lib/efi_loader/efi_disk.c     |  29 +-----
+ lib/efi_loader/efi_gop.c      |   2 +-
+ lib/efi_loader/efi_net.c      |  30 +-----
+ 7 files changed, 232 insertions(+), 99 deletions(-)
+
+-- 
+2.11.0
+

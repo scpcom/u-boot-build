@@ -1,11 +1,11 @@
-From d029674593babc5a882171b6e61ee669c5b23b94 Mon Sep 17 00:00:00 2001
+From fb94b1c2e76d23151ba64ee8fc25495b02a2ee87 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 11:19:53 +0200
-Subject: [PATCH 1/1] efi_loader: split of efi_install_protocol_interface_ext
+Subject: [PATCH 5/9] efi_loader: refactor efi_install_protocol_interface
 
-For the implementation of InstallMultipleProtocolIntefaces we need to
-call efi_install_protocol_interface. In internal calls we should not
-pass through EFI_EXIT.
+For the implementation of InstallMultipleProtocolInterfaces we
+need to call efi_install_protocol_interface. In internal calls
+we should not pass through EFI_EXIT.
 
 The patch introduces a wrapper function
 efi_install_protocol_interface_ext.
@@ -16,10 +16,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 14 insertions(+), 5 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index f3f929cd06..0c8fe33059 100644
+index b3a59b4219..0075ccaaa2 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -306,9 +306,6 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+@@ -307,9 +307,6 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
  	int i;
  	efi_status_t r;
  
@@ -29,7 +29,7 @@ index f3f929cd06..0c8fe33059 100644
  	if (!handle || !protocol ||
  	    protocol_interface_type != EFI_NATIVE_INTERFACE) {
  		r = EFI_INVALID_PARAMETER;
-@@ -353,7 +350,19 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+@@ -354,7 +351,19 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
  	}
  	r = EFI_INVALID_PARAMETER;
  out:
@@ -50,7 +50,7 @@ index f3f929cd06..0c8fe33059 100644
  }
  
  static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
-@@ -888,7 +897,7 @@ static const struct efi_boot_services efi_boot_services = {
+@@ -889,7 +898,7 @@ static const struct efi_boot_services efi_boot_services = {
  	.signal_event = efi_signal_event,
  	.close_event = efi_close_event,
  	.check_event = efi_check_event,

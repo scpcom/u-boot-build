@@ -1,0 +1,41 @@
+From e06fd7a9c1ac68ecf061d53ff2204a0b0dda6210 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 3 Jul 2017 22:24:16 +0200
+Subject: [PATCH v3 0/3] Handling of EFI application exit
+
+EFI applications may proceed to loading and starting an operating system.
+In this case they do not return to OpenWrt.
+
+On the other hand they may return to OpenWrt. In this case they may
+either call EFI_BOOT_SERVICES.Exit of return directly with a status code.
+
+The first patch ensures correct handling of applications returning without
+calling EFI_BOOT_SERVICES.Exit.
+
+The second patch was split of the first version of the third. It contains
+the definition of all return codes of the UEFI standard.
+
+The third patch is necessary to output the actual status code of the
+EFI application.
+
+---
+v3
+	Switch patch 2 and 3.
+	Change sequence of parameters in efi_do_entry to reduce object
+	code size in patch 1.
+	New constant EFI_ERROR_MASK to simplify definition of status codes.
+v2
+	put the updated patches into a patch series
+---
+Heinrich Schuchardt (3):
+  bootefi: allow return without EFI_BOOT_SERVICES.Exit
+  efi_loader: provide meaningful status code
+  efi_loader: define all known status codes
+
+ cmd/bootefi.c | 38 +++++++++++++++++++++++++-------------
+ include/efi.h | 47 ++++++++++++++++++++++++++++++++++-------------
+ 2 files changed, 59 insertions(+), 26 deletions(-)
+
+-- 
+2.11.0
+

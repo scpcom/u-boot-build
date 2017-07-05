@@ -1,7 +1,7 @@
-From 011db2367162611b381904611294691d92a55bd9 Mon Sep 17 00:00:00 2001
+From 1562e0faee90ada1a6263738444a13831013e00b Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 08:15:50 +0200
-Subject: [PATCH 1/1] efi_loader: implement InstallMultipleProtocolInterfaces
+Subject: [PATCH 7/9] efi_loader: implement InstallMultipleProtocolInterfaces
 
 Implement InstallMultipleProtocolInterfaces in function
 efi_install_multiple_protocol_interfaces by repeatedly
@@ -13,10 +13,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 38 insertions(+), 1 deletion(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 7f75240383..9bbd74b8a8 100644
+index 607287d01f..74b9620ad8 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -759,7 +759,44 @@ static efi_status_t EFIAPI efi_install_multiple_protocol_interfaces(
+@@ -778,7 +778,44 @@ static efi_status_t EFIAPI efi_install_multiple_protocol_interfaces(
  			void **handle, ...)
  {
  	EFI_ENTRY("%p", handle);

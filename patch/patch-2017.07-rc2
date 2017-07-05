@@ -17,10 +17,10 @@ git am ../patch/0001-meson-gx-reserved-memory-regions.patch
 git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
 # Launching EFI application
-git am ../patch/0001-bootefi-allow-return-without-EFI_BOOT_SERVICES.Exit.patch
-git am ../patch/0001-efi_loader-abort-on-unsupported-relocation-type.patch
 git am ../patch/0001-efi_loader-provide-meaningful-return-code.patch
-git am ../patch/0001-efi_loader-define-all-known-status-codes.patch
+git am ../patch/0001-bootefi-allow-return-without-EFI_BOOT_SERVICES.Exit.patch
+git am ../patch/0002-efi_loader-define-all-known-status-codes.patch
+git am ../patch/0003-efi_loader-provide-meaningful-status-code.patch
 
 exit
 

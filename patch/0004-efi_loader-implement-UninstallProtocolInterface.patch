@@ -1,7 +1,7 @@
-From a1b72afefa7c9c2c256a30b543d4063beb3c4855 Mon Sep 17 00:00:00 2001
+From 0cca1adbf1da02467383e56e81222dba4f6a05bd Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 15:40:19 +0200
-Subject: [PATCH 1/1] efi_loader: implement UninstallProtocolInterface
+Subject: [PATCH 4/9] efi_loader: implement UninstallProtocolInterface
 
 Without the patch efi_uninstall_protocol_interface always returns an
 error.
@@ -14,10 +14,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 35 insertions(+), 2 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 86dd56bf4b..7f75240383 100644
+index 7596f16b84..b3a59b4219 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -366,8 +366,41 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
+@@ -369,8 +369,41 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
  static efi_status_t EFIAPI efi_uninstall_protocol_interface(void *handle,
  			efi_guid_t *protocol, void *protocol_interface)
  {
@@ -60,7 +60,7 @@ index 86dd56bf4b..7f75240383 100644
  }
  
  static efi_status_t EFIAPI efi_register_protocol_notify(efi_guid_t *protocol,
-@@ -808,7 +841,7 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -811,7 +844,7 @@ static efi_status_t EFIAPI efi_open_protocol(
  			struct efi_handler *handler = &efiobj->protocols[i];
  			const efi_guid_t *hprotocol = handler->guid;
  			if (!hprotocol)
