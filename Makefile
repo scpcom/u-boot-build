@@ -1,7 +1,7 @@
 # Build U-Boot for Odroid C2
 .POSIX:
 
-TAG=2017.07-rc3
+TAG=2017.07
 TAGPREFIX=v
 REVISION=001
 
@@ -50,7 +50,7 @@ build:
 	cd denx && ( git branch -D build || true )
 	cd denx && ( git am --abort || true )
 	cd denx && git checkout -b build
-	cd denx && ../patch/patch-efi-next
+	cd denx && ../patch/patch-$(TAG)
 	cd denx && make distclean
 	cp config/config-$(TAG) denx/.config
 	cd denx && make oldconfig

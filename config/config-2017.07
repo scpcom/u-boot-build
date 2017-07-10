@@ -1,11 +1,10 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2017.07-rc2 Configuration
+# U-Boot 2017.07 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
 CONFIG_ARM=y
-# CONFIG_AVR32 is not set
 # CONFIG_M68K is not set
 # CONFIG_MICROBLAZE is not set
 # CONFIG_MIPS is not set
