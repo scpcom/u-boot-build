@@ -1,0 +1,180 @@
+From d990ec1974656886a6da64f788528a808fc96ba9 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 10 Jul 2017 18:28:07 +0200
+Subject: [PATCH 1/1] efi_loader: implement EFI_DEVICE_PATH_TO_TEXT_PROTOCOL
+
+ConvertPathToText is implemented for
+* type 4    - media device path
+* subtype 4 - file path
+
+This is the kind of device path we hand out for block devices.
+
+All other cases may be implemented later.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h                        | 24 +++++++++++
+ include/efi_loader.h                     |  2 +
+ lib/efi_loader/Makefile                  |  2 +-
+ lib/efi_loader/efi_boottime.c            |  4 ++
+ lib/efi_loader/efi_device_path_to_text.c | 68 ++++++++++++++++++++++++++++++++
+ 5 files changed, 99 insertions(+), 1 deletion(-)
+ create mode 100644 lib/efi_loader/efi_device_path_to_text.c
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index 18bef722c6..a2db908ca5 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -399,6 +399,30 @@ struct efi_console_control_protocol
+ 			uint16_t *password);
+ };
+ 
++#define EFI_DEVICE_PATH_TO_TEXT_PROTOCOL_GUID \
++	EFI_GUID(0x8b843e20, 0x8132, 0x4852, \
++		 0x90, 0xcc, 0x55, 0x1a, 0x4e, 0x4a, 0x7f, 0x1c)
++
++struct efi_device_path_protocol
++{
++	uint8_t type;
++	uint8_t sub_type;
++	uint16_t length;
++	uint8_t data[];
++};
++
++struct efi_device_path_to_text_protocol
++{
++	uint16_t *(EFIAPI *convert_device_node_to_text)(
++			struct efi_device_path_protocol *device_node,
++			bool display_only,
++			bool allow_shortcuts);
++	uint16_t *(EFIAPI *convert_device_path_to_text)(
++			struct efi_device_path_protocol *device_path,
++			bool display_only,
++			bool allow_shortcuts);
++};
++
+ #define EFI_GOP_GUID \
+ 	EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, \
+ 		 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a)
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index d7344d54e4..290b6f6b74 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -28,10 +28,12 @@ extern struct efi_system_table systab;
+ extern const struct efi_simple_text_output_protocol efi_con_out;
+ extern const struct efi_simple_input_interface efi_con_in;
+ extern const struct efi_console_control_protocol efi_console_control;
++extern const struct efi_device_path_to_text_protocol efi_device_path_to_text;
+ 
+ extern const efi_guid_t efi_guid_console_control;
+ extern const efi_guid_t efi_guid_device_path;
+ extern const efi_guid_t efi_guid_loaded_image;
++extern const efi_guid_t efi_guid_device_path_to_text_protocol;
+ 
+ extern unsigned int __efi_runtime_start, __efi_runtime_stop;
+ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
+diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
+index fa8b91a526..3fc2371896 100644
+--- a/lib/efi_loader/Makefile
++++ b/lib/efi_loader/Makefile
+@@ -15,7 +15,7 @@ always := $(efiprogs-y)
+ 
+ obj-$(CONFIG_CMD_BOOTEFI_HELLO) += helloworld_efi.o
+ obj-y += efi_image_loader.o efi_boottime.o efi_runtime.o efi_console.o
+-obj-y += efi_memory.o
++obj-y += efi_memory.o efi_device_path_to_text.o
+ obj-$(CONFIG_LCD) += efi_gop.o
+ obj-$(CONFIG_PARTITIONS) += efi_disk.o
+ obj-$(CONFIG_NET) += efi_net.o
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index ec29143306..220acfaabf 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -845,6 +845,10 @@ static struct efi_class_map efi_class_maps[] = {
+ 		.guid = &efi_guid_console_control,
+ 		.interface = &efi_console_control
+ 	},
++	{
++		.guid = &efi_guid_device_path_to_text_protocol,
++		.interface = &efi_device_path_to_text
++	},
+ };
+ 
+ static efi_status_t EFIAPI efi_locate_protocol(efi_guid_t *protocol,
+diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
+new file mode 100644
+index 0000000000..d6d2e3c35f
+--- /dev/null
++++ b/lib/efi_loader/efi_device_path_to_text.c
+@@ -0,0 +1,68 @@
++/*
++ *  EFI device path interface
++ *
++ *  Copyright (c) 2017 Heinrich Schuchardt
++ *
++ *  SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#include <common.h>
++#include <efi_loader.h>
++
++#define MEDIA_DEVICE_PATH 4
++#define FILE_PATH_MEDIA_DEVICE_PATH 4
++
++const efi_guid_t efi_guid_device_path_to_text_protocol =
++		EFI_DEVICE_PATH_TO_TEXT_PROTOCOL_GUID;
++
++uint16_t *efi_convert_device_node_to_text(
++		struct efi_device_path_protocol *device_node,
++		bool display_only,
++		bool allow_shortcuts) {
++
++	EFI_ENTRY("%p, %d, %d", device_node, display_only, allow_shortcuts);
++
++	EFI_EXIT(EFI_UNSUPPORTED);
++	return NULL;
++}
++
++uint16_t *efi_convert_device_path_to_text(
++		struct efi_device_path_protocol *device_path,
++		bool display_only,
++		bool allow_shortcuts)
++{
++	EFI_ENTRY("%p, %d, %d", device_path, display_only, allow_shortcuts);
++
++	unsigned long buffer_size;
++	efi_status_t r;
++	uint16_t *buffer = NULL;
++
++	switch (device_path->type) {
++	case MEDIA_DEVICE_PATH:
++		switch (device_path->sub_type) {
++		case FILE_PATH_MEDIA_DEVICE_PATH:
++			buffer_size = device_path->length - 4;
++			r = efi_allocate_pool(EFI_ALLOCATE_ANY_PAGES,
++					      buffer_size, (void **) &buffer);
++			if (r == EFI_SUCCESS)
++				memcpy(buffer, device_path->data, buffer_size);
++			break;
++
++		}
++	}
++
++	if (buffer) {
++		EFI_EXIT(EFI_SUCCESS);
++	} else {
++		debug("type %d, subtype %d\n",
++		      device_path->type, device_path->sub_type);
++		EFI_EXIT(EFI_UNSUPPORTED);
++	}
++
++	return buffer;
++}
++
++const struct efi_device_path_to_text_protocol efi_device_path_to_text = {
++	.convert_device_node_to_text = efi_convert_device_node_to_text,
++	.convert_device_path_to_text = efi_convert_device_path_to_text,
++};
+-- 
+2.11.0
+

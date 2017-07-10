@@ -1,7 +1,7 @@
 # Build U-Boot for Odroid C2
 .POSIX:
 
-TAG=2017.07-rc2
+TAG=2017.07-rc3
 TAGPREFIX=v
 REVISION=001
 
@@ -41,10 +41,12 @@ prepare:
 	  git config --global user.name "somebody" )
 
 build:
-	cd denx && git fetch agraf
+	cd denx && git fetch origin
+	cd denx && git verify-tag $(TAGPREFIX)$(TAG) 2>&1 | \
+	grep 'E872 DB40 9C1A 687E FBE8  6336 87F9 F635 D31D 7652'
 	cd denx && (git am --abort || true)
 	cd denx && git reset --hard
-	cd denx && git checkout signed-efi-next
+	cd denx && git checkout $(TAGPREFIX)$(TAG)
 	cd denx && ( git branch -D build || true )
 	cd denx && ( git am --abort || true )
 	cd denx && git checkout -b build
