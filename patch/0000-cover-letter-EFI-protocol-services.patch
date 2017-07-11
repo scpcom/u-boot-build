@@ -1,7 +1,7 @@
 From 62864494951a665a88bc2ec6a44a3504626a6060 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 5 Jul 2017 17:06:16 +0200
-Subject: [PATCH v2 0/9] efi_loader: protocol services
+Subject: [PATCH v2 00/12] efi_loader: protocol services
 
 Currently only a small fraction of the UEFI specification is
 implemented in U-Boot. It is sufficient to load grub but it
@@ -49,6 +49,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
 v2
 	Remove implementation of efi_return_handle in 1st patch.	
+	Correctly check GUIDs in 3rd patch.
+	Check if protocol != NULL to avoid illegal memory access in 4th
+	patch.
 	Add patches 10-12.
 ---
 
