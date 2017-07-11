@@ -1,4 +1,4 @@
-From a8edda33e4472e16af195e662e384f8d710c1731 Mon Sep 17 00:00:00 2001
+From fb81d2980e7e229f111f131f79c46d70875dd731 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 11 Jul 2017 17:38:00 +0200
 Subject: [PATCH v2 11/12] efi_loader: reimplement efi_locate_protocol
@@ -15,13 +15,13 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 v2
 	new patch
 ---
- cmd/bootefi.c                 |  6 +++++-
+ cmd/bootefi.c                 |  4 ++++
  include/efi_loader.h          | 10 ----------
- lib/efi_loader/efi_boottime.c | 24 ++++++++++++------------
- 3 files changed, 17 insertions(+), 23 deletions(-)
+ lib/efi_loader/efi_boottime.c | 32 ++++++++++++++++++++------------
+ 3 files changed, 24 insertions(+), 22 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index d80cb0723f..4e73059cb3 100644
+index d80cb0723f..0bac05f1c6 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -80,6 +80,10 @@ static struct efi_object loaded_image_info_obj = {
@@ -31,15 +31,6 @@ index d80cb0723f..4e73059cb3 100644
 +		{
 +			.guid = &efi_guid_console_control,
 +			.protocol_interface = (void *) &efi_console_control
-+		},
- 	},
- };
- 
-@@ -92,7 +96,7 @@ static struct efi_object bootefi_device_obj = {
- 			 * bootefi_device_path */
- 			.guid = &efi_guid_device_path,
- 			.protocol_interface = bootefi_device_path
--		}
 +		},
  	},
  };
@@ -66,10 +57,10 @@ index 989e5809ba..6ea6e9ee4d 100644
   * interface (usually a struct with callback functions), this struct maps the
   * protocol GUID to the respective protocol interface */
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 9d67efca58..e64c7412f7 100644
+index 48c606d0b7..bf277bd5a3 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -782,25 +782,25 @@ out:
+@@ -787,27 +787,35 @@ out:
  	return EFI_EXIT(r);
  }
  
@@ -93,20 +84,30 @@ index 9d67efca58..e64c7412f7 100644
 -		if (!guidcmp(protocol, curmap->guid)) {
 -			*protocol_interface = (void*)curmap->interface;
 -			return EFI_EXIT(EFI_SUCCESS);
++
++	if (!protocol || !protocol_interface)
++		return EFI_EXIT(EFI_INVALID_PARAMETER);
++
 +	list_for_each(lhandle, &efi_obj_list) {
 +		struct efi_object *efiobj;
 +
 +		efiobj = list_entry(lhandle, struct efi_object, link);
 +		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
 +			struct efi_handler *handler = &efiobj->protocols[i];
-+			if (!guidcmp(protocol, handler->guid)) {
++
++			if (!handler->guid)
++				continue;
++			if (!guidcmp(handler->guid, protocol)) {
 +				*protocol_interface =
 +					handler->protocol_interface;
 +				return EFI_EXIT(EFI_SUCCESS);
 +			}
  		}
  	}
++	*protocol_interface = NULL;
  
+ 	return EFI_EXIT(EFI_NOT_FOUND);
+ }
 -- 
 2.11.0
 

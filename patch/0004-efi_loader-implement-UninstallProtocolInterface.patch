@@ -1,4 +1,4 @@
-From 0cca1adbf1da02467383e56e81222dba4f6a05bd Mon Sep 17 00:00:00 2001
+From 5dc4f9130acd9b25f78c1c75269de580037366f6 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 15:40:19 +0200
 Subject: [PATCH v2 04/12] efi_loader: implement UninstallProtocolInterface
@@ -11,16 +11,16 @@ With the patch protocols without interface can be uninstalled.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
 v2
-	no change
+	Check if protocol != NULL to avoid illegal memory access.
 ---
- lib/efi_loader/efi_boottime.c | 37 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 35 insertions(+), 2 deletions(-)
+ lib/efi_loader/efi_boottime.c | 40 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 38 insertions(+), 2 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 7596f16b84..b3a59b4219 100644
+index 97b2dce8b3..6c64b94e4a 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -369,8 +369,41 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
+@@ -372,8 +372,44 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
  static efi_status_t EFIAPI efi_uninstall_protocol_interface(void *handle,
  			efi_guid_t *protocol, void *protocol_interface)
  {
@@ -46,6 +46,9 @@ index 7596f16b84..b3a59b4219 100644
 +		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
 +			struct efi_handler *handler = &efiobj->protocols[i];
 +			const efi_guid_t *hprotocol = handler->guid;
++
++			if (!hprotocol)
++				continue;
 +			if (!guidcmp(hprotocol, protocol)) {
 +				if (handler->protocol_interface) {
 +					r = EFI_ACCESS_DENIED;
@@ -63,7 +66,7 @@ index 7596f16b84..b3a59b4219 100644
  }
  
  static efi_status_t EFIAPI efi_register_protocol_notify(efi_guid_t *protocol,
-@@ -811,7 +844,7 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -814,7 +850,7 @@ static efi_status_t EFIAPI efi_open_protocol(
  			struct efi_handler *handler = &efiobj->protocols[i];
  			const efi_guid_t *hprotocol = handler->guid;
  			if (!hprotocol)
