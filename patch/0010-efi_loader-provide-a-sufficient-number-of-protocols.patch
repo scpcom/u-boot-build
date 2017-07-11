@@ -1,7 +1,7 @@
-From fc8924cdd669b1d80fdb3b57cafb29467315b705 Mon Sep 17 00:00:00 2001
+From 69b09b5c851e4079f48ebb4b4dc8ffe60ef8a89e Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 10 Jul 2017 18:10:29 +0200
-Subject: [PATCH] efi_loader: provide a sufficient number of protocols
+Subject: [PATCH v2 10/12] efi_loader: provide a sufficient number of protocols
 
 Four protocols per object is too few to run iPXE.
 
@@ -9,11 +9,14 @@ Let's raise the number of protocols per object to eight.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v2
+	new patch
+---
  include/efi_loader.h | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index d7344d54e4..73b63c08f6 100644
+index c620652307..989e5809ba 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -65,8 +65,8 @@ struct efi_handler {

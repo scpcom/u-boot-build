@@ -1,7 +1,7 @@
 From 80fa9ee8be69166c431cddee02295eb55fcd94dc Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 10:55:27 +0200
-Subject: [PATCH 8/9] efi_loader: refactor efi_locate_handle
+Subject: [PATCH v2 08/12] efi_loader: refactor efi_locate_handle
 
 To implement LocateHandleBuffer we need to call efi_locate_handle
 internally without running through EFI_EXIT.
@@ -10,6 +10,9 @@ So put EFI_ENTRY and EFI_EXIT into a new wrapper function
 efi_locate_handle_ext.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	no change
 ---
  lib/efi_loader/efi_boottime.c | 21 +++++++++++++++------
  1 file changed, 15 insertions(+), 6 deletions(-)

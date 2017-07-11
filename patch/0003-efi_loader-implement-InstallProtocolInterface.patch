@@ -1,7 +1,7 @@
 From b7988670e12b119a93aee2e7c4660a002899c351 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 14:58:42 +0200
-Subject: [PATCH 3/9] efi_loader: implement InstallProtocolInterface
+Subject: [PATCH v2 03/12] efi_loader: implement InstallProtocolInterface
 
 efi_install_protocol_interface up to now only returned an error code.
 
@@ -9,6 +9,9 @@ The patch implements the UEFI specification for InstallProtocolInterface
 with the exception that it will not create new handles.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	no change
 ---
  include/efi_api.h             |  2 +-
  lib/efi_loader/efi_boottime.c | 52 ++++++++++++++++++++++++++++++++++++++++++-

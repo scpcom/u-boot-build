@@ -1,0 +1,112 @@
+From a8edda33e4472e16af195e662e384f8d710c1731 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 11 Jul 2017 17:38:00 +0200
+Subject: [PATCH v2 11/12] efi_loader: reimplement efi_locate_protocol
+
+The UEFI specification requires that LocateProtol finds the first
+handle supporting the protocol and to return a pointer to its
+interface.
+
+So we have to assign the protocols to an efi_object and not use
+any separate storage.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	new patch
+---
+ cmd/bootefi.c                 |  6 +++++-
+ include/efi_loader.h          | 10 ----------
+ lib/efi_loader/efi_boottime.c | 24 ++++++++++++------------
+ 3 files changed, 17 insertions(+), 23 deletions(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index d80cb0723f..4e73059cb3 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -80,6 +80,10 @@ static struct efi_object loaded_image_info_obj = {
+ 			.guid = &efi_guid_device_path,
+ 			.protocol_interface = bootefi_device_path,
+ 		},
++		{
++			.guid = &efi_guid_console_control,
++			.protocol_interface = (void *) &efi_console_control
++		},
+ 	},
+ };
+ 
+@@ -92,7 +96,7 @@ static struct efi_object bootefi_device_obj = {
+ 			 * bootefi_device_path */
+ 			.guid = &efi_guid_device_path,
+ 			.protocol_interface = bootefi_device_path
+-		}
++		},
+ 	},
+ };
+ 
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 989e5809ba..6ea6e9ee4d 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -37,16 +37,6 @@ extern unsigned int __efi_runtime_start, __efi_runtime_stop;
+ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
+ 
+ /*
+- * While UEFI objects can have callbacks, you can also call functions on
+- * protocols (classes) themselves. This struct maps a protocol GUID to its
+- * interface (usually a struct with callback functions).
+- */
+-struct efi_class_map {
+-	const efi_guid_t *guid;
+-	const void *interface;
+-};
+-
+-/*
+  * When the UEFI payload wants to open a protocol on an object to get its
+  * interface (usually a struct with callback functions), this struct maps the
+  * protocol GUID to the respective protocol interface */
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 9d67efca58..e64c7412f7 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -782,25 +782,25 @@ out:
+ 	return EFI_EXIT(r);
+ }
+ 
+-static struct efi_class_map efi_class_maps[] = {
+-	{
+-		.guid = &efi_guid_console_control,
+-		.interface = &efi_console_control
+-	},
+-};
+-
+ static efi_status_t EFIAPI efi_locate_protocol(efi_guid_t *protocol,
+ 					       void *registration,
+ 					       void **protocol_interface)
+ {
++	struct list_head *lhandle;
+ 	int i;
+ 
+ 	EFI_ENTRY("%p, %p, %p", protocol, registration, protocol_interface);
+-	for (i = 0; i < ARRAY_SIZE(efi_class_maps); i++) {
+-		struct efi_class_map *curmap = &efi_class_maps[i];
+-		if (!guidcmp(protocol, curmap->guid)) {
+-			*protocol_interface = (void*)curmap->interface;
+-			return EFI_EXIT(EFI_SUCCESS);
++	list_for_each(lhandle, &efi_obj_list) {
++		struct efi_object *efiobj;
++
++		efiobj = list_entry(lhandle, struct efi_object, link);
++		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
++			struct efi_handler *handler = &efiobj->protocols[i];
++			if (!guidcmp(protocol, handler->guid)) {
++				*protocol_interface =
++					handler->protocol_interface;
++				return EFI_EXIT(EFI_SUCCESS);
++			}
+ 		}
+ 	}
+ 
+-- 
+2.11.0
+

@@ -1,12 +1,15 @@
 From e8b77798bd404184fd381958b22fb51a5f10d0c5 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 18:46:57 +0200
-Subject: [PATCH 2/9] efi_loader: efi_open_protocol: parameter checks
+Subject: [PATCH v2 02/12] efi_loader: efi_open_protocol: parameter checks
 
 Add all parameter checks for function efi_open_protocol that do not
 depend on a locking table.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	no change
 ---
  lib/efi_loader/efi_boottime.c | 31 +++++++++++++++++++++++++++----
  1 file changed, 27 insertions(+), 4 deletions(-)

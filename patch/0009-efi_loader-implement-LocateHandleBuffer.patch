@@ -1,12 +1,15 @@
 From 62864494951a665a88bc2ec6a44a3504626a6060 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 09:31:22 +0200
-Subject: [PATCH 9/9] efi_loader: implement LocateHandleBuffer
+Subject: [PATCH v2 09/12] efi_loader: implement LocateHandleBuffer
 
 UEFI boot service LocateHandleBuffer is implemented by calling
 efi_allocate_handle and efi_locate_handle.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	no change
 ---
  lib/efi_loader/efi_boottime.c | 25 ++++++++++++++++++++++++-
  1 file changed, 24 insertions(+), 1 deletion(-)

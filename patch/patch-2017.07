@@ -22,7 +22,6 @@ git am ../patch/0002-efi_loader-define-all-known-status-codes.patch
 git am ../patch/0003-efi_loader-provide-meaningful-status-code.patch
 
 # EFI protocol services
-git am ../patch/0001-efi_loader-provide-a-sufficient-number-of-protocols.patch
 git am ../patch/0001-efi_loader-refactor-efi_open_protocol.patch
 git am ../patch/0002-efi_loader-efi_open_protocol-parameter-checks.patch
 git am ../patch/0003-efi_loader-implement-InstallProtocolInterface.patch
@@ -32,7 +31,9 @@ git am ../patch/0006-efi_loader-refactor-efi_uninstall_protocol_interface.patch
 git am ../patch/0007-efi_loader-implement-InstallMultipleProtocolInterfac.patch
 git am ../patch/0008-efi_loader-refactor-efi_locate_handle.patch
 git am ../patch/0009-efi_loader-implement-LocateHandleBuffer.patch
-git am ../patch/0001-efi_loader-implement-EFI_DEVICE_PATH_TO_TEXT_PROTOCO.patch
+git am ../patch/0010-efi_loader-provide-a-sufficient-number-of-protocols.patch
+git am ../patch/0011-efi_loader-reimplement-efi_locate_protocol.patch
+git am ../patch/0012-efi_loader-implement-EFI_DEVICE_PATH_TO_TEXT_PROTOCO.patch
 
 # EFI event services
 git am ../patch/0001-efi_loader-implement-multiple-event-support.patch

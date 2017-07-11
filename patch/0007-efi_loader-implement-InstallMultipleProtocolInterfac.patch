@@ -1,13 +1,16 @@
 From 1562e0faee90ada1a6263738444a13831013e00b Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 08:15:50 +0200
-Subject: [PATCH 7/9] efi_loader: implement InstallMultipleProtocolInterfaces
+Subject: [PATCH v2 07/12] efi_loader: implement InstallMultipleProtocolInterfaces
 
 Implement InstallMultipleProtocolInterfaces in function
 efi_install_multiple_protocol_interfaces by repeatedly
 calling efi_install_protocol_interface.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	no change
 ---
  lib/efi_loader/efi_boottime.c | 39 ++++++++++++++++++++++++++++++++++++++-
  1 file changed, 38 insertions(+), 1 deletion(-)

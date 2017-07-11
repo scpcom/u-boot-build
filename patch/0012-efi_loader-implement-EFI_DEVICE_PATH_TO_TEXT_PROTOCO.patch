@@ -1,7 +1,7 @@
-From d990ec1974656886a6da64f788528a808fc96ba9 Mon Sep 17 00:00:00 2001
+From f44e85931108ef00166dd1843f185d13b3e6567c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 10 Jul 2017 18:28:07 +0200
-Subject: [PATCH 1/1] efi_loader: implement EFI_DEVICE_PATH_TO_TEXT_PROTOCOL
+Subject: [PATCH v2 12/12] efi_loader: implement EFI_DEVICE_PATH_TO_TEXT_PROTOCOL
 
 ConvertPathToText is implemented for
 * type 4    - media device path
@@ -13,19 +13,37 @@ All other cases may be implemented later.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v2
+	new patch
+---
+ cmd/bootefi.c                            |  4 ++
  include/efi_api.h                        | 24 +++++++++++
  include/efi_loader.h                     |  2 +
  lib/efi_loader/Makefile                  |  2 +-
- lib/efi_loader/efi_boottime.c            |  4 ++
  lib/efi_loader/efi_device_path_to_text.c | 68 ++++++++++++++++++++++++++++++++
  5 files changed, 99 insertions(+), 1 deletion(-)
  create mode 100644 lib/efi_loader/efi_device_path_to_text.c
 
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 4e73059cb3..d1e782cfe9 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -84,6 +84,10 @@ static struct efi_object loaded_image_info_obj = {
+ 			.guid = &efi_guid_console_control,
+ 			.protocol_interface = (void *) &efi_console_control
+ 		},
++		{
++			.guid = &efi_guid_device_path_to_text_protocol,
++			.protocol_interface = (void *) &efi_device_path_to_text
++		},
+ 	},
+ };
+ 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index 18bef722c6..a2db908ca5 100644
+index 42cd47ff08..ea63e80b47 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
-@@ -399,6 +399,30 @@ struct efi_console_control_protocol
+@@ -395,6 +395,30 @@ struct efi_console_control_protocol
  			uint16_t *password);
  };
  
@@ -57,7 +75,7 @@ index 18bef722c6..a2db908ca5 100644
  	EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, \
  		 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a)
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index d7344d54e4..290b6f6b74 100644
+index 6ea6e9ee4d..d7847d23e5 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -28,10 +28,12 @@ extern struct efi_system_table systab;
@@ -86,21 +104,6 @@ index fa8b91a526..3fc2371896 100644
  obj-$(CONFIG_LCD) += efi_gop.o
  obj-$(CONFIG_PARTITIONS) += efi_disk.o
  obj-$(CONFIG_NET) += efi_net.o
-diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index ec29143306..220acfaabf 100644
---- a/lib/efi_loader/efi_boottime.c
-+++ b/lib/efi_loader/efi_boottime.c
-@@ -845,6 +845,10 @@ static struct efi_class_map efi_class_maps[] = {
- 		.guid = &efi_guid_console_control,
- 		.interface = &efi_console_control
- 	},
-+	{
-+		.guid = &efi_guid_device_path_to_text_protocol,
-+		.interface = &efi_device_path_to_text
-+	},
- };
- 
- static efi_status_t EFIAPI efi_locate_protocol(efi_guid_t *protocol,
 diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
 new file mode 100644
 index 0000000000..d6d2e3c35f

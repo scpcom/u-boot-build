@@ -38,9 +38,21 @@ callable internally.
 
 The 9th patch implements LocateHandleBuffer.
 
+The 10th patch increases the number of protocols per handle.
+
+The 11th patch reimplements efi_locate_protocol.
+
+The 12th patch implements the device path to text protocol.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 
-Heinrich Schuchardt (9):
+---
+v2
+	Remove implementation of efi_return_handle in 1st patch.	
+	Add patches 10-12.
+---
+
+Heinrich Schuchardt (12):
   efi_loader: refactor efi_open_protocol
   efi_loader: efi_open_protocol: parameter checks
   efi_loader: implement InstallProtocolInterface
@@ -50,15 +62,22 @@ Heinrich Schuchardt (9):
   efi_loader: implement InstallMultipleProtocolInterfaces
   efi_loader: refactor efi_locate_handle
   efi_loader: implement LocateHandleBuffer
+  efi_loader: provide a sufficient number of protocols
+  efi_loader: reimplement efi_locate_protocol
+  efi_loader: implement EFI_DEVICE_PATH_TO_TEXT_PROTOCOL
 
- cmd/bootefi.c                 |  14 +--
- include/efi_api.h             |   2 +-
- include/efi_loader.h          |  17 +--
- lib/efi_loader/efi_boottime.c | 237 ++++++++++++++++++++++++++++++++++++++----
- lib/efi_loader/efi_disk.c     |  29 +-----
- lib/efi_loader/efi_gop.c      |   2 +-
- lib/efi_loader/efi_net.c      |  30 +-----
- 7 files changed, 232 insertions(+), 99 deletions(-)
+ cmd/bootefi.c                            |  24 +--
+ include/efi_api.h                        |  26 ++-
+ include/efi_loader.h                     |  33 +---
+ lib/efi_loader/Makefile                  |   2 +-
+ lib/efi_loader/efi_boottime.c            | 261 +++++++++++++++++++++++++++----
+ lib/efi_loader/efi_device_path_to_text.c |  68 ++++++++
+ lib/efi_loader/efi_disk.c                |  29 +---
+ lib/efi_loader/efi_gop.c                 |   2 +-
+ lib/efi_loader/efi_image_loader.c        |   8 -
+ lib/efi_loader/efi_net.c                 |  30 +---
+ 10 files changed, 350 insertions(+), 133 deletions(-)
+ create mode 100644 lib/efi_loader/efi_device_path_to_text.c
 
 -- 
 2.11.0

@@ -1,7 +1,7 @@
 From af4c9cf79939a0d9d993eff648a087818719a257 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 12:22:47 +0200
-Subject: [PATCH v2 1/9] efi_loader: refactor efi_open_protocol
+Subject: [PATCH v2 01/12] efi_loader: refactor efi_open_protocol
 
 efi_open_protocol was implemented to call a protocol specific open
 function to retrieve the protocol interface.

@@ -1,7 +1,7 @@
 From 0cca1adbf1da02467383e56e81222dba4f6a05bd Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 15:40:19 +0200
-Subject: [PATCH 4/9] efi_loader: implement UninstallProtocolInterface
+Subject: [PATCH v2 04/12] efi_loader: implement UninstallProtocolInterface
 
 Without the patch efi_uninstall_protocol_interface always returns an
 error.
@@ -9,6 +9,9 @@ error.
 With the patch protocols without interface can be uninstalled.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	no change
 ---
  lib/efi_loader/efi_boottime.c | 37 +++++++++++++++++++++++++++++++++++--
  1 file changed, 35 insertions(+), 2 deletions(-)

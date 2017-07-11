@@ -1,7 +1,7 @@
 From fb94b1c2e76d23151ba64ee8fc25495b02a2ee87 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 11:19:53 +0200
-Subject: [PATCH 5/9] efi_loader: refactor efi_install_protocol_interface
+Subject: [PATCH v2 05/12] efi_loader: refactor efi_install_protocol_interface
 
 For the implementation of InstallMultipleProtocolInterfaces we
 need to call efi_install_protocol_interface. In internal calls
@@ -11,6 +11,9 @@ The patch introduces a wrapper function
 efi_install_protocol_interface_ext.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	no change
 ---
  lib/efi_loader/efi_boottime.c | 19 ++++++++++++++-----
  1 file changed, 14 insertions(+), 5 deletions(-)
