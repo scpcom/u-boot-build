@@ -34,6 +34,7 @@ git am ../patch/0009-efi_loader-implement-LocateHandleBuffer.patch
 git am ../patch/0010-efi_loader-provide-a-sufficient-number-of-protocols.patch
 git am ../patch/0011-efi_loader-reimplement-efi_locate_protocol.patch
 git am ../patch/0012-efi_loader-implement-EFI_DEVICE_PATH_TO_TEXT_PROTOCO.patch
+git am ../patch/0013-efi_loader-implement-ProtocolsPerHandle.patch
 
 # EFI event services
 git am ../patch/0001-efi_loader-implement-multiple-event-support.patch
