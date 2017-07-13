@@ -1,0 +1,36 @@
+From 54fd03f75eeae5c17e96063466cfa20a500062c0 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 13 Jul 2017 21:57:11 +0200
+Subject: [PATCH 0/5] efi_convert_device_path_to_text
+
+The patch series provides the DevicePathToText function for MAC
+addresses and some error corrections.
+
+The 1st patch removes duplicate constants that we already have 
+defined in efi_api.h.
+
+The 2nd patch implements the DevicePathToText function for MAC
+addresses.
+
+The 3rd patch supplies additional debug output.
+
+The 4th patch adds a missing parameter check.
+
+The 5th patch moves the declarations to the beginning of the
+function efi_convert_device_path_to_text.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+
+Heinrich Schuchardt (5):
+  efi_loader: do not duplicate constants for device path
+  efi_loader: DevicePathToText for MAC address
+  efi_loader: parameter check efi_convert_device_path_to_text
+  efi_loader: debug info in efi_convert_device_path_to_text
+  efi_loader: DevicePathToText put declarations first
+
+ lib/efi_loader/efi_device_path_to_text.c | 44 +++++++++++++++++++++++++++-----
+ 1 file changed, 38 insertions(+), 6 deletions(-)
+
+-- 
+2.11.0
+

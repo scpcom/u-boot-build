@@ -1,0 +1,42 @@
+From 84589866a6102acfa6da8817f669392ed60a3a46 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 13 Jul 2017 18:58:44 +0200
+Subject: [PATCH 1/5] efi_loader: do not duplicate constants for device path
+
+We should not duplicate existing constants used by the
+device path protocol.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_device_path_to_text.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
+index a7a513047f..3a92247f30 100644
+--- a/lib/efi_loader/efi_device_path_to_text.c
++++ b/lib/efi_loader/efi_device_path_to_text.c
+@@ -9,9 +9,6 @@
+ #include <common.h>
+ #include <efi_loader.h>
+ 
+-#define MEDIA_DEVICE_PATH 4
+-#define FILE_PATH_MEDIA_DEVICE_PATH 4
+-
+ const efi_guid_t efi_guid_device_path_to_text_protocol =
+ 		EFI_DEVICE_PATH_TO_TEXT_PROTOCOL_GUID;
+ 
+@@ -38,9 +35,9 @@ uint16_t *efi_convert_device_path_to_text(
+ 	uint16_t *buffer = NULL;
+ 
+ 	switch (device_path->type) {
+-	case MEDIA_DEVICE_PATH:
++	case DEVICE_PATH_TYPE_MEDIA_DEVICE:
+ 		switch (device_path->sub_type) {
+-		case FILE_PATH_MEDIA_DEVICE_PATH:
++		case DEVICE_PATH_SUB_TYPE_FILE_PATH:
+ 			buffer_size = device_path->length - 4;
+ 			r = efi_allocate_pool(EFI_ALLOCATE_ANY_PAGES,
+ 					      buffer_size, (void **) &buffer);
+-- 
+2.11.0
+

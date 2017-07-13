@@ -1,0 +1,26 @@
+From 5ca3d0d6523f22becf77ccb4c5840be5969e02f2 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 13 Jul 2017 21:14:04 +0200
+Subject: [PATCH] DEBUG efi_device_path_to_text
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_device_path_to_text.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
+index c99d25a659..bc34962489 100644
+--- a/lib/efi_loader/efi_device_path_to_text.c
++++ b/lib/efi_loader/efi_device_path_to_text.c
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
++
+ #include <common.h>
+ #include <efi_loader.h>
+ 
+-- 
+2.11.0
+
