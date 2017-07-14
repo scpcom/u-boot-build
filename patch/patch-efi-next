@@ -14,8 +14,8 @@ git am ../patch/0004-efi_loader-debug-info-in-efi_convert_device_path_to_.patch
 git am ../patch/0005-efi_loader-DevicePathToText-put-declarations-first.patch
 
 git am ../patch/0001-DEBUG-efi_device_path_to_text.patch
-
-git am ../patch/0013-efi_loader-implement-ProtocolsPerHandle.patch
+git am ../patch/0001-efi_loader-implement-ProtocolsPerHandle.patch
+git am ../patch/0001-efi_memory-avoid-NULL-dereference-in-efi_free_pool.patch
 
 # EFI event services
 git am ../patch/0001-efi_loader-implement-multiple-event-support.patch

@@ -1,24 +1,28 @@
-From 4eb53a33f2603b401075580c8325de2ae77b8202 Mon Sep 17 00:00:00 2001
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Wed, 12 Jul 2017 22:31:47 +0200
-Subject: [PATCH v3 13/13] efi_loader: implement ProtocolsPerHandle
+From patchwork Thu Jul 13 21:24:32 2017
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: [U-Boot,1/1] efi_loader: implement ProtocolsPerHandle
+From: xypron.glpk@gmx.de
+X-Patchwork-Id: 787995
+Message-Id: <20170713212432.6328-1-xypron.glpk@gmx.de>
+To: Alexander Graf <agraf@suse.de>
+Cc: u-boot@lists.denx.de, Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 13 Jul 2017 23:24:32 +0200
 
 Boot service ProtocolsPerHandle is implemented in
 efi_protocols_per_handle.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
-v3
-	new patch
----
  lib/efi_loader/efi_boottime.c | 46 ++++++++++++++++++++++++++++++++++++++++++-
  1 file changed, 45 insertions(+), 1 deletion(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 805e5e457e..c957e002cd 100644
+index d2b5768ec0..c868b935b2 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -808,9 +808,53 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
+@@ -749,9 +749,53 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
  			efi_guid_t ***protocol_buffer,
  			unsigned long *protocol_buffer_count)
  {
@@ -54,7 +58,7 @@ index 805e5e457e..c957e002cd 100644
 +					*protocol_buffer_count;
 +			r = efi_allocate_pool(EFI_ALLOCATE_ANY_PAGES,
 +					      buffer_size,
-+					      (void **) protocol_buffer);
++					      (void **)protocol_buffer);
 +			if (r != EFI_SUCCESS)
 +				return EFI_EXIT(r);
 +			j = 0;
@@ -73,6 +77,3 @@ index 805e5e457e..c957e002cd 100644
  }
  
  static efi_status_t EFIAPI efi_locate_handle_buffer(
--- 
-2.11.0
-

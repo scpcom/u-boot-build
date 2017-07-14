@@ -1,0 +1,32 @@
+From e9db641436057d1456fb4c473c2357ca97c7d397 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 14 Jul 2017 18:40:27 +0200
+Subject: [PATCH 1/1] efi_memory: avoid NULL dereference in efi_free_pool
+
+If efi_free_pool is called with argument NULL an illegal memory
+access occurs.
+
+So let's check the parameter on entry.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_memory.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/efi_loader/efi_memory.c b/lib/efi_loader/efi_memory.c
+index db2ae19f59..5c53aaafdb 100644
+--- a/lib/efi_loader/efi_memory.c
++++ b/lib/efi_loader/efi_memory.c
+@@ -379,6 +379,9 @@ efi_status_t efi_free_pool(void *buffer)
+ 	efi_status_t r;
+ 	struct efi_pool_allocation *alloc;
+ 
++	if (buffer == NULL)
++		return EFI_INVALID_PARAMETER;
++
+ 	alloc = container_of(buffer, struct efi_pool_allocation, data);
+ 	/* Sanity check, was the supplied address returned by allocate_pool */
+ 	assert(((uintptr_t)alloc & EFI_PAGE_MASK) == 0);
+-- 
+2.11.0
+
