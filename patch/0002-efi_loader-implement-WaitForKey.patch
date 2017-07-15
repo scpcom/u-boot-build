@@ -1,4 +1,4 @@
-From ed0e6d2fa5124e0bb54ac330ae8660b3f3041c3d Mon Sep 17 00:00:00 2001
+From 0c527de4bab82961fa745944a09bc6f130cbdb32 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 19:11:30 +0200
 Subject: [PATCH 2/3] efi_loader: implement WaitForKey
@@ -15,10 +15,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  3 files changed, 19 insertions(+), 5 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index a35b971f7e..d7344d54e4 100644
+index 0eb38df448..c77b0990aa 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -92,7 +92,10 @@ struct efi_event {
+@@ -84,7 +84,10 @@ struct efi_event {
  	enum efi_event_type trigger_type;
  	int signaled;
  };
@@ -31,10 +31,10 @@ index a35b971f7e..d7344d54e4 100644
  /* This list contains all UEFI objects we know of */
  extern struct list_head efi_obj_list;
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index ef3e7d9d52..f509d457a7 100644
+index d5097e4dab..c7710a0b53 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -165,7 +165,13 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
+@@ -178,7 +178,13 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
   * Our event capabilities are very limited. Only a small limited
   * number of events is allowed to coexist.
   */
@@ -49,7 +49,7 @@ index ef3e7d9d52..f509d457a7 100644
  
  static efi_status_t EFIAPI efi_create_event(
  			enum efi_event_type type, ulong notify_tpl,
-@@ -187,7 +193,8 @@ static efi_status_t EFIAPI efi_create_event(
+@@ -201,7 +207,8 @@ static efi_status_t EFIAPI efi_create_event(
  	    notify_function == NULL)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  
@@ -59,7 +59,7 @@ index ef3e7d9d52..f509d457a7 100644
  		if (efi_events[i].type)
  			continue;
  		efi_events[i].type = type;
-@@ -212,6 +219,10 @@ void efi_timer_check(void)
+@@ -226,6 +233,10 @@ void efi_timer_check(void)
  	int i;
  	u64 now = timer_get_us();
  
@@ -68,17 +68,17 @@ index ef3e7d9d52..f509d457a7 100644
 +		efi_events[0].signaled = 1;
 +
  	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
- 		if (!(efi_events[i].type & EVT_TIMER) ||
- 		    efi_events[i].trigger_type == EFI_TIMER_STOP ||
-@@ -315,7 +326,7 @@ static efi_status_t EFIAPI efi_close_event(void *event)
+ 		if (!efi_events[i].type ||
+ 		    !(efi_events[i].type & EVT_TIMER) ||
+@@ -340,7 +351,7 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
  	int i;
  
  	EFI_ENTRY("%p", event);
 -	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
 +	for (i = FIRST_EDITABLE_EVENT; i < ARRAY_SIZE(efi_events); ++i) {
- 		if (event != &efi_events[i])
- 			continue;
- 		efi_events[i].type = 0;
+ 		if (event == &efi_events[i]) {
+ 			event->type = 0;
+ 			event->trigger_next = -1ULL;
 diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
 index 8ef7326fef..b2d9ff5497 100644
 --- a/lib/efi_loader/efi_console.c
@@ -91,5 +91,5 @@ index 8ef7326fef..b2d9ff5497 100644
 +	.wait_for_key = WAIT_FOR_KEY_EVENT,
  };
 -- 
-2.11.0
+2.13.2
 
