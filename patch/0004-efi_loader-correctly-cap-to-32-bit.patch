@@ -1,0 +1,28 @@
+From a50b15a576e46b0f3175db2f1a0ee19a1f2ead22 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 2 Jul 2017 14:48:05 +0200
+Subject: [PATCH 1/1] efi_loader: correctly cap to 32 bit
+
+If we cannot represent a number in 32 bit we should replace it by
+U32_MAX.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index fa264f3f3d..70fd269f33 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -241,6 +241,7 @@ static efi_status_t EFIAPI efi_set_timer(void *event, int type,
+ 	EFI_ENTRY("%p, %d, %"PRIx64, event, type, trigger_time);
+ 
+ 	if (trigger32 < trigger_time) {
++		trigger32 = U32_MAX;
+ 		printf("WARNING: Truncating timer from %"PRIx64" to %x\n",
+ 		       trigger_time, trigger32);
+ 	}
+-- 
+2.13.2
+

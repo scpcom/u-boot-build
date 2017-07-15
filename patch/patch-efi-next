@@ -21,6 +21,7 @@ git am ../patch/0001-efi_memory-avoid-NULL-dereference-in-efi_free_pool.patch
 git am ../patch/0001-efi_loader-implement-multiple-event-support.patch
 git am ../patch/0002-efi_loader-implement-WaitForKey.patch
 git am ../patch/0003-efi_loader-no-debug-message-on-wait-for-key.patch
+git am ../patch/0004-efi_loader-correctly-cap-to-32-bit.patch
 
 # EFI console
 git am ../patch/0001-efi_loader-split-of-efi_cout_output_string_ext.patch
