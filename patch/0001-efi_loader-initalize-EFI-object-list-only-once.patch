@@ -1,0 +1,100 @@
+From 4154d6c03c9bffba4c56755402dfeb44992408d6 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 16 Jul 2017 08:11:48 +0200
+Subject: [PATCH 1/1] efi_loader: initalize EFI object list only once
+
+If several EFI applications are executed in sequence we want
+to keep the content of the EFI object list.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c | 59 ++++++++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 34 insertions(+), 25 deletions(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 08c60e6fa9..966d001d41 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -20,6 +20,8 @@
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
++static uint8_t efi_obj_list_initalized;
++
+ /*
+  * When booting using the "bootefi" command, we don't know which
+  * physical device the file came from. So we create a pseudo-device
+@@ -104,6 +106,36 @@ static struct efi_object bootefi_device_obj = {
+ 	},
+ };
+ 
++/* Initialize and populate EFI object list */
++static void efi_init_obj_list(void)
++{
++	efi_obj_list_initalized = 1;
++	list_add_tail(&loaded_image_info_obj.link, &efi_obj_list);
++	list_add_tail(&bootefi_device_obj.link, &efi_obj_list);
++#ifdef CONFIG_PARTITIONS
++	efi_disk_register();
++#endif
++#ifdef CONFIG_LCD
++	efi_gop_register();
++#endif
++#ifdef CONFIG_NET
++	void *nethandle = loaded_image_info.device_handle;
++	efi_net_register(&nethandle);
++
++	if (!memcmp(bootefi_device_path[0].str, "N\0e\0t", 6))
++		loaded_image_info.device_handle = nethandle;
++	else
++		loaded_image_info.device_handle = bootefi_device_path;
++#endif
++#ifdef CONFIG_GENERATE_SMBIOS_TABLE
++	efi_smbios_register();
++#endif
++
++	/* Initialize EFI runtime services */
++	efi_reset_system_init();
++	efi_get_time_init();
++}
++
+ static void *copy_fdt(void *fdt)
+ {
+ 	u64 fdt_size = fdt_totalsize(fdt);
+@@ -223,31 +255,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
+ 		return -ENOENT;
+ 
+ 	/* Initialize and populate EFI object list */
+-	INIT_LIST_HEAD(&efi_obj_list);
+-	list_add_tail(&loaded_image_info_obj.link, &efi_obj_list);
+-	list_add_tail(&bootefi_device_obj.link, &efi_obj_list);
+-#ifdef CONFIG_PARTITIONS
+-	efi_disk_register();
+-#endif
+-#ifdef CONFIG_LCD
+-	efi_gop_register();
+-#endif
+-#ifdef CONFIG_NET
+-	void *nethandle = loaded_image_info.device_handle;
+-	efi_net_register(&nethandle);
+-
+-	if (!memcmp(bootefi_device_path[0].str, "N\0e\0t", 6))
+-		loaded_image_info.device_handle = nethandle;
+-	else
+-		loaded_image_info.device_handle = bootefi_device_path;
+-#endif
+-#ifdef CONFIG_GENERATE_SMBIOS_TABLE
+-	efi_smbios_register();
+-#endif
+-
+-	/* Initialize EFI runtime services */
+-	efi_reset_system_init();
+-	efi_get_time_init();
++	if (!efi_obj_list_initalized)
++		efi_init_obj_list();
+ 
+ 	/* Call our payload! */
+ 	debug("%s:%d Jumping to 0x%lx\n", __func__, __LINE__, (long)entry);
+-- 
+2.11.0
+
