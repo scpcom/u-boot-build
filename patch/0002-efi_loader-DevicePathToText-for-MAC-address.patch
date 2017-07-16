@@ -1,0 +1,60 @@
+From 63fd7082391a12568ef0a0f5207a6f8aa1c1b57b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 13 Jul 2017 19:55:22 +0200
+Subject: [PATCH 2/5] efi_loader: DevicePathToText for MAC address
+
+Implement DevicePathToText MAC address device path.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_device_path_to_text.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
+index 3a92247f30..c6ac5e52f3 100644
+--- a/lib/efi_loader/efi_device_path_to_text.c
++++ b/lib/efi_loader/efi_device_path_to_text.c
+@@ -9,6 +9,8 @@
+ #include <common.h>
+ #include <efi_loader.h>
+ 
++#define MAC_OUTPUT_LEN 22
++
+ const efi_guid_t efi_guid_device_path_to_text_protocol =
+ 		EFI_DEVICE_PATH_TO_TEXT_PROTOCOL_GUID;
+ 
+@@ -35,6 +37,31 @@ uint16_t *efi_convert_device_path_to_text(
+ 	uint16_t *buffer = NULL;
+ 
+ 	switch (device_path->type) {
++	case DEVICE_PATH_TYPE_MESSAGING_DEVICE:
++		switch (device_path->sub_type) {
++		case DEVICE_PATH_SUB_TYPE_MSG_MAC_ADDR: {
++			struct efi_device_path_mac_addr *dp =
++				(struct efi_device_path_mac_addr *)device_path;
++			int i;
++
++			if (dp->if_type != 0 && dp->if_type != 1)
++				break;
++			r = efi_allocate_pool(EFI_ALLOCATE_ANY_PAGES,
++					      2 * MAC_OUTPUT_LEN,
++					      (void **)&buffer);
++			if (r != EFI_SUCCESS)
++				break;
++			sprintf((char *)buffer,
++				"MAC(%02x%02x%02x%02x%02x%02x,0x%1x)",
++				dp->mac.addr[0], dp->mac.addr[1],
++				dp->mac.addr[2], dp->mac.addr[3],
++				dp->mac.addr[4], dp->mac.addr[5],
++				dp->if_type);
++			for (i = MAC_OUTPUT_LEN - 1; i >= 0; --i)
++				buffer[i] = ((uint8_t *)buffer)[i];
++			break;
++			}
++		}
+ 	case DEVICE_PATH_TYPE_MEDIA_DEVICE:
+ 		switch (device_path->sub_type) {
+ 		case DEVICE_PATH_SUB_TYPE_FILE_PATH:
+-- 
+2.11.0
+
