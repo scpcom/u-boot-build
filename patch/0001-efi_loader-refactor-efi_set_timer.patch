@@ -1,0 +1,62 @@
+From 7f6e40e25b5b39816029186214f3281b39caa7af Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 17 Jul 2017 18:57:21 +0200
+Subject: [PATCH 1/1] efi_loader: refactor efi_set_timer
+
+efi_set_timer is refactored to make the function callable internally.
+Wrapper function efi_set_timer_ext is provided for EFI applications.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 447688f491..4b5ca09ecf 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -260,8 +260,6 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
+ 	u32 trigger32 = trigger_time;
+ 	int i;
+ 
+-	EFI_ENTRY("%p, %d, %"PRIx64, event, type, trigger_time);
+-
+ 	if (trigger32 < trigger_time) {
+ 		printf("WARNING: Truncating timer from %"PRIx64" to %x\n",
+ 		       trigger_time, trigger32);
+@@ -281,13 +279,20 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
+ 				timer_get_us() + (trigger32 / 10);
+ 			break;
+ 		default:
+-			return EFI_EXIT(EFI_INVALID_PARAMETER);
++			return EFI_INVALID_PARAMETER;
+ 		}
+ 		efi_events[i].trigger_type = type;
+ 		efi_events[i].trigger_time = trigger_time;
+-		return EFI_EXIT(EFI_SUCCESS);
++		return EFI_SUCCESS;
+ 	}
+-	return EFI_EXIT(EFI_INVALID_PARAMETER);
++	return EFI_INVALID_PARAMETER;
++}
++
++static efi_status_t EFIAPI efi_set_timer_ext(struct efi_event *event, int type,
++					 uint64_t trigger_time)
++{
++	EFI_ENTRY("%p, %d, %"PRIx64, event, type, trigger_time);
++	return EFI_EXIT(efi_set_timer(event, type, trigger_time));
+ }
+ 
+ static efi_status_t EFIAPI efi_wait_for_event(unsigned long num_events,
+@@ -1109,7 +1114,7 @@ static const struct efi_boot_services efi_boot_services = {
+ 	.allocate_pool = efi_allocate_pool_ext,
+ 	.free_pool = efi_free_pool_ext,
+ 	.create_event = efi_create_event_ext,
+-	.set_timer = efi_set_timer,
++	.set_timer = efi_set_timer_ext,
+ 	.wait_for_event = efi_wait_for_event,
+ 	.signal_event = efi_signal_event_ext,
+ 	.close_event = efi_close_event,
+-- 
+2.13.2
+

@@ -66,7 +66,7 @@ index 884587dcae..d5da6b2fb2 100644
  		efi_signal_event(&efi_events[i]);
  	}
  	WATCHDOG_RESET();
-@@ -243,17 +275,15 @@ void efi_timer_check(void)
+@@ -243,15 +275,13 @@ void efi_timer_check(void)
  static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
  					 uint64_t trigger_time)
  {
@@ -74,8 +74,6 @@ index 884587dcae..d5da6b2fb2 100644
 -	 * distances to 32bit bits. */
 -	u32 trigger32 = trigger_time;
  	int i;
- 
- 	EFI_ENTRY("%p, %d, %"PRIx64, event, type, trigger_time);
  
 -	if (trigger32 < trigger_time) {
 -		printf("WARNING: Truncating timer from %"PRIx64" to %x\n",
@@ -104,15 +102,15 @@ index 884587dcae..d5da6b2fb2 100644
 +				timer_get_us() + event->trigger_time;
  			break;
  		default:
- 			return EFI_EXIT(EFI_INVALID_PARAMETER);
+ 			return EFI_INVALID_PARAMETER;
  		}
 -		efi_events[i].trigger_type = type;
 -		efi_events[i].trigger_time = trigger_time;
 +		event->trigger_type = type;
 +		event->trigger_time = trigger_time;
- 		return EFI_EXIT(EFI_SUCCESS);
+ 		return EFI_SUCCESS;
  	}
- 	return EFI_EXIT(EFI_INVALID_PARAMETER);
+ 	return EFI_INVALID_PARAMETER;
 -- 
 2.13.2
 

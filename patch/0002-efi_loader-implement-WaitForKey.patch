@@ -51,7 +51,7 @@ index d5097e4dab..c7710a0b53 100644
  			enum efi_event_type type, ulong notify_tpl,
 @@ -201,7 +207,8 @@ static efi_status_t EFIAPI efi_create_event(
  	    notify_function == NULL)
- 		return EFI_EXIT(EFI_INVALID_PARAMETER);
+ 		return EFI_INVALID_PARAMETER;
  
 -	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
 +	/* Use first empty slot */
