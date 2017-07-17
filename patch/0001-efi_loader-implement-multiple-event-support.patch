@@ -1,7 +1,7 @@
-From b19a50bed8f49d9c263d075143a045b0beb2a86d Mon Sep 17 00:00:00 2001
+From 3ded057f0089efc512184e28a242146d72f40ba8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 14:48:05 +0200
-Subject: [PATCH 1/1] efi_loader: implement multiple event support
+Subject: [PATCH] efi_loader: implement multiple event support
 
 Up to now the boot time supported only a single event.
 This patch now allows four events.
@@ -9,9 +9,9 @@ This patch now allows four events.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_api.h             |   8 +-
- include/efi_loader.h          |  23 +++++
+ include/efi_loader.h          |  24 ++++++
  lib/efi_loader/efi_boottime.c | 191 ++++++++++++++++++++++++++++--------------
- 3 files changed, 158 insertions(+), 64 deletions(-)
+ 3 files changed, 159 insertions(+), 64 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
 index 3d156eae81..abd483060f 100644
@@ -33,22 +33,23 @@ index 3d156eae81..abd483060f 100644
  struct efi_event;
  
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index d7847d23e5..0eb38df448 100644
+index d7847d23e5..db91fb9ca1 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -63,6 +63,29 @@ struct efi_object {
+@@ -63,6 +63,30 @@ struct efi_object {
  	void *handle;
  };
  
 +/**
 + * struct efi_event
 + *
-+ * @type:		Type of event
-+ * @trigger_type:	Type of timer
++ * @type:		Type of event, see efi_create_event
++ * @notify_tpl:		Task priority level of notifications
 + * @trigger_time:	Period of the timer
 + * @trigger_next:	Next time to trigger the timer
 + * @nofify_function:	Function to call when the event is triggered
 + * @notify_context:	Data to be passed to the notify function
++ * @trigger_type:	Type of timer, see efi_set_timer
 + * @signaled:		The notify function was already called
 + */
 +struct efi_event {
@@ -67,7 +68,7 @@ index d7847d23e5..0eb38df448 100644
  extern struct list_head efi_obj_list;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 0eda465359..f838da8021 100644
+index 0eda465359..d5c68309be 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -82,6 +82,18 @@ efi_status_t efi_exit_func(efi_status_t ret)
@@ -332,7 +333,7 @@ index 0eda465359..f838da8021 100644
 +	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
 +		if (event != &efi_events[i])
 +			continue;
-+		if (!event->type)
++		if (!event->type || event->type & EVT_NOTIFY_SIGNAL)
 +			break;
 +		if (event->signaled)
 +			return EFI_EXIT(EFI_SUCCESS);
