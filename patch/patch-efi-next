@@ -7,7 +7,7 @@ git am ../patch/0001-meson-gx-reserved-memory-regions.patch
 git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
 # Initialization
-git am ../0001-efi_loader-initalize-EFI-object-list-only-once.patch
+git am ../patch/0001-efi_loader-initalize-EFI-object-list-only-once.patch
 
 # EFI protocol services
 git am ../patch/0001-efi_loader-do-not-duplicate-constants-for-device-pat.patch
