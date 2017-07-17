@@ -1,4 +1,4 @@
-From c69ad8f36ce3e0b230e5c37239cf900ac4efdcb1 Mon Sep 17 00:00:00 2001
+From 8d8af28cc0a26919fe915086435810f7b4e57800 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 17 Jul 2017 18:51:42 +0200
 Subject: [PATCH 1/1] efi_loader: refactor efi_create_event
@@ -9,18 +9,48 @@ efi_create_event_ext is created.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ include/efi_loader.h          |  6 ++++++
+ lib/efi_loader/efi_boottime.c | 35 +++++++++++++++++++++++------------
+ 2 files changed, 29 insertions(+), 12 deletions(-)
 
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 4d805cf701..cf2d476e32 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -116,6 +116,12 @@ efi_status_t efi_exit_func(efi_status_t ret);
+ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map);
+ /* Call this to set the current device name */
+ void efi_set_bootdev(const char *dev, const char *devnr, const char *path);
++/* Call this to create an event */
++efi_status_t efi_create_event(enum efi_event_type type, UINTN notify_tpl,
++			      void (EFIAPI *notify_function) (
++					struct efi_event *event,
++					void *context),
++			      void *notify_context, struct efi_event **event);
+ 
+ /* Generic EFI memory allocator, call this to get memory */
+ void *efi_alloc(uint64_t len, int memory_type);
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index d5c68309be..6b4a7bf514 100644
+index 214854ae1f..5690dc4194 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -189,17 +189,15 @@ static efi_status_t EFIAPI efi_create_event(
+@@ -180,26 +180,23 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
+  */
+ static struct efi_event efi_events[16];
+ 
+-static efi_status_t EFIAPI efi_create_event(
+-			enum efi_event_type type, UINTN notify_tpl,
+-			void (EFIAPI *notify_function) (
++efi_status_t efi_create_event(enum efi_event_type type, UINTN notify_tpl,
++			      void (EFIAPI *notify_function) (
+ 					struct efi_event *event,
+ 					void *context),
+-			void *notify_context, struct efi_event **event)
++			      void *notify_context, struct efi_event **event)
  {
  	int i;
  
--	EFI_ENTRY("%d, 0x%lx, %p, %p", type, notify_tpl, notify_function,
+-	EFI_ENTRY("%d, 0x%zx, %p, %p", type, notify_tpl, notify_function,
 -		  notify_context);
  	if (event == NULL)
 -		return EFI_EXIT(EFI_INVALID_PARAMETER);
@@ -37,7 +67,7 @@ index d5c68309be..6b4a7bf514 100644
  
  	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
  		if (efi_events[i].type)
-@@ -212,11 +210,25 @@ static efi_status_t EFIAPI efi_create_event(
+@@ -212,11 +209,25 @@ static efi_status_t EFIAPI efi_create_event(
  		efi_events[i].trigger_next = -1ULL;
  		efi_events[i].signaled = 0;
  		*event = &efi_events[i];
@@ -46,26 +76,26 @@ index d5c68309be..6b4a7bf514 100644
  	}
 -	return EFI_EXIT(EFI_OUT_OF_RESOURCES);
 +	return EFI_OUT_OF_RESOURCES;
-+}
-+
+ }
+ 
 +static efi_status_t EFIAPI efi_create_event_ext(
-+			enum efi_event_type type, ulong notify_tpl,
++			enum efi_event_type type, UINTN notify_tpl,
 +			void (EFIAPI *notify_function) (
 +					struct efi_event *event,
 +					void *context),
 +			void *notify_context, struct efi_event **event)
 +{
-+	EFI_ENTRY("%d, 0x%lx, %p, %p", type, notify_tpl, notify_function,
++	EFI_ENTRY("%d, 0x%zx, %p, %p", type, notify_tpl, notify_function,
 +		  notify_context);
 +	return EFI_EXIT(efi_create_event(type, notify_tpl, notify_function,
 +					 notify_context, event));
- }
- 
++}
++
 +
  /*
   * Our timers have to work without interrupts, so we check whenever keyboard
   * input or disk accesses happen if enough time elapsed for it to fire.
-@@ -1096,7 +1108,7 @@ static const struct efi_boot_services efi_boot_services = {
+@@ -1096,7 +1107,7 @@ static const struct efi_boot_services efi_boot_services = {
  	.get_memory_map = efi_get_memory_map_ext,
  	.allocate_pool = efi_allocate_pool_ext,
  	.free_pool = efi_free_pool_ext,

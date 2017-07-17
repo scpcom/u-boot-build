@@ -1,23 +1,23 @@
-From 3ded057f0089efc512184e28a242146d72f40ba8 Mon Sep 17 00:00:00 2001
+From a43a7f4753c74b0f24d9a7bd5405f342b5ac04f0 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 14:48:05 +0200
-Subject: [PATCH] efi_loader: implement multiple event support
+Subject: [PATCH 1/1] efi_loader: implement multiple event support
 
 Up to now the boot time supported only a single event.
 This patch now allows four events.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/efi_api.h             |   8 +-
+ include/efi_api.h             |  13 ++-
  include/efi_loader.h          |  24 ++++++
- lib/efi_loader/efi_boottime.c | 191 ++++++++++++++++++++++++++++--------------
- 3 files changed, 159 insertions(+), 64 deletions(-)
+ lib/efi_loader/efi_boottime.c | 195 ++++++++++++++++++++++++++++--------------
+ 3 files changed, 168 insertions(+), 64 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index 3d156eae81..abd483060f 100644
+index 3d156eae81..1e74e8c9e2 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
-@@ -28,8 +28,12 @@ enum efi_event_type {
+@@ -28,8 +28,17 @@ enum efi_event_type {
  	EFI_TIMER_RELATIVE = 2
  };
  
@@ -29,11 +29,16 @@ index 3d156eae81..abd483060f 100644
 +#define EVT_NOTIFY_SIGNAL			0x00000200
 +#define EVT_SIGNAL_EXIT_BOOT_SERVICES		0x00000201
 +#define EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE	0x60000202
++
++#define TPL_APPLICATION		0x04
++#define TPL_CALLBACK		0x08
++#define TPL_NOTIFY		0x10
++#define TPL_HIGH_LEVEL		0x1F
  
  struct efi_event;
  
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index d7847d23e5..db91fb9ca1 100644
+index d7847d23e5..3d18bfbd2e 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -63,6 +63,30 @@ struct efi_object {
@@ -58,7 +63,7 @@ index d7847d23e5..db91fb9ca1 100644
 +	void (EFIAPI *notify_function)(struct efi_event *event, void *context);
 +	void *notify_context;
 +	u64 trigger_next;
-+	u32 trigger_time;
++	u64 trigger_time;
 +	enum efi_event_type trigger_type;
 +	int signaled;
 +};
@@ -68,7 +73,7 @@ index d7847d23e5..db91fb9ca1 100644
  extern struct list_head efi_obj_list;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 0eda465359..d5c68309be 100644
+index 0eda465359..a49acc8693 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -82,6 +82,18 @@ efi_status_t efi_exit_func(efi_status_t ret)
@@ -160,7 +165,7 @@ index 0eda465359..d5c68309be 100644
  }
  
  /*
-@@ -219,17 +223,20 @@ static efi_status_t EFIAPI efi_create_event(
+@@ -219,17 +223,22 @@ static efi_status_t EFIAPI efi_create_event(
   */
  void efi_timer_check(void)
  {
@@ -180,16 +185,18 @@ index 0eda465359..d5c68309be 100644
 +		    efi_events[i].trigger_type == EFI_TIMER_STOP ||
 +		    now < efi_events[i].trigger_next)
 +			continue;
-+		if (efi_events[i].trigger_type == EFI_TIMER_PERIODIC)
++		if (efi_events[i].trigger_type == EFI_TIMER_PERIODIC) {
 +			efi_events[i].trigger_next +=
 +				efi_events[i].trigger_time / 10;
++			efi_events[i].signaled = 0;
++		}
 +		efi_signal_event(&efi_events[i]);
  	}
 -
  	WATCHDOG_RESET();
  }
  
-@@ -239,6 +246,7 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
+@@ -239,6 +248,7 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
  	/* We don't have 64bit division available everywhere, so limit timer
  	 * distances to 32bit bits. */
  	u32 trigger32 = trigger_time;
@@ -197,7 +204,7 @@ index 0eda465359..d5c68309be 100644
  
  	EFI_ENTRY("%p, %d, %"PRIx64, event, type, trigger_time);
  
-@@ -247,60 +255,119 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
+@@ -247,60 +257,121 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
  		       trigger_time, trigger32);
  	}
  
@@ -219,20 +226,22 @@ index 0eda465359..d5c68309be 100644
 -		break;
 -	default:
 -		return EFI_EXIT(EFI_INVALID_PARAMETER);
++		if (!(event->type & EVT_TIMER))
++			break;
 +		switch (type) {
 +		case EFI_TIMER_STOP:
-+			efi_events[i].trigger_next = -1ULL;
++			event->trigger_next = -1ULL;
 +			break;
 +		case EFI_TIMER_PERIODIC:
 +		case EFI_TIMER_RELATIVE:
-+			efi_events[i].trigger_next =
++			event->trigger_next =
 +				timer_get_us() + (trigger32 / 10);
 +			break;
 +		default:
 +			return EFI_EXIT(EFI_INVALID_PARAMETER);
 +		}
-+		efi_events[i].trigger_type = type;
-+		efi_events[i].trigger_time = trigger_time;
++		event->trigger_type = type;
++		event->trigger_time = trigger_time;
 +		return EFI_EXIT(EFI_SUCCESS);
  	}
 -	efi_event.trigger_type = type;
@@ -343,7 +352,7 @@ index 0eda465359..d5c68309be 100644
  }
  
  static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
-@@ -1032,7 +1099,7 @@ static const struct efi_boot_services efi_boot_services = {
+@@ -1032,7 +1103,7 @@ static const struct efi_boot_services efi_boot_services = {
  	.create_event = efi_create_event,
  	.set_timer = efi_set_timer,
  	.wait_for_event = efi_wait_for_event,

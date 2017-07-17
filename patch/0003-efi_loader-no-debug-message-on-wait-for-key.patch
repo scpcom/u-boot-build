@@ -1,7 +1,7 @@
-From 3a99bb4b99b4815754938ce8367cd5aacb48acf6 Mon Sep 17 00:00:00 2001
+From 9dc15963a86120abba35730b52a78e2e331c4024 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 3 Jul 2017 12:07:58 +0200
-Subject: [PATCH 3/3] efi_loader: no debug message on wait for key
+Subject: [PATCH] efi_loader: no debug message on wait for key
 
 If efi_check_event is called in a loop waiting for keyboard input
 the screen is flooded with debug messages.
@@ -10,14 +10,23 @@ So only write debug message for other events.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ lib/efi_loader/efi_boottime.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index f509d457a7..ec29143306 100644
+index c4cc18ad6a..145188b2e6 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -341,7 +341,12 @@ static efi_status_t EFIAPI efi_check_event(void *event)
+@@ -90,7 +90,7 @@ static void efi_signal_event(struct efi_event *event)
+ 	if (event->type & EVT_NOTIFY_SIGNAL) {
+ 		EFI_EXIT(EFI_SUCCESS);
+ 		event->notify_function(event, event->notify_context);
+-		EFI_ENTRY("returning from notification function");
++		efi_restore_gd();
+ 	}
+ }
+ 
+@@ -385,7 +385,12 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  {
  	int i;
  
@@ -32,5 +41,5 @@ index f509d457a7..ec29143306 100644
  	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
  		if (event != &efi_events[i])
 -- 
-2.11.0
+2.13.2
 

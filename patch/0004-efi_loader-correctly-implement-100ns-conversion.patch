@@ -1,7 +1,7 @@
-From a4b7815bee821389ccd34cfb6024042349e4ef97 Mon Sep 17 00:00:00 2001
+From d8fc11426abb357ce515b39aca8ec584c645063a Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 2 Jul 2017 14:48:05 +0200
-Subject: [PATCH v2 4/4] efi_loader: correctly implement 100ns conversion
+Subject: [PATCH 1/1] efi_loader: correctly implement 100ns conversion
 
 In efi_set_timer we receive the trigger time in intervals of 100 ns.
 We should convert it to intervals of 1000 ns by 64bit division.
@@ -11,11 +11,11 @@ implement the missing 64 bit division.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 56 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 43 insertions(+), 13 deletions(-)
+ lib/efi_loader/efi_boottime.c | 48 +++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 39 insertions(+), 9 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 884587dcae..d5da6b2fb2 100644
+index 3a398fbbf5..1ede608aa6 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -82,6 +82,38 @@ efi_status_t efi_exit_func(efi_status_t ret)
@@ -57,18 +57,18 @@ index 884587dcae..d5da6b2fb2 100644
  static void efi_signal_event(struct efi_event *event)
  {
  	if (event->signaled)
-@@ -234,7 +266,7 @@ void efi_timer_check(void)
+@@ -256,7 +288,7 @@ void efi_timer_check(void)
  			continue;
- 		if (efi_events[i].trigger_type == EFI_TIMER_PERIODIC)
+ 		if (efi_events[i].trigger_type == EFI_TIMER_PERIODIC) {
  			efi_events[i].trigger_next +=
 -				efi_events[i].trigger_time / 10;
 +				efi_events[i].trigger_time;
+ 			efi_events[i].signaled = 0;
+ 		}
  		efi_signal_event(&efi_events[i]);
- 	}
- 	WATCHDOG_RESET();
-@@ -243,15 +275,13 @@ void efi_timer_check(void)
- static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
- 					 uint64_t trigger_time)
+@@ -267,15 +299,13 @@ void efi_timer_check(void)
+ efi_status_t efi_set_timer(struct efi_event *event, int type,
+ 			   uint64_t trigger_time)
  {
 -	/* We don't have 64bit division available everywhere, so limit timer
 -	 * distances to 32bit bits. */
@@ -87,30 +87,15 @@ index 884587dcae..d5da6b2fb2 100644
  
  	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
  		if (event != &efi_events[i])
-@@ -261,18 +291,18 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
- 
- 		switch (type) {
- 		case EFI_TIMER_STOP:
--			efi_events[i].trigger_next = -1ULL;
-+			event->trigger_next = -1ULL;
- 			break;
+@@ -290,7 +320,7 @@ efi_status_t efi_set_timer(struct efi_event *event, int type,
  		case EFI_TIMER_PERIODIC:
  		case EFI_TIMER_RELATIVE:
--			efi_events[i].trigger_next =
+ 			event->trigger_next =
 -				timer_get_us() + (trigger32 / 10);
-+			efi_events->trigger_next =
-+				timer_get_us() + event->trigger_time;
++				timer_get_us() + trigger_time;
  			break;
  		default:
  			return EFI_INVALID_PARAMETER;
- 		}
--		efi_events[i].trigger_type = type;
--		efi_events[i].trigger_time = trigger_time;
-+		event->trigger_type = type;
-+		event->trigger_time = trigger_time;
- 		return EFI_SUCCESS;
- 	}
- 	return EFI_INVALID_PARAMETER;
 -- 
 2.13.2
 
