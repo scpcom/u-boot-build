@@ -27,7 +27,6 @@ git am ../patch/0004-efi_loader-refactor-efi_create_event.patch
 git am ../patch/0005-efi_loader-refactor-efi_set_timer.patch
 git am ../patch/0006-efi_console-set-up-events.patch
 git am ../patch/0007-efi_loader-correctly-implement-100ns-conversion.patch
-exit
 git am ../patch/0003-efi_loader-no-debug-message-on-wait-for-key.patch
 
 # EFI console

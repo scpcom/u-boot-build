@@ -22,14 +22,14 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 137a4036c6..c58066474e 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -82,6 +82,38 @@ efi_status_t efi_exit_func(efi_status_t ret)
+@@ -82,6 +82,39 @@ efi_status_t efi_exit_func(efi_status_t ret)
  	return ret;
  }
  
 +/* Low 32 bit */
-+#define EFI_LOW32( a ) (a & 0xFFFFFFFFULL)
++#define EFI_LOW32(a) (a & 0xFFFFFFFFULL)
 +/* High 32 bit */
-+#define EFI_HIGH32( a ) (a >> 32)
++#define EFI_HIGH32(a) (a >> 32)
 +
 +/*
 + * 64bit division by 10 implemented as multiplication by 1 / 10
@@ -37,7 +37,8 @@ index 137a4036c6..c58066474e 100644
 + * Decimals of one tenth: 0x1 / 0xA = 0x0.19999...
 + */
 +#define EFI_TENTH 0x199999999999999A
-+static u64 efi_div10(u64 a) {
++static u64 efi_div10(u64 a)
++{
 +	u64 prod;
 +	u64 rem;
 +	u64 ret;

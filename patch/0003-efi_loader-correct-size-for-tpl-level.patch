@@ -27,7 +27,7 @@ index a3b8e04576..8e5342c79c 100644
  	EFI_TIMER_RELATIVE = 2
  };
  
-+typedef size_t UINTN;
++#define UINTN size_t
 +
  #define EVT_TIMER				0x80000000
  #define EVT_RUNTIME				0x40000000
