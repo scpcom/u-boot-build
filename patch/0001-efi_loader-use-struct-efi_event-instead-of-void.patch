@@ -1,4 +1,4 @@
-From b29ac06c237c7ad87922c9bf16fe7ebe5b42ec95 Mon Sep 17 00:00:00 2001
+From 26e7a5a6157af122d49f3344505542a85e685d6e Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 15 Jul 2017 11:50:08 +0200
 Subject: [PATCH 1/1] efi_loader: use struct efi_event * instead of void *
@@ -8,12 +8,12 @@ So use the known type instead of void.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/efi_api.h             | 21 ++++++++++++---------
+ include/efi_api.h             | 23 +++++++++++++----------
  lib/efi_loader/efi_boottime.c | 25 ++++++++++++++-----------
- 2 files changed, 26 insertions(+), 20 deletions(-)
+ 2 files changed, 27 insertions(+), 21 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index ea63e80b47..3d156eae81 100644
+index ea63e80b47..a1f8221111 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
 @@ -31,6 +31,8 @@ enum efi_event_type {
@@ -60,6 +60,15 @@ index ea63e80b47..3d156eae81 100644
  			void **registration);
  	efi_status_t (EFIAPI *locate_handle)(
  			enum efi_locate_search_type search_type,
+@@ -374,7 +377,7 @@ struct efi_simple_input_interface {
+ 	efi_status_t(EFIAPI *read_key_stroke)(
+ 			struct efi_simple_input_interface *this,
+ 			struct efi_input_key *key);
+-	void *wait_for_key;
++	struct efi_event *wait_for_key;
+ };
+ 
+ #define CONSOLE_CONTROL_GUID \
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index fa264f3f3d..0eda465359 100644
 --- a/lib/efi_loader/efi_boottime.c

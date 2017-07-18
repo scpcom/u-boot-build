@@ -54,7 +54,7 @@ index 3a398fbbf5..1ede608aa6 100644
 +	return ret;
 +}
 +
- static void efi_signal_event(struct efi_event *event)
+ void efi_signal_event(struct efi_event *event)
  {
  	if (event->signaled)
 @@ -256,7 +288,7 @@ void efi_timer_check(void)

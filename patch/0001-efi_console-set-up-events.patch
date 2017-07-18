@@ -1,18 +1,19 @@
-From 1b55a35336e956a8062fdb6fb74f9c6fabecd4e2 Mon Sep 17 00:00:00 2001
+From 48091deea326a1ec2756151c6b72905282996a32 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 17 Jul 2017 18:45:46 +0200
 Subject: [PATCH 1/1] efi_console: set up events
 
 Set up a timer event and the WaitForKey event.
-In the notify function of the timer evernt check for console input
+In the notify function of the timer event check for console input
 and signal the WaitForKey event accordingly.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                |  1 +
- include/efi_loader.h         |  2 ++
- lib/efi_loader/efi_console.c | 25 +++++++++++++++++++++++++
- 3 files changed, 28 insertions(+)
+ cmd/bootefi.c                 |  1 +
+ include/efi_loader.h          |  6 +++++-
+ lib/efi_loader/efi_boottime.c |  2 +-
+ lib/efi_loader/efi_console.c  | 40 +++++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 46 insertions(+), 3 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
 index 966d001d41..cf717564c4 100644
@@ -27,9 +28,18 @@ index 966d001d41..cf717564c4 100644
  	efi_disk_register();
  #endif
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 342e960d14..834a593299 100644
+index 342e960d14..2abb6b87e1 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
+@@ -26,7 +26,7 @@ extern struct efi_runtime_services efi_runtime_services;
+ extern struct efi_system_table systab;
+ 
+ extern const struct efi_simple_text_output_protocol efi_con_out;
+-extern const struct efi_simple_input_interface efi_con_in;
++extern struct efi_simple_input_interface efi_con_in;
+ extern const struct efi_console_control_protocol efi_console_control;
+ extern const struct efi_device_path_to_text_protocol efi_device_path_to_text;
+ 
 @@ -90,6 +90,8 @@ struct efi_event {
  /* This list contains all UEFI objects we know of */
  extern struct list_head efi_obj_list;
@@ -39,21 +49,54 @@ index 342e960d14..834a593299 100644
  /* Called by bootefi to make all disk storage accessible as EFI objects */
  int efi_disk_register(void);
  /* Called by bootefi to make GOP (graphical) interface available */
+@@ -125,6 +127,8 @@ efi_status_t efi_create_event(enum efi_event_type type, UINTN notify_tpl,
+ /* Call this to set a timer */
+ efi_status_t efi_set_timer(struct efi_event *event, int type,
+ 			   uint64_t trigger_time);
++/* Call this to signal an event */
++void efi_signal_event(struct efi_event *event);
+ 
+ /* Generic EFI memory allocator, call this to get memory */
+ void *efi_alloc(uint64_t len, int memory_type);
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 7f10b6090a..137a4036c6 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -82,7 +82,7 @@ efi_status_t efi_exit_func(efi_status_t ret)
+ 	return ret;
+ }
+ 
+-static void efi_signal_event(struct efi_event *event)
++void efi_signal_event(struct efi_event *event)
+ {
+ 	if (event->signaled)
+ 		return;
 diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
-index 8ef7326fef..0f327fa863 100644
+index 8ef7326fef..dbe98ac08b 100644
 --- a/lib/efi_loader/efi_console.c
 +++ b/lib/efi_loader/efi_console.c
-@@ -426,3 +426,28 @@ const struct efi_simple_input_interface efi_con_in = {
+@@ -421,8 +421,46 @@ static efi_status_t EFIAPI efi_cin_read_key_stroke(
+ 	return EFI_EXIT(EFI_SUCCESS);
+ }
+ 
+-const struct efi_simple_input_interface efi_con_in = {
++struct efi_simple_input_interface efi_con_in = {
+ 	.reset = efi_cin_reset,
  	.read_key_stroke = efi_cin_read_key_stroke,
  	.wait_for_key = NULL,
  };
 +
 +static struct efi_event *console_timer_event;
 +
-+static void console_timer_notify(struct efi_event *event, void *context)
++static void efi_key_notify(struct efi_event *event, void *context)
++{
++}
++
++static void efi_console_timer_notify(struct efi_event *event, void *context)
 +{
 +	EFI_ENTRY("%p, %p", event, context);
-+	printf("'");
++	if (tstc())
++		efi_signal_event(efi_con_in.wait_for_key);
 +	EFI_EXIT(EFI_SUCCESS);
 +}
 +
@@ -61,13 +104,21 @@ index 8ef7326fef..0f327fa863 100644
 +int efi_console_register(void)
 +{
 +	efi_status_t r;
++	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK,
++			     efi_key_notify, NULL, &efi_con_in.wait_for_key);
++	if (r != EFI_SUCCESS) {
++		printf("ERROR: Failed to register WaitForKey event\n");
++		return r;
++	}
 +	r = efi_create_event(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK,
-+			     console_timer_notify, NULL, &console_timer_event);
++			     efi_console_timer_notify, NULL,
++			     &console_timer_event);
 +	if (r != EFI_SUCCESS) {
 +		printf("ERROR: Failed to register console event\n");
 +		return r;
 +	}
-+	r = efi_set_timer(console_timer_event, EFI_TIMER_PERIODIC, 10000000);
++	/* 5000 ns cycle is sufficient for 2 MBaud */
++	r = efi_set_timer(console_timer_event, EFI_TIMER_PERIODIC, 50);
 +	if (r != EFI_SUCCESS)
 +		printf("ERROR: Failed to set console timer\n");
 +	return r;

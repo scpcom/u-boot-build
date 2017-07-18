@@ -18,7 +18,6 @@ git am ../patch/0005-efi_loader-DevicePathToText-put-declarations-first.patch
 
 git am ../patch/0001-DEBUG-efi_device_path_to_text.patch
 git am ../patch/0001-efi_loader-implement-ProtocolsPerHandle.patch
-git am ../patch/0001-efi_memory-avoid-NULL-dereference-in-efi_free_pool.patch
 
 # EFI event services
 git am ../patch/0001-efi_loader-use-struct-efi_event-instead-of-void.patch
@@ -27,7 +26,7 @@ git am ../patch/0001-efi_loader-correct-size-for-tpl-level.patch
 git am ../patch/0001-efi_loader-refactor-efi_create_event.patch
 git am ../patch/0001-efi_loader-refactor-efi_set_timer.patch
 git am ../patch/0001-efi_console-set-up-events.patch
-git am ../patch/0002-efi_loader-implement-WaitForKey.patch
+# git am ../patch/0002-efi_loader-implement-WaitForKey.patch
 git am ../patch/0003-efi_loader-no-debug-message-on-wait-for-key.patch
 git am ../patch/0004-efi_loader-correctly-implement-100ns-conversion.patch
 
