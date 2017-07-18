@@ -21,14 +21,14 @@ git am ../patch/0001-efi_loader-implement-ProtocolsPerHandle.patch
 
 # EFI event services
 git am ../patch/0001-efi_loader-use-struct-efi_event-instead-of-void.patch
-git am ../patch/0001-efi_loader-implement-multiple-event-support.patch
-git am ../patch/0001-efi_loader-correct-size-for-tpl-level.patch
-git am ../patch/0001-efi_loader-refactor-efi_create_event.patch
-git am ../patch/0001-efi_loader-refactor-efi_set_timer.patch
-git am ../patch/0001-efi_console-set-up-events.patch
-# git am ../patch/0002-efi_loader-implement-WaitForKey.patch
+git am ../patch/0002-efi_loader-implement-multiple-event-support.patch
+git am ../patch/0003-efi_loader-correct-size-for-tpl-level.patch
+git am ../patch/0004-efi_loader-refactor-efi_create_event.patch
+git am ../patch/0005-efi_loader-refactor-efi_set_timer.patch
+git am ../patch/0006-efi_console-set-up-events.patch
+git am ../patch/0007-efi_loader-correctly-implement-100ns-conversion.patch
+exit
 git am ../patch/0003-efi_loader-no-debug-message-on-wait-for-key.patch
-git am ../patch/0004-efi_loader-correctly-implement-100ns-conversion.patch
 
 # EFI console
 git am ../patch/0001-efi_loader-split-of-efi_cout_output_string_ext.patch

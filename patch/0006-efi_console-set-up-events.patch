@@ -1,13 +1,17 @@
-From 48091deea326a1ec2756151c6b72905282996a32 Mon Sep 17 00:00:00 2001
+From 766020e2da5707deb78c82bc71547c1b8aea01d4 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 17 Jul 2017 18:45:46 +0200
-Subject: [PATCH 1/1] efi_console: set up events
+Subject: [PATCH v2 6/7] efi_console: set up events
 
 Set up a timer event and the WaitForKey event.
 In the notify function of the timer event check for console input
 and signal the WaitForKey event accordingly.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	dynamically register events to monitor the serial console
+	input
 ---
  cmd/bootefi.c                 |  1 +
  include/efi_loader.h          |  6 +++++-

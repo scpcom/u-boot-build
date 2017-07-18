@@ -3,7 +3,7 @@ Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Subject: [U-Boot,1/1] efi_loader: implement ProtocolsPerHandle
-From: xypron.glpk@gmx.de
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 X-Patchwork-Id: 787995
 Message-Id: <20170713212432.6328-1-xypron.glpk@gmx.de>
 To: Alexander Graf <agraf@suse.de>

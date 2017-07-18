@@ -1,19 +1,22 @@
-From d5ed4483819807175ae6f1466ab2cdef156a6f40 Mon Sep 17 00:00:00 2001
+From d6b7619e55a34b2b68023e2ba8adcc06075dc8c3 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 17 Jul 2017 18:57:21 +0200
-Subject: [PATCH 1/1] efi_loader: refactor efi_set_timer
+Subject: [PATCH v2 5/7] efi_loader: refactor efi_set_timer
 
 efi_set_timer is refactored to make the function callable internally.
 Wrapper function efi_set_timer_ext is provided for EFI applications.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v2
+	new patch
+---
  include/efi_loader.h          |  3 +++
  lib/efi_loader/efi_boottime.c | 21 +++++++++++++--------
  2 files changed, 16 insertions(+), 8 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index cf2d476e32..4f7f63f283 100644
+index c3640153e1..342e960d14 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -122,6 +122,9 @@ efi_status_t efi_create_event(enum efi_event_type type, UINTN notify_tpl,
@@ -27,10 +30,10 @@ index cf2d476e32..4f7f63f283 100644
  /* Generic EFI memory allocator, call this to get memory */
  void *efi_alloc(uint64_t len, int memory_type);
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 5690dc4194..e3d978845f 100644
+index e38da35a8a..7f10b6090a 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -251,16 +251,14 @@ void efi_timer_check(void)
+@@ -253,16 +253,14 @@ void efi_timer_check(void)
  	WATCHDOG_RESET();
  }
  
@@ -49,7 +52,7 @@ index 5690dc4194..e3d978845f 100644
  	if (trigger32 < trigger_time) {
  		printf("WARNING: Truncating timer from %"PRIx64" to %x\n",
  		       trigger_time, trigger32);
-@@ -280,13 +278,20 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
+@@ -284,13 +282,20 @@ static efi_status_t EFIAPI efi_set_timer(struct efi_event *event, int type,
  				timer_get_us() + (trigger32 / 10);
  			break;
  		default:
@@ -73,7 +76,7 @@ index 5690dc4194..e3d978845f 100644
  }
  
  static efi_status_t EFIAPI efi_wait_for_event(unsigned long num_events,
-@@ -1108,7 +1113,7 @@ static const struct efi_boot_services efi_boot_services = {
+@@ -1112,7 +1117,7 @@ static const struct efi_boot_services efi_boot_services = {
  	.allocate_pool = efi_allocate_pool_ext,
  	.free_pool = efi_free_pool_ext,
  	.create_event = efi_create_event_ext,
