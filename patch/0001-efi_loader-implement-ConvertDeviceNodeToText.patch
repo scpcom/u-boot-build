@@ -17,6 +17,8 @@ Add output for not yet supported types/subtypes.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v4
+	Remove superfluous EFI_ENTRY.
 v3
 	This patch replaces the patch series starting at
 	https://patchwork.ozlabs.org/patch/787983/
@@ -29,7 +31,7 @@ diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_devic
 index a7a513047f..57e00bf777 100644
 --- a/lib/efi_loader/efi_device_path_to_text.c
 +++ b/lib/efi_loader/efi_device_path_to_text.c
-@@ -6,62 +6,128 @@
+@@ -6,62 +6,125 @@
   *  SPDX-License-Identifier:     GPL-2.0+
   */
  
@@ -69,9 +71,6 @@ index a7a513047f..57e00bf777 100644
  	efi_status_t r;
  	uint16_t *buffer = NULL;
 +	int i;
-+
-+
-+	EFI_ENTRY("%p, %d, %d", device_node, display_only, allow_shortcuts);
 +
 +	switch (device_node->type) {
 +	case DEVICE_PATH_TYPE_END:
