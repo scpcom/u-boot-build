@@ -7,13 +7,6 @@ git am ../patch/0001-meson-gx-reserved-memory-regions.patch
 git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
 # EFI protocol services
-git am ../patch/0001-efi_loader-do-not-duplicate-constants-for-device-pat.patch
-git am ../patch/0002-efi_loader-DevicePathToText-for-MAC-address.patch
-git am ../patch/0003-efi_loader-parameter-check-efi_convert_device_path_t.patch
-git am ../patch/0004-efi_loader-debug-info-in-efi_convert_device_path_to_.patch
-git am ../patch/0005-efi_loader-DevicePathToText-put-declarations-first.patch
-
-git am ../patch/0001-DEBUG-efi_device_path_to_text.patch
 git am ../patch/0001-efi_loader-implement-ProtocolsPerHandle.patch
 
 # EFI event services
@@ -32,6 +25,9 @@ git am ../patch/0001-efi_console-use-EFIAPI-for-callback-functions.patch
 git am ../patch/0001-efi_loader-initalize-EFI-object-list-only-once.patch
 
 git am ../patch/0003-efi_loader-no-debug-message-on-wait-for-key.patch
+
+# EFI protocol services
+git am ../patch/0001-efi_loader-implement-ConvertDeviceNodeToText.patch
 
 # EFI console
 git am ../patch/0001-efi_loader-split-of-efi_cout_output_string_ext.patch
