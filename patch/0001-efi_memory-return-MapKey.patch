@@ -1,0 +1,31 @@
+From 83d09c7dd2b43b34a72ff49f30027a9ea4f799dc Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 21 Jul 2017 18:50:19 +0200
+Subject: [PATCH 1/1] efi_memory: return MapKey
+
+efi_get_memory_map should set a defined value for map_key.
+
+We later can introduce the test against this value in
+efi_exit_boot_services as required by the UEFI standard.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_memory.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/efi_loader/efi_memory.c b/lib/efi_loader/efi_memory.c
+index c56653f497..f59e3ea327 100644
+--- a/lib/efi_loader/efi_memory.c
++++ b/lib/efi_loader/efi_memory.c
+@@ -431,6 +431,8 @@ efi_status_t efi_get_memory_map(unsigned long *memory_map_size,
+ 		}
+ 	}
+ 
++	*map_key = 0;
++
+ 	return EFI_SUCCESS;
+ }
+ 
+-- 
+2.13.2
+

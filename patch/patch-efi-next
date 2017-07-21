@@ -35,3 +35,6 @@ git am ../patch/0001-efi_loader-implement-ConvertDeviceNodeToText.patch
 git am ../patch/0001-efi_loader-split-of-efi_cout_output_string_ext.patch
 git am ../patch/0001-efi_loader-write-reboot-reason.patch
 
+# EFI memory
+git am ../patch/0001-efi_memory-do-parameter-checks-first.patch
+git am ../patch/0001-efi_memory-return-MapKey.patch
