@@ -21,6 +21,8 @@ git am ../patch/0001-efi_loader-implement-ProtocolsPerHandle.patch
 git am ../patch/0001-efi_loader-parameter-types-for-CreateEvent-SetTimer.patch
 git am ../patch/0001-efi_console-use-EFIAPI-for-callback-functions.patch
 
+git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
+
 # Initialization
 git am ../patch/0001-efi_loader-initalize-EFI-object-list-only-once.patch
 
