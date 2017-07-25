@@ -19,8 +19,8 @@ diff --git a/include/efi_loader.h b/include/efi_loader.h
 index e5b1ebe279..858da2621a 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -168,6 +168,11 @@ static inline void ascii2unicode(u16 *unicode, const char *ascii)
- 		*(unicode++) = *(ascii++);
+@@ -168,6 +168,11 @@ static inline int guidcmp(const efi_guid_t *g1, const efi_guid_t *g2)
+ 	return memcmp(g1, g2, sizeof(efi_guid_t));
  }
  
 +/* Write Unicode string to console */
