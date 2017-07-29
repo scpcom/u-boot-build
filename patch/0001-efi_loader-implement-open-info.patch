@@ -1,19 +1,19 @@
-From 7167c420b30caa0f554ecb61e631544f7a389474 Mon Sep 17 00:00:00 2001
+From 42713d9beb448024bf0f20404c3b74352c06061d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 22 Jul 2017 09:22:54 +0200
-Subject: [PATCH 1/1] efi_loader: implement open info
+Subject: [PATCH] efi_loader: implement open info
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/efi_loader.h          |  1 +
- lib/efi_loader/efi_boottime.c | 25 +++++++++++++++++++------
- 2 files changed, 20 insertions(+), 6 deletions(-)
+ include/efi_loader.h          |   1 +
+ lib/efi_loader/efi_boottime.c | 129 +++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 122 insertions(+), 8 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 8d41640140..a9dd090c61 100644
+index c45fba7e59..fb91d72afd 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -45,6 +45,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
+@@ -74,6 +74,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
  struct efi_handler {
  	const efi_guid_t *guid;
  	void *protocol_interface;
@@ -22,23 +22,134 @@ index 8d41640140..a9dd090c61 100644
  
  /*
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 156b2d5159..c933e4bc39 100644
+index da3be96bf3..ce09fb108b 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1073,6 +1073,20 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
+@@ -913,9 +913,19 @@ static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
+ 						     void *driver_image_handle,
+ 						     void *child_handle)
+ {
++	return EFI_INVALID_PARAMETER;
++}
++
++static efi_status_t EFIAPI efi_disconnect_controller_ext(
++						void *controller_handle,
++						void *driver_image_handle,
++						void *child_handle)
++{
+ 	EFI_ENTRY("%p, %p, %p", controller_handle, driver_image_handle,
+ 		  child_handle);
+-	return EFI_EXIT(EFI_INVALID_PARAMETER);
++	return EFI_EXIT(efi_disconnect_controller(controller_handle,
++						  driver_image_handle,
++						  child_handle));
+ }
+ 
+ static efi_status_t EFIAPI efi_close_protocol(void *handle,
+@@ -1130,6 +1140,110 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
  	memset(buffer, value, size);
  }
  
 +static efi_status_t efi_open_protocol_int(
-+			struct efi_handler *handler,
++			struct efi_handler *protocol,
 +			void **protocol_interface, void *agent_handle,
 +			void *controller_handle, uint32_t attributes)
 +{
++	bool opened_exclusive = false;
++	bool opened_by_driver = false;
++	int i;
++	struct efi_open_protocol_info_entry *match = NULL;
++
 +	if (attributes !=
 +	    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
-+		*protocol_interface =
-+			handler->protocol_interface;
++		*protocol_interface = NULL;
 +	}
++
++	for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
++		struct efi_open_protocol_info_entry *open_info =
++			&protocol->open_info[i];
++
++		if (!open_info->open_count)
++			continue;
++		if (open_info->agent_handle == agent_handle) {
++			switch (attributes) {
++			case (EFI_OPEN_PROTOCOL_BY_DRIVER):
++				if (open_info->attributes == attributes)
++					return EFI_ALREADY_STARTED;
++				break;
++			case (EFI_OPEN_PROTOCOL_BY_DRIVER |
++			      EFI_OPEN_PROTOCOL_EXCLUSIVE):
++				if (open_info->attributes == attributes)
++					return EFI_ALREADY_STARTED;
++				break;
++			}
++			if (open_info->controller_handle == controller_handle)
++				match = open_info;
++		}
++		if (open_info->attributes & EFI_OPEN_PROTOCOL_EXCLUSIVE)
++			opened_exclusive = true;
++		if (open_info->attributes & EFI_OPEN_PROTOCOL_BY_DRIVER)
++			opened_by_driver = true;
++	}
++
++	if (attributes &
++	    (EFI_OPEN_PROTOCOL_EXCLUSIVE | EFI_OPEN_PROTOCOL_BY_DRIVER) &&
++	    opened_exclusive)
++		return EFI_ACCESS_DENIED;
++
++	if (attributes & EFI_OPEN_PROTOCOL_EXCLUSIVE) {
++		for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
++			struct efi_open_protocol_info_entry *open_info =
++					&open_info[i];
++
++			if (!open_info->open_count)
++				continue;
++			if (open_info->attributes ==
++				EFI_OPEN_PROTOCOL_BY_DRIVER) {
++				efi_disconnect_controller(
++					open_info->controller_handle,
++					open_info->agent_handle,
++					NULL);
++			}
++		}
++		opened_by_driver = false;
++		for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
++			struct efi_open_protocol_info_entry *open_info =
++					&protocol->open_info[i];
++
++			if (!open_info->open_count)
++				continue;
++			if (open_info->attributes & EFI_OPEN_PROTOCOL_BY_DRIVER)
++				opened_by_driver = true;
++		}
++		if (opened_by_driver)
++			return EFI_ACCESS_DENIED;
++		if (match && !match->open_count)
++			match = NULL;
++	}
++
++	/*
++	 * Find an empty slot.
++	 */
++	if (!match) {
++		for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
++			struct efi_open_protocol_info_entry *open_info =
++					&protocol->open_info[i];
++
++			if (!open_info->open_count) {
++				match = open_info;
++				break;
++			}
++		}
++	}
++	if (!match)
++		return EFI_OUT_OF_RESOURCES;
++
++	match->agent_handle = agent_handle;
++	match->controller_handle = controller_handle;
++	match->attributes = attributes;
++	match->open_count++;
++
 +	return EFI_SUCCESS;
 +
 +}
@@ -46,7 +157,7 @@ index 156b2d5159..c933e4bc39 100644
  static efi_status_t EFIAPI efi_open_protocol(
  			void *handle, efi_guid_t *protocol,
  			void **protocol_interface, void *agent_handle,
-@@ -1125,12 +1139,11 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -1182,12 +1296,11 @@ static efi_status_t EFIAPI efi_open_protocol(
  			if (!hprotocol)
  				continue;
  			if (!guidcmp(hprotocol, protocol)) {
@@ -64,6 +175,15 @@ index 156b2d5159..c933e4bc39 100644
  				goto out;
  			}
  		}
+@@ -1243,7 +1356,7 @@ static const struct efi_boot_services efi_boot_services = {
+ 	.stall = efi_stall,
+ 	.set_watchdog_timer = efi_set_watchdog_timer,
+ 	.connect_controller = efi_connect_controller,
+-	.disconnect_controller = efi_disconnect_controller,
++	.disconnect_controller = efi_disconnect_controller_ext,
+ 	.open_protocol = efi_open_protocol,
+ 	.close_protocol = efi_close_protocol,
+ 	.open_protocol_information = efi_open_protocol_information,
 -- 
 2.13.2
 
