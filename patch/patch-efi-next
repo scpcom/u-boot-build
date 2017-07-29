@@ -3,9 +3,6 @@
 # Reserved memory regions for Odroid C2
 git am ../patch/0001-meson-gx-reserved-memory-regions.patch
 
-# Enable debug messages in boottime services
-git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
-
 # EFI event services
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 
@@ -15,4 +12,7 @@ git am ../patch/0001-efi_loader-write-reboot-reason.patch
 
 # EFI protocol services
 git am ../patch/0001-efi_loader-implement-open-info.patch
+
+# Enable debug messages in boottime services
+git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
