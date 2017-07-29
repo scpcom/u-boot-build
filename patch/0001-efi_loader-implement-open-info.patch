@@ -1,0 +1,69 @@
+From 7167c420b30caa0f554ecb61e631544f7a389474 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 22 Jul 2017 09:22:54 +0200
+Subject: [PATCH 1/1] efi_loader: implement open info
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h          |  1 +
+ lib/efi_loader/efi_boottime.c | 25 +++++++++++++++++++------
+ 2 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 8d41640140..a9dd090c61 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -45,6 +45,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
+ struct efi_handler {
+ 	const efi_guid_t *guid;
+ 	void *protocol_interface;
++	struct efi_open_protocol_info_entry open_info[4];
+ };
+ 
+ /*
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 156b2d5159..c933e4bc39 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1073,6 +1073,20 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
+ 	memset(buffer, value, size);
+ }
+ 
++static efi_status_t efi_open_protocol_int(
++			struct efi_handler *handler,
++			void **protocol_interface, void *agent_handle,
++			void *controller_handle, uint32_t attributes)
++{
++	if (attributes !=
++	    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
++		*protocol_interface =
++			handler->protocol_interface;
++	}
++	return EFI_SUCCESS;
++
++}
++
+ static efi_status_t EFIAPI efi_open_protocol(
+ 			void *handle, efi_guid_t *protocol,
+ 			void **protocol_interface, void *agent_handle,
+@@ -1125,12 +1139,11 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 			if (!hprotocol)
+ 				continue;
+ 			if (!guidcmp(hprotocol, protocol)) {
+-				if (attributes !=
+-				    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
+-					*protocol_interface =
+-						handler->protocol_interface;
+-				}
+-				r = EFI_SUCCESS;
++				r = efi_open_protocol_int(handler,
++							  protocol_interface,
++							  agent_handle,
++							  controller_handle,
++							  attributes);
+ 				goto out;
+ 			}
+ 		}
+-- 
+2.13.2
+

@@ -26,7 +26,7 @@ git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 # Initialization
 # git am ../patch/0001-efi_loader-initalize-EFI-object-list-only-once.patch
 
-git am ../patch/0003-efi_loader-no-debug-message-on-wait-for-key.patch
+# git am ../patch/0003-efi_loader-no-debug-message-on-wait-for-key.patch
 
 # EFI protocol services
 # git am ../patch/0001-efi_loader-implement-ConvertDeviceNodeToText.patch
@@ -38,3 +38,11 @@ git am ../patch/0001-efi_loader-write-reboot-reason.patch
 # EFI memory
 # git am ../patch/0001-efi_memory-do-parameter-checks-first.patch
 # git am ../patch/0001-efi_memory-return-MapKey.patch
+
+git am ../patch/0001-efi_loader-Add-an-EFI_CALL-macro.patch
+git am ../patch/0002-efi_loader-add-checking-for-incorrect-use-of-EFI_ENT.patch
+git am ../patch/0003-efi_loader-indent-entry-exit-prints-to-show-nesting-.patch
+
+# EFI protocol services
+git am ../patch/0001-efi_loader-implement-open-info.patch
+
