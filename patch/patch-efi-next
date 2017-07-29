@@ -6,42 +6,12 @@ git am ../patch/0001-meson-gx-reserved-memory-regions.patch
 # Enable debug messages in boottime services
 git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
-# EFI protocol services
-# git am ../patch/0001-efi_loader-implement-ProtocolsPerHandle.patch
-
 # EFI event services
-# git am ../patch/0001-efi_loader-use-struct-efi_event-instead-of-void.patch
-# git am ../patch/0002-efi_loader-implement-multiple-event-support.patch
-# git am ../patch/0003-efi_loader-correct-size-for-tpl-level.patch
-# git am ../patch/0004-efi_loader-refactor-efi_create_event.patch
-# git am ../patch/0005-efi_loader-refactor-efi_set_timer.patch
-# git am ../patch/0006-efi_console-set-up-events.patch
-# git am ../patch/0007-efi_loader-correctly-implement-100ns-conversion.patch
-
-# git am ../patch/0001-efi_loader-parameter-types-for-CreateEvent-SetTimer.patch
-# git am ../patch/0001-efi_console-use-EFIAPI-for-callback-functions.patch
-
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
-
-# Initialization
-# git am ../patch/0001-efi_loader-initalize-EFI-object-list-only-once.patch
-
-# git am ../patch/0003-efi_loader-no-debug-message-on-wait-for-key.patch
-
-# EFI protocol services
-# git am ../patch/0001-efi_loader-implement-ConvertDeviceNodeToText.patch
 
 # EFI console
 git am ../patch/0001-efi_loader-split-of-efi_cout_output_string_ext.patch
 git am ../patch/0001-efi_loader-write-reboot-reason.patch
-
-# EFI memory
-# git am ../patch/0001-efi_memory-do-parameter-checks-first.patch
-# git am ../patch/0001-efi_memory-return-MapKey.patch
-
-git am ../patch/0001-efi_loader-Add-an-EFI_CALL-macro.patch
-git am ../patch/0002-efi_loader-add-checking-for-incorrect-use-of-EFI_ENT.patch
-git am ../patch/0003-efi_loader-indent-entry-exit-prints-to-show-nesting-.patch
 
 # EFI protocol services
 git am ../patch/0001-efi_loader-implement-open-info.patch
