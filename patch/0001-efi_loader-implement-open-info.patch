@@ -1,13 +1,13 @@
-From 42713d9beb448024bf0f20404c3b74352c06061d Mon Sep 17 00:00:00 2001
+From f26209508285b4f8b590c1f5f138fdaa2fd757f3 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 22 Jul 2017 09:22:54 +0200
-Subject: [PATCH] efi_loader: implement open info
+Subject: [PATCH 1/1] efi_loader: implement open info
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |   1 +
- lib/efi_loader/efi_boottime.c | 129 +++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 122 insertions(+), 8 deletions(-)
+ lib/efi_loader/efi_boottime.c | 130 +++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 123 insertions(+), 8 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index c45fba7e59..fb91d72afd 100644
@@ -22,7 +22,7 @@ index c45fba7e59..fb91d72afd 100644
  
  /*
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index da3be96bf3..ce09fb108b 100644
+index da3be96bf3..7740a099d8 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -913,9 +913,19 @@ static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
@@ -46,7 +46,7 @@ index da3be96bf3..ce09fb108b 100644
  }
  
  static efi_status_t EFIAPI efi_close_protocol(void *handle,
-@@ -1130,6 +1140,110 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
+@@ -1130,6 +1140,111 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
  	memset(buffer, value, size);
  }
  
@@ -149,6 +149,7 @@ index da3be96bf3..ce09fb108b 100644
 +	match->controller_handle = controller_handle;
 +	match->attributes = attributes;
 +	match->open_count++;
++	*protocol_interface = protocol->protocol_interface;
 +
 +	return EFI_SUCCESS;
 +
@@ -157,7 +158,7 @@ index da3be96bf3..ce09fb108b 100644
  static efi_status_t EFIAPI efi_open_protocol(
  			void *handle, efi_guid_t *protocol,
  			void **protocol_interface, void *agent_handle,
-@@ -1182,12 +1296,11 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -1182,12 +1297,11 @@ static efi_status_t EFIAPI efi_open_protocol(
  			if (!hprotocol)
  				continue;
  			if (!guidcmp(hprotocol, protocol)) {
@@ -175,7 +176,7 @@ index da3be96bf3..ce09fb108b 100644
  				goto out;
  			}
  		}
-@@ -1243,7 +1356,7 @@ static const struct efi_boot_services efi_boot_services = {
+@@ -1243,7 +1357,7 @@ static const struct efi_boot_services efi_boot_services = {
  	.stall = efi_stall,
  	.set_watchdog_timer = efi_set_watchdog_timer,
  	.connect_controller = efi_connect_controller,
@@ -185,5 +186,5 @@ index da3be96bf3..ce09fb108b 100644
  	.close_protocol = efi_close_protocol,
  	.open_protocol_information = efi_open_protocol_information,
 -- 
-2.13.2
+2.11.0
 
