@@ -1,15 +1,32 @@
-From b6ed8157d8d5e2d35371425df4beaa44c0f9aee6 Mon Sep 17 00:00:00 2001
+From d3581256b97dc474ecb3255761a35f49838b5f3c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 22:46:44 +0200
 Subject: [PATCH 1/1] efi_loader: switch on debug in efi_boottime
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+ cmd/bootefi.c                 |  2 ++
  lib/efi_loader/efi_boottime.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ lib/efi_loader/efi_console.c  |  2 ++
+ lib/efi_loader/efi_gop.c      |  2 ++
+ lib/efi_loader/efi_net.c      |  2 ++
+ 5 files changed, 19 insertions(+)
 
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index cbee84dbe2..81cff70972 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
++
+ #include <common.h>
+ #include <command.h>
+ #include <dm.h>
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index d3595dc23c..dd074b0d73 100644
+index ebb557abb2..64f1827840 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -16,6 +16,9 @@
@@ -58,6 +75,45 @@ index d3595dc23c..dd074b0d73 100644
  
  static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
  			efi_guid_t *protocol, int protocol_interface_type,
+diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
+index feee6dbf44..c27b8767ef 100644
+--- a/lib/efi_loader/efi_console.c
++++ b/lib/efi_loader/efi_console.c
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 0
++
+ #include <common.h>
+ #include <efi_loader.h>
+ 
+diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
+index c5d057dc5a..b74dfc58ec 100644
+--- a/lib/efi_loader/efi_gop.c
++++ b/lib/efi_loader/efi_gop.c
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
++
+ #include <common.h>
+ #include <dm.h>
+ #include <efi_loader.h>
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index 1822880168..bc3b84db48 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
++
+ #include <common.h>
+ #include <efi_loader.h>
+ #include <inttypes.h>
 -- 
 2.13.2
 
