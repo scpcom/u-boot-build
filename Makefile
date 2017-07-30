@@ -14,6 +14,8 @@ ifneq ("aarch64", $(MK_ARCH))
 endif
 undefine MK_ARCH
 
+NPROC=${shell nproc}
+
 export LOCALVERSION:=-P$(REVISION)
 
 all:
@@ -60,7 +62,7 @@ build:
 	# cp config/config-$(TAG) denx/.config
 	cp config/config-efi-next denx/.config
 	cd denx && make oldconfig
-	cd denx && make -j6
+	cd denx && make -j$(NPROC)
 
 fip_create:
 	cd hardkernel && git fetch
