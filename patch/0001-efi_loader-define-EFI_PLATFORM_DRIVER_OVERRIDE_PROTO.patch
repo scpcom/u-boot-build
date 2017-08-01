@@ -1,0 +1,46 @@
+From bd3f1356201486de6f5e945575230faa9ca52910 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 1 Aug 2017 08:43:22 +0200
+Subject: [PATCH 1/1] efi_loader: define EFI_PLATFORM_DRIVER_OVERRIDE_PROTOCOL
+
+The definition of the EFI_PLATFORM_DRIVER_OVERRIDE_PROTOCOL
+is needed to implement ConnectController.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h             | 20 ++++++++++++++++++++
+ lib/efi_loader/efi_boottime.c | 18 ++++++++++++++++++
+ 2 files changed, 38 insertions(+)
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index ec1b321e8e..9e1b2c1188 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -609,4 +609,24 @@ struct efi_pxe {
+ 	struct efi_pxe_mode *mode;
+ };
+ 
++#define EFI_PLATFORM_DRIVER_OVERRIDE_PROTOCOL_GUID \
++	EFI_GUID(0x6b30c738, 0xa391, 0x11d4, \
++		 0x9a,0x3b,0x00,0x90,0x27,0x3f,0xc1,0x4d)
++struct efi_platform_driver_override_protocol{
++	//efi_status_t (EFIAPI *start)(struct efi_simple_network *this);
++	efi_status_t (EFIAPI *get_driver)(
++			struct efi_platform_driver_override_protocol *this,
++			efi_handle_t controller_handle,
++			efi_handle_t *driver_image_handle);
++	efi_status_t (EFIAPI *get_driver_path)(
++			struct efi_platform_driver_override_protocol *this,
++			efi_handle_t controller_handle,
++			struct efi_device_path_protocol **driver_image_path);
++	efi_status_t (EFIAPI *driver_loaded)(
++			struct efi_platform_driver_override_protocol *this,
++			efi_handle_t controller_handle,
++			struct efi_device_path_protocol *driver_image_path,
++			efi_handle_t driver_image_handle);
++};
++
+ #endif
+-- 
+2.13.2
+

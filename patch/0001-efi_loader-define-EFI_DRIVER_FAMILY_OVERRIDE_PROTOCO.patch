@@ -1,0 +1,33 @@
+From 1464cdfd3dbe172d930489b26ff8c321fd17d493 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 1 Aug 2017 08:59:01 +0200
+Subject: [PATCH 1/1] efi_loader: define EFI_DRIVER_FAMILY_OVERRIDE_PROTOCOL
+
+The definition of the EFI_DRIVER_FAMILY_OVERRIDE_PROTOCOL
+is needed to implemente ConnectController.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index 9e1b2c1188..85cea31a24 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -629,4 +629,12 @@ struct efi_platform_driver_override_protocol{
+ 			efi_handle_t driver_image_handle);
+ };
+ 
++#define EFI_DRIVER_FAMILY_OVERRIDE_PROTOCOL_GUID \
++	EFI_GUID(0xb1ee129e, 0xda36, 0x4181, \
++		 0x91, 0xf8, 0x04, 0xa4, 0x92, 0x37, 0x66, 0xa7)
++struct efi_driver_family_override_protocol{
++	u32 (EFIAPI *get_version)(
++			struct efi_driver_family_override_protocol *this);
++};
++
+ #endif
+-- 
+2.13.2
+
