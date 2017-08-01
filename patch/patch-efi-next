@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Reserved memory regions for Odroid C2
-git am ../patch/0001-meson-gx-reserved-memory-regions.patch
+# git am ../patch/0001-meson-gx-reserved-memory-regions.patch
 
 git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
 
@@ -21,4 +21,5 @@ git am ../patch/0001-efi_loader-open_info-in-OpenProtocol-CloseProtocol.patch
 git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
 git am ../patch/0001-efi_loader-define-EFI_PLATFORM_DRIVER_OVERRIDE_PROTO.patch
 git am ../patch/0001-efi_loader-define-EFI_DRIVER_FAMILY_OVERRIDE_PROTOCO.patch
+git am ../patch/0001-efi_loader-make-efi_locate_protocol-callable-interna.patch
 git am ../patch/0001-efi_loader-implement-ConnectController.patch

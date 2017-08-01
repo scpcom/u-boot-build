@@ -1,4 +1,4 @@
-From bd3f1356201486de6f5e945575230faa9ca52910 Mon Sep 17 00:00:00 2001
+From 3ee62c2a226886118ab651b760f6ce4e8f9a4c72 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 1 Aug 2017 08:43:22 +0200
 Subject: [PATCH 1/1] efi_loader: define EFI_PLATFORM_DRIVER_OVERRIDE_PROTOCOL
@@ -9,8 +9,8 @@ is needed to implement ConnectController.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_api.h             | 20 ++++++++++++++++++++
- lib/efi_loader/efi_boottime.c | 18 ++++++++++++++++++
- 2 files changed, 38 insertions(+)
+ lib/efi_loader/efi_boottime.c |  3 +++
+ 2 files changed, 23 insertions(+)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
 index ec1b321e8e..9e1b2c1188 100644
@@ -41,6 +41,20 @@ index ec1b321e8e..9e1b2c1188 100644
 +};
 +
  #endif
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 1762b92371..0ca8a6905b 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -52,6 +52,9 @@ static struct efi_configuration_table __efi_runtime_data efi_conf_table[2];
+ static volatile void *efi_gd, *app_gd;
+ #endif
+ 
++static efi_guid_t efi_platform_driver_override_protocol_guid =
++		EFI_PLATFORM_DRIVER_OVERRIDE_PROTOCOL_GUID;
++
+ static int entry_count;
+ static int nesting_level;
+ 
 -- 
 2.13.2
 
