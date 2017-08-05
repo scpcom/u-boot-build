@@ -7,6 +7,8 @@ To understand what happens in OpenProtocol it is necessary to know
 the protocol interface GUID. Let's write a debug message.
 
 Using uuid_guid_get_str would be quite clumsy for this purpose.
+This would involve evaluating _DEBUG which probably should not be used
+outside common.h.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Reviewed-by: Rob Clark <robdclark@gmail.com>
