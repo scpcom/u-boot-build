@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Reserved memory regions for Odroid C2
-# git am ../patch/0001-meson-gx-reserved-memory-regions.patch
-
 # EFI event services
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 
@@ -15,6 +12,7 @@ git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 # git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
 # EFI protocol services
+git am ../patch/0001-efi_loader-LocateHandle-should-return-EFI_NOT_FOUND-.patch
 git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
 git am ../patch/0002-efi_loader-open_info-in-OpenProtocol-CloseProtocol.patch
 git am ../patch/0003-efi_loader-implement-OpenProtocolInformation.patch
