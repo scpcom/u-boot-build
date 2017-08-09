@@ -1,0 +1,29 @@
+From a97f5ed024f3ccb21664219cb7a2165790cea4e0 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 9 Aug 2017 20:31:27 +0200
+Subject: [PATCH 1/1] efi_loader: attribute EFIAPI of efi_locate handle()
+
+efi_locate_handle is called internally so it should not be
+marked as EFIAPI.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index b8461582e4..5d4dab3396 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -624,7 +624,7 @@ static int efi_search(enum efi_locate_search_type search_type,
+ 	return -1;
+ }
+ 
+-static efi_status_t EFIAPI efi_locate_handle(
++static efi_status_t efi_locate_handle(
+ 			enum efi_locate_search_type search_type,
+ 			efi_guid_t *protocol, void *search_key,
+ 			unsigned long *buffer_size, efi_handle_t *buffer)
+-- 
+2.11.0
+
