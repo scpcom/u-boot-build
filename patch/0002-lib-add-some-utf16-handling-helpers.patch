@@ -1,0 +1,216 @@
+From 2eab0a310f23ce733e8d8cc285b7272aa49775d1 Mon Sep 17 00:00:00 2001
+From: Rob Clark <robdclark@gmail.com>
+Date: Wed, 9 Aug 2017 19:14:32 -0400
+Subject: [PATCH 2/5] lib: add some utf16 handling helpers
+
+We'll eventually want these in a few places in efi_loader, and also
+vsprintf.
+
+Signed-off-by: Rob Clark <robdclark@gmail.com>
+---
+ include/charset.h            | 55 ++++++++++++++++++++++++++++++
+ lib/Makefile                 |  1 +
+ lib/charset.c                | 81 ++++++++++++++++++++++++++++++++++++++++++++
+ lib/efi_loader/efi_console.c | 17 ++--------
+ 4 files changed, 140 insertions(+), 14 deletions(-)
+ create mode 100644 include/charset.h
+ create mode 100644 lib/charset.c
+
+diff --git a/include/charset.h b/include/charset.h
+new file mode 100644
+index 0000000000..47ff6c7af1
+--- /dev/null
++++ b/include/charset.h
+@@ -0,0 +1,55 @@
++/*
++ *  charset conversion utils
++ *
++ *  Copyright (c) 2017 Rob Clark
++ *
++ *  SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#ifndef __CHARSET_H_
++#define __CHARSET_H_
++
++#define MAX_UTF8_PER_UTF16 4
++
++/**
++ * utf16_strlen() - Get the length of an utf16 string
++ *
++ * Returns the number of 16 bit characters in an utf16 string, not
++ * including the terminating NULL character.
++ *
++ * @in     the string to measure
++ * @return the string length
++ */
++size_t utf16_strlen(uint16_t *in);
++
++/**
++ * utf16_strnlen() - Get the length of a fixed-size utf16 string.
++ *
++ * Returns the number of 16 bit characters in an utf16 string,
++ * not including the terminating NULL character, but at most
++ * 'count' number of characters.  In doing this, utf16_strnlen()
++ * looks at only the first 'count' characters.
++ *
++ * @in     the string to measure
++ * @count  the maximum number of characters to count
++ * @return the string length, up to a maximum of 'count'
++ */
++size_t utf16_strnlen(const uint16_t *in, size_t count);
++
++/**
++ * utf16_to_utf8() - Convert an utf16 string to utf8
++ *
++ * Converts 'size' characters of the utf16 string 'src' to utf8
++ * written to the 'dest' buffer.
++ *
++ * NOTE that a single utf16 character can generate up to 4 utf8
++ * characters.  See MAX_UTF8_PER_UTF16.
++ *
++ * @dest   the destination buffer to write the utf8 characters
++ * @src    the source utf16 string
++ * @size   the number of utf16 characters to convert
++ * @return the pointer to the first unwritten byte in 'dest'
++ */
++uint8_t *utf16_to_utf8(uint8_t *dest, const uint16_t *src, size_t size);
++
++#endif /* __CHARSET_H_ */
+diff --git a/lib/Makefile b/lib/Makefile
+index eacc7d6485..b88b6ebd53 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -19,6 +19,7 @@ obj-$(CONFIG_OF_LIVE) += of_live.o
+ obj-$(CONFIG_CMD_DHRYSTONE) += dhry/
+ 
+ obj-$(CONFIG_AES) += aes.o
++obj-y += charset.o
+ obj-$(CONFIG_USB_TTY) += circbuf.o
+ obj-y += crc7.o
+ obj-y += crc8.o
+diff --git a/lib/charset.c b/lib/charset.c
+new file mode 100644
+index 0000000000..eaff2e542e
+--- /dev/null
++++ b/lib/charset.c
+@@ -0,0 +1,81 @@
++/*
++ *  charset conversion utils
++ *
++ *  Copyright (c) 2017 Rob Clark
++ *
++ *  SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#include <common.h>
++#include <charset.h>
++
++/*
++ * utf8/utf16 conversion mostly lifted from grub
++ */
++
++size_t utf16_strlen(uint16_t *in)
++{
++	size_t i;
++	for (i = 0; in[i]; i++);
++	return i;
++}
++
++size_t utf16_strnlen(const uint16_t *in, size_t count)
++{
++	size_t i;
++	for (i = 0; count-- && in[i]; i++);
++	return i;
++}
++
++/* Convert UTF-16 to UTF-8.  */
++uint8_t *utf16_to_utf8(uint8_t *dest, const uint16_t *src, size_t size)
++{
++	uint32_t code_high = 0;
++
++	while (size--) {
++		uint32_t code = *src++;
++
++		if (code_high) {
++			if (code >= 0xDC00 && code <= 0xDFFF) {
++				/* Surrogate pair.  */
++				code = ((code_high - 0xD800) << 10) + (code - 0xDC00) + 0x10000;
++
++				*dest++ = (code >> 18) | 0xF0;
++				*dest++ = ((code >> 12) & 0x3F) | 0x80;
++				*dest++ = ((code >> 6) & 0x3F) | 0x80;
++				*dest++ = (code & 0x3F) | 0x80;
++			} else {
++				/* Error...  */
++				*dest++ = '?';
++				/* *src may be valid. Don't eat it.  */
++				src--;
++			}
++
++			code_high = 0;
++		} else {
++			if (code <= 0x007F) {
++				*dest++ = code;
++			} else if (code <= 0x07FF) {
++				*dest++ = (code >> 6) | 0xC0;
++				*dest++ = (code & 0x3F) | 0x80;
++			} else if (code >= 0xD800 && code <= 0xDBFF) {
++				code_high = code;
++				continue;
++			} else if (code >= 0xDC00 && code <= 0xDFFF) {
++				/* Error... */
++				*dest++ = '?';
++			} else if (code < 0x10000) {
++				*dest++ = (code >> 12) | 0xE0;
++				*dest++ = ((code >> 6) & 0x3F) | 0x80;
++				*dest++ = (code & 0x3F) | 0x80;
++			} else {
++				*dest++ = (code >> 18) | 0xF0;
++				*dest++ = ((code >> 12) & 0x3F) | 0x80;
++				*dest++ = ((code >> 6) & 0x3F) | 0x80;
++				*dest++ = (code & 0x3F) | 0x80;
++			}
++		}
++	}
++
++	return dest;
++}
+diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
+index 5ebce4b544..3fc82b8726 100644
+--- a/lib/efi_loader/efi_console.c
++++ b/lib/efi_loader/efi_console.c
+@@ -7,6 +7,7 @@
+  */
+ 
+ #include <common.h>
++#include <charset.h>
+ #include <efi_loader.h>
+ 
+ static bool console_size_queried;
+@@ -138,20 +139,8 @@ static efi_status_t EFIAPI efi_cout_reset(
+ 
+ static void print_unicode_in_utf8(u16 c)
+ {
+-	char utf8[4] = { 0 };
+-	char *b = utf8;
+-
+-	if (c < 0x80) {
+-		*(b++) = c;
+-	} else if (c < 0x800) {
+-		*(b++) = 192 + c / 64;
+-		*(b++) = 128 + c % 64;
+-	} else {
+-		*(b++) = 224 + c / 4096;
+-		*(b++) = 128 + c / 64 % 64;
+-		*(b++) = 128 + c % 64;
+-	}
+-
++	char utf8[MAX_UTF8_PER_UTF16] = { 0 };
++	utf16_to_utf8((u8 *)utf8, &c, 1);
+ 	puts(utf8);
+ }
+ 
+-- 
+2.11.0
+

@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# Print GUIDs
+git am ../patch/0001-Kconfig-add-option-to-build-with-fshort-wchar.patch
+git am ../patch/0002-lib-add-some-utf16-handling-helpers.patch
+git am ../patch/0003-vsprintf.c-add-UTF-16-string-ls-support.patch
+git am ../patch/0004-vsprintf.c-add-GUID-printing.patch
+git am ../patch/0005-examples-add-fallback-memcpy.patch
+
 # EFI event services
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 
