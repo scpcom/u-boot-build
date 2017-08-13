@@ -37,7 +37,7 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index ebb557abb2..e969814476 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -898,23 +898,78 @@ static efi_status_t EFIAPI efi_connect_controller(
+@@ -898,23 +898,76 @@ static efi_status_t EFIAPI efi_connect_controller(
  	return EFI_EXIT(EFI_NOT_FOUND);
  }
  
@@ -94,8 +94,6 @@ index ebb557abb2..e969814476 100644
 +		r = EFI_INVALID_PARAMETER;
 +		goto out;
 +	}
-+
-+	EFI_PRINT_GUID("protocol:", protocol);
 +
 +	list_for_each_entry(efiobj, &efi_obj_list, link) {
 +		if (efiobj->handle != handle)

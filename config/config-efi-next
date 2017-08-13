@@ -503,8 +503,6 @@ CONFIG_DM_DEV_READ_INLINE=y
 # CONFIG_ADC_EXYNOS is not set
 # CONFIG_ADC_SANDBOX is not set
 # CONFIG_SATA is not set
-# CONFIG_SCSI is not set
-# CONFIG_DM_SCSI is not set
 
 #
 # SATA/SCSI device support
@@ -557,6 +555,7 @@ CONFIG_DM_GPIO=y
 # CONFIG_AT91_GPIO is not set
 # CONFIG_ATMEL_PIO4 is not set
 # CONFIG_INTEL_BROADWELL_GPIO is not set
+# CONFIG_INTEL_ICH6_GPIO is not set
 # CONFIG_IMX_RGPIO2P is not set
 # CONFIG_LPC32XX_GPIO is not set
 # CONFIG_MSM_GPIO is not set
@@ -676,6 +675,7 @@ CONFIG_DM_ETH=y
 CONFIG_NETDEVICES=y
 # CONFIG_PHY_GIGE is not set
 # CONFIG_ALTERA_TSE is not set
+# CONFIG_BCM_SF2_ETH is not set
 # CONFIG_DWC_ETH_QOS is not set
 # CONFIG_E1000 is not set
 CONFIG_ETH_DESIGNWARE=y
@@ -750,6 +750,8 @@ CONFIG_PINCTRL_MESON_GXBB=y
 # Real Time Clock
 #
 # CONFIG_DM_RTC is not set
+# CONFIG_SCSI is not set
+# CONFIG_DM_SCSI is not set
 
 #
 # Serial drivers

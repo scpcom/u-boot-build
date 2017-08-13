@@ -12,11 +12,9 @@ git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 # git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
 # EFI protocol services
-git am ../patch/0001-efi_loader-LocateHandle-should-return-EFI_NOT_FOUND-.patch
-git am ../patch/0001-efi_loader-attribute-EFIAPI-of-efi_locate-handle.patch
-git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
-git am ../patch/0002-efi_loader-open_info-in-OpenProtocol-CloseProtocol.patch
-git am ../patch/0003-efi_loader-implement-OpenProtocolInformation.patch
+# git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
+git am ../patch/0001-efi_loader-open_info-in-OpenProtocol-CloseProtocol.patch
+git am ../patch/0002-efi_loader-implement-OpenProtocolInformation.patch
 exit
 git am ../patch/0001-efi_loader-define-EFI_PLATFORM_DRIVER_OVERRIDE_PROTO.patch
 git am ../patch/0001-efi_loader-define-EFI_DRIVER_FAMILY_OVERRIDE_PROTOCO.patch

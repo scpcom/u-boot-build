@@ -23,7 +23,7 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 65a7a79dc1..fa9b74d465 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -984,14 +984,86 @@ out:
+@@ -984,14 +984,84 @@ out:
  	return EFI_EXIT(r);
  }
  
@@ -86,8 +86,6 @@ index 65a7a79dc1..fa9b74d465 100644
 +
 +	if (!handle || !protocol || !entry_buffer)
 +		EFI_EXIT(EFI_INVALID_PARAMETER);
-+
-+	EFI_PRINT_GUID("protocol:", protocol);
 +
 +	list_for_each_entry(efiobj, &efi_obj_list, link) {
 +		if (efiobj->handle != handle)
