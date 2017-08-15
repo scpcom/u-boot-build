@@ -53,7 +53,7 @@ index 7e0a2c29d4..b8461582e4 100644
 +		}
 +	}
 +	/*  Platform Driver Override */
-+	r = EFI_EXIT(efi_locate_protocol(
++	r = EFI_CALL(efi_locate_protocol(
 +			&efi_platform_driver_override_protocol_guid,
 +			NULL,
 +			(void **) &driver_family_override_protocol));

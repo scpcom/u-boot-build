@@ -48,19 +48,6 @@ index 037cc7c543..553c615f11 100644
  extern struct efi_runtime_services efi_runtime_services;
  extern struct efi_system_table systab;
  
-diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index fb05c9e093..ebb557abb2 100644
---- a/lib/efi_loader/efi_boottime.c
-+++ b/lib/efi_loader/efi_boottime.c
-@@ -1138,6 +1138,8 @@ static efi_status_t EFIAPI efi_open_protocol(
- 		goto out;
- 	}
- 
-+	EFI_PRINT_GUID("protocol:", protocol);
-+
- 	switch (attributes) {
- 	case EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL:
- 	case EFI_OPEN_PROTOCOL_GET_PROTOCOL:
 -- 
 2.11.0
 
