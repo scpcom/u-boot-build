@@ -38,7 +38,7 @@ index 037cc7c543..1cee10ea0c 100644
 +})
 +
 +/*
-+ * Call void UEFI function world from u-boot:
++ * Call void UEFI function from u-boot:
 + */
 +#define EFI_CALL_VOID(exp) do { \
  	debug("%sEFI: Call: %s\n", __efi_nesting_inc(), #exp); \

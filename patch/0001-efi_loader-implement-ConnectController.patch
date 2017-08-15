@@ -1,18 +1,18 @@
-From fa81e9163937bbea9854d29c9059a7e80dc3f269 Mon Sep 17 00:00:00 2001
+From 4b79796f45e4982c549adcb992d0b4ca129a6df1 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 1 Aug 2017 08:00:01 +0200
 Subject: [PATCH 1/1] efi_loader: implement ConnectController
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 59 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ lib/efi_loader/efi_boottime.c | 62 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 7e0a2c29d4..b8461582e4 100644
+index eee55f42ee..a9012ede48 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -18,6 +18,14 @@
+@@ -21,6 +21,14 @@
  
  DECLARE_GLOBAL_DATA_PTR;
  
@@ -27,7 +27,7 @@ index 7e0a2c29d4..b8461582e4 100644
  /* This list contains all the EFI objects our payload has access to */
  LIST_HEAD(efi_obj_list);
  
-@@ -901,8 +909,59 @@ static efi_status_t EFIAPI efi_connect_controller(
+@@ -913,8 +921,62 @@ static efi_status_t EFIAPI efi_connect_controller(
  			struct efi_device_path *remain_device_path,
  			bool recursive)
  {
@@ -36,9 +36,9 @@ index 7e0a2c29d4..b8461582e4 100644
 +	UINTN buffer_size = 0;
 +	u32 version;
 +	struct efi_driver_family_override_protocol
-+			*driver_family_override_protocol;
++			*driver_family_override_protocol = NULL;
 +	struct efi_platform_driver_override_protocol
-+			*platform_driver_override_protocol;
++			*platform_driver_override_protocol = NULL;
 +
  	EFI_ENTRY("%p, %p, %p, %d", controller_handle, driver_image_handle,
  		  remain_device_path, recursive);
@@ -57,13 +57,15 @@ index 7e0a2c29d4..b8461582e4 100644
 +			&efi_platform_driver_override_protocol_guid,
 +			NULL,
 +			(void **) &driver_family_override_protocol));
-+	do {
-+	r = platform_driver_override_protocol->get_driver(
-+		platform_driver_override_protocol,
-+		controller_handle,
-+		(void **) &driver_image_handle_override);
-+		/* Call the registration stuff here. */
-+	} while (r == EFI_SUCCESS);
++	if (r == EFI_SUCCESS && platform_driver_override_protocol) {
++		do {
++		r = platform_driver_override_protocol->get_driver(
++			platform_driver_override_protocol,
++			controller_handle,
++			(void **) &driver_image_handle_override);
++			/* Call the registration stuff here. */
++		} while (r == EFI_SUCCESS);
++	}
 +	/* Driver Family Override Search */
 +	r = efi_locate_handle(
 +			by_protocol,
@@ -71,7 +73,7 @@ index 7e0a2c29d4..b8461582e4 100644
 +			NULL,
 +			&buffer_size,
 +			(void *) driver_family_override_protocol);
-+	if (r == EFI_SUCCESS) {
++	if (r == EFI_SUCCESS && driver_family_override_protocol) {
 +		do {
 +		version = driver_family_override_protocol->get_version(
 +				driver_family_override_protocol);
@@ -84,9 +86,10 @@ index 7e0a2c29d4..b8461582e4 100644
 +
 +	/* Driver Binding Search */
 +
++	debug("%s(%d):", __FILE__, __LINE__);
  	return EFI_EXIT(EFI_NOT_FOUND);
  }
  
 -- 
-2.11.0
+2.14.1
 
