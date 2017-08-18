@@ -1,27 +1,40 @@
-From bde42256045e95e51592393168076abb5ba21c26 Mon Sep 17 00:00:00 2001
+From 0a67375dfaef100c57413da04639fa3aeaf129bc Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 30 Jul 2017 15:52:37 +0200
-Subject: [PATCH] efi_loader: write protocol GUID in OpenProtocol
+Subject: [PATCH v4 1/1] efi_loader: write protocol GUID in OpenProtocol
 
-To understand what happens in OpenProtocol it is necessary to know
-the protocol interface GUID. Let's write a debug message.
+To understand what is happening in OpenProtocol or LocateProtocol
+it is necessary to know the protocol interface GUID.
+Let's write a debug message.
 
-Using uuid_guid_get_str would be quite clumsy for this purpose.
-This would involve evaluating _DEBUG which probably should not be used
-outside common.h.
-
+Cc: Rob Clark <robdclark@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Reviewed-by: Rob Clark <robdclark@gmail.com>
 ---
- include/efi_loader.h          | 7 +++++++
- lib/efi_loader/efi_boottime.c | 6 ++++++
- 2 files changed, 13 insertions(+)
+v4:
+	use %pUl format string
+	correct indention of output
+v3:
+	commit message changed
+v2:
+	fix typo in commit message
+---
+ include/efi_loader.h          |  8 ++++++++
+ lib/efi_loader/efi_boottime.c | 11 +++++++++++
+ 2 files changed, 19 insertions(+)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index cfcabb0ae1..c61cadbd61 100644
+index 870854fb61..5b20af808b 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -63,6 +63,13 @@ const char *__efi_nesting_dec(void);
+@@ -17,6 +17,7 @@
+ 
+ int __efi_entry_check(void);
+ int __efi_exit_check(void);
++const char *__efi_nesting(void);
+ const char *__efi_nesting_inc(void);
+ const char *__efi_nesting_dec(void);
+ 
+@@ -64,6 +65,13 @@ const char *__efi_nesting_dec(void);
  	debug("%sEFI: Return From: %s\n", __efi_nesting_dec(), #exp); \
  	} while(0)
  
@@ -29,26 +42,29 @@ index cfcabb0ae1..c61cadbd61 100644
 + * Write GUID
 + */
 +#define EFI_PRINT_GUID(txt, guid) ({ \
-+	debug("EFI: %s %pUl\n", txt, guid); \
++	debug("%sEFI: %s %pUl\n", __efi_nesting(), txt, guid); \
 +	})
 +
  extern struct efi_runtime_services efi_runtime_services;
  extern struct efi_system_table systab;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 5aeaeeca75..6b92971d49 100644
+index 5aeaeeca75..6af033458b 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -963,6 +963,8 @@ static efi_status_t EFIAPI efi_close_protocol(void *handle,
- 		goto out;
- 	}
+@@ -112,6 +112,11 @@ static const char *indent_string(int level)
+ 	return &indent[max - level];
+ }
  
-+	EFI_PRINT_GUID("protocol", protocol);
++const char *__efi_nesting(void)
++{
++	return indent_string(nesting_level);
++}
 +
- 	list_for_each_entry(efiobj, &efi_obj_list, link) {
- 		if (efiobj->handle != handle)
- 			continue;
-@@ -1163,6 +1165,8 @@ static efi_status_t EFIAPI efi_locate_protocol(efi_guid_t *protocol,
+ const char *__efi_nesting_inc(void)
+ {
+ 	return indent_string(nesting_level++);
+@@ -1163,6 +1170,8 @@ static efi_status_t EFIAPI efi_locate_protocol(efi_guid_t *protocol,
  	if (!protocol || !protocol_interface)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  
@@ -57,7 +73,7 @@ index 5aeaeeca75..6b92971d49 100644
  	list_for_each(lhandle, &efi_obj_list) {
  		struct efi_object *efiobj;
  
-@@ -1366,6 +1370,8 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -1366,6 +1375,8 @@ static efi_status_t EFIAPI efi_open_protocol(
  		goto out;
  	}
  
@@ -67,5 +83,4 @@ index 5aeaeeca75..6b92971d49 100644
  	case EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL:
  	case EFI_OPEN_PROTOCOL_GET_PROTOCOL:
 -- 
-2.14.1
-
+2.11.0

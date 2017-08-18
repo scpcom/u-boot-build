@@ -1,8 +1,8 @@
 #!/bin/sh
 
-git am ../patch/0001-efi_loader-do-not-cast-return-value-in-EFI_EXIT.patch
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
-git am ../patch/0001-efi_loader-efi_set_watchdog_timer-return-EFI_SUCCESS.patch
+git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
+# git am ../patch/0001-efi_loader-efi_set_watchdog_timer-return-EFI_SUCCESS.patch
 
 # Print GUIDs
 git am ../patch/0001-Kconfig-add-option-to-build-with-fshort-wchar.patch
@@ -24,7 +24,6 @@ git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 # EFI protocol services
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol-CloseProtocol.patch
 git am ../patch/0002-efi_loader-implement-OpenProtocolInformation.patch
-git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
 
 git am ../patch/0001-efi_loader-debug-messages-for-protocol-interfaces.patch
 

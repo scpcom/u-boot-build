@@ -86,7 +86,7 @@ index eee55f42ee..a9012ede48 100644
 +
 +	/* Driver Binding Search */
 +
-+	debug("%s(%d):", __FILE__, __LINE__);
++	debug("%s(%d):\n", __FILE__, __LINE__);
  	return EFI_EXIT(EFI_NOT_FOUND);
  }
  
