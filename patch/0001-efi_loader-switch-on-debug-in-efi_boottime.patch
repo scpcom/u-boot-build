@@ -1,4 +1,4 @@
-From 10f09749b850dc17f95910e68cb2b26548d3b5f5 Mon Sep 17 00:00:00 2001
+From 0135f5ef40b2961c3e837af075914165fa04bf39 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 22:46:44 +0200
 Subject: [PATCH 1/1] efi_loader: switch on debug in efi_boottime
@@ -25,7 +25,7 @@ index d1d8b00083..9be01eb569 100644
  #include <command.h>
  #include <dm.h>
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 4129d75976..c4033f804a 100644
+index f4867ab5be..0d638823fd 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -16,6 +16,9 @@
@@ -38,7 +38,7 @@ index 4129d75976..c4033f804a 100644
  DECLARE_GLOBAL_DATA_PTR;
  
  /* This list contains all the EFI objects our payload has access to */
-@@ -152,6 +155,8 @@ static u64 efi_div10(u64 a)
+@@ -157,6 +160,8 @@ static u64 efi_div10(u64 a)
  	return ret;
  }
  
@@ -47,7 +47,7 @@ index 4129d75976..c4033f804a 100644
  void efi_signal_event(struct efi_event *event)
  {
  	if (event->signaled)
-@@ -162,6 +167,8 @@ void efi_signal_event(struct efi_event *event)
+@@ -167,6 +172,8 @@ void efi_signal_event(struct efi_event *event)
  						     event->notify_context));
  	}
  }
@@ -56,7 +56,7 @@ index 4129d75976..c4033f804a 100644
  
  static efi_status_t efi_unsupported(const char *funcname)
  {
-@@ -435,6 +442,8 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
+@@ -440,6 +447,8 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
  	return EFI_EXIT(EFI_INVALID_PARAMETER);
  }
  
@@ -65,15 +65,15 @@ index 4129d75976..c4033f804a 100644
  static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  {
  	int i;
-@@ -452,6 +461,8 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+@@ -457,6 +466,8 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  	}
  	return EFI_EXIT(EFI_INVALID_PARAMETER);
  }
 +#undef _DEBUG
 +#define _DEBUG 1
  
- static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
- 			efi_guid_t *protocol, int protocol_interface_type,
+ static efi_status_t efi_search_protocol(void *handle, efi_guid_t *protocol_guid,
+ 					struct efi_handler **handler)
 diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
 index 5655a76aad..c3d955f5ed 100644
 --- a/lib/efi_loader/efi_gop.c

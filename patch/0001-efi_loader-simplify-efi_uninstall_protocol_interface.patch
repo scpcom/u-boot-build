@@ -1,0 +1,110 @@
+From 0fff9361564324d050fbd386cd32a5d45f40adbd Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 20 Aug 2017 13:05:35 +0200
+Subject: [PATCH 1/1] efi_loader: simplify efi_uninstall_protocol_interface
+
+Use function efi_search_obj and efi_search_protocol
+to simplify the coding.
+
+Do away with efi_uninstall_protocol_interface_ext.
+We can use EFI_CALL for internal usage.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 56 ++++++++++++++-----------------------------
+ 1 file changed, 18 insertions(+), 38 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index a31525fbc6..d5c512ff4b 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -544,51 +544,31 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
+ static efi_status_t EFIAPI efi_uninstall_protocol_interface(void *handle,
+ 			efi_guid_t *protocol, void *protocol_interface)
+ {
+-	struct list_head *lhandle;
+-	int i;
+-	efi_status_t r = EFI_NOT_FOUND;
++	struct efi_handler *handler;
++	efi_status_t r;
++
++	EFI_ENTRY("%p, %p, %p", handle, protocol, protocol_interface);
+ 
+ 	if (!handle || !protocol) {
+ 		r = EFI_INVALID_PARAMETER;
+ 		goto out;
+ 	}
+ 
+-	list_for_each(lhandle, &efi_obj_list) {
+-		struct efi_object *efiobj;
+-		efiobj = list_entry(lhandle, struct efi_object, link);
+-
+-		if (efiobj->handle != handle)
+-			continue;
+-
+-		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
+-			struct efi_handler *handler = &efiobj->protocols[i];
+-			const efi_guid_t *hprotocol = handler->guid;
++	/* Find the protocol on the handle */
++	r = efi_search_protocol(handle, protocol, &handler);
++	if (r != EFI_SUCCESS)
++		goto out;
+ 
+-			if (!hprotocol)
+-				continue;
+-			if (!guidcmp(hprotocol, protocol)) {
+-				if (handler->protocol_interface) {
+-					r = EFI_ACCESS_DENIED;
+-				} else {
+-					handler->guid = 0;
+-					r = EFI_SUCCESS;
+-				}
+-				goto out;
+-			}
+-		}
++	if (handler->protocol_interface) {
++		/* Disconnect controllers */
++		r =  EFI_ACCESS_DENIED;
++	} else {
++		handler->guid = 0;
++		r = EFI_SUCCESS;
+ 	}
+ 
+ out:
+-	return r;
+-}
+-
+-static efi_status_t EFIAPI efi_uninstall_protocol_interface_ext(void *handle,
+-			efi_guid_t *protocol, void *protocol_interface)
+-{
+-	EFI_ENTRY("%p, %p, %p", handle, protocol, protocol_interface);
+-
+-	return EFI_EXIT(efi_uninstall_protocol_interface(handle, protocol,
+-							 protocol_interface));
++	return EFI_EXIT(r);
+ }
+ 
+ static efi_status_t EFIAPI efi_register_protocol_notify(efi_guid_t *protocol,
+@@ -1115,8 +1095,8 @@ static efi_status_t EFIAPI efi_install_multiple_protocol_interfaces(
+ 	for (; i; --i) {
+ 		protocol = va_arg(argptr, efi_guid_t*);
+ 		protocol_interface = va_arg(argptr, void*);
+-		efi_uninstall_protocol_interface(handle, protocol,
+-						 protocol_interface);
++		EFI_CALL(efi_uninstall_protocol_interface(handle, protocol,
++							  protocol_interface));
+ 	}
+ 	va_end(argptr);
+ 
+@@ -1249,7 +1229,7 @@ static const struct efi_boot_services efi_boot_services = {
+ 	.check_event = efi_check_event,
+ 	.install_protocol_interface = efi_install_protocol_interface,
+ 	.reinstall_protocol_interface = efi_reinstall_protocol_interface,
+-	.uninstall_protocol_interface = efi_uninstall_protocol_interface_ext,
++	.uninstall_protocol_interface = efi_uninstall_protocol_interface,
+ 	.handle_protocol = efi_handle_protocol,
+ 	.reserved = NULL,
+ 	.register_protocol_notify = efi_register_protocol_notify,
+-- 
+2.14.1
+

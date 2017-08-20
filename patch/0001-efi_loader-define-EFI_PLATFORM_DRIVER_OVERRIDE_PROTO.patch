@@ -1,4 +1,4 @@
-From 3ee62c2a226886118ab651b760f6ce4e8f9a4c72 Mon Sep 17 00:00:00 2001
+From 3dd6034ed9a912d0d0e48dd3e25a3fc1d726021d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 1 Aug 2017 08:43:22 +0200
 Subject: [PATCH 1/1] efi_loader: define EFI_PLATFORM_DRIVER_OVERRIDE_PROTOCOL
@@ -42,7 +42,7 @@ index ec1b321e8e..9e1b2c1188 100644
 +
  #endif
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 1762b92371..0ca8a6905b 100644
+index 0d638823fd..6cbc6af934 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -52,6 +52,9 @@ static struct efi_configuration_table __efi_runtime_data efi_conf_table[2];
@@ -56,5 +56,5 @@ index 1762b92371..0ca8a6905b 100644
  static int nesting_level;
  
 -- 
-2.13.2
+2.14.1
 
