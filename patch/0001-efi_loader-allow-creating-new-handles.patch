@@ -1,0 +1,55 @@
+From c662e777bc49da84891b653390a0139523ac95e1 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 21 Aug 2017 00:51:08 +0200
+Subject: [PATCH 1/1] efi_loader: allow creating new handles
+
+In efi_install_protocol_interface support creating
+a new handle.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 01ca017558..99e37f19ab 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -261,6 +261,22 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
+ 	return EFI_EXIT(r);
+ }
+ 
++static efi_status_t efi_create_handle(void **handle) {
++	struct efi_object *obj;
++	efi_status_t r;
++
++	r = efi_allocate_pool(EFI_ALLOCATE_ANY_PAGES,
++			      sizeof(struct efi_object),
++			      (void **)&obj);
++	if (r != EFI_SUCCESS)
++		return r;
++	memset(obj, 0, sizeof(struct efi_object));
++	obj->handle = obj;
++	list_add_tail(&obj->link, &efi_obj_list);
++	*handle = obj;
++	return r;
++}
++
+ /*
+  * Our event capabilities are very limited. Only a small limited
+  * number of events is allowed to coexist.
+@@ -526,8 +542,9 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+ 
+ 	/* Create new handle if requested. */
+ 	if (!*handle) {
+-		r =EFI_OUT_OF_RESOURCES;
+-		goto out;
++		r = efi_create_handle(handle);
++		if (r != EFI_SUCCESS)
++			goto out;
+ 	}
+ 
+ 	/* Find object. */
+-- 
+2.14.1
+
