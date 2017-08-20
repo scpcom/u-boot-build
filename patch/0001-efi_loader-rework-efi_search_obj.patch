@@ -1,0 +1,54 @@
+From a0da0a69c4e3ee739d4dac2b1241f754a6de7397 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 20 Aug 2017 11:16:34 +0200
+Subject: [PATCH 1/1] efi_loader: rework efi_search_obj
+
+EFI_HANDLEs are used both in boottime and in runtime services.
+efi_search_obj is a function that can be used to validate
+handles. So let's make it accessible via efi_loader.h.
+
+We can simplify the coding using list_for_each_entry.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h          | 2 ++
+ lib/efi_loader/efi_boottime.c | 8 +++-----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 1179234f68..d53688cb02 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -154,6 +154,8 @@ void efi_restore_gd(void);
+ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map);
+ /* Call this to set the current device name */
+ void efi_set_bootdev(const char *dev, const char *devnr, const char *path);
++/* Call this to validate a handle and find the EFI object for it */
++struct efi_object *efi_search_obj(void *handle);
+ /* Call this to create an event */
+ efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
+ 			      void (EFIAPI *notify_function) (
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 43f32385fa..55a59cdb85 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -799,13 +799,11 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
+ 	panic("EFI application exited");
+ }
+ 
+-static struct efi_object *efi_search_obj(void *handle)
++struct efi_object *efi_search_obj(void *handle)
+ {
+-	struct list_head *lhandle;
++	struct efi_object *efiobj;
+ 
+-	list_for_each(lhandle, &efi_obj_list) {
+-		struct efi_object *efiobj;
+-		efiobj = list_entry(lhandle, struct efi_object, link);
++	list_for_each_entry(efiobj, &efi_obj_list, link) {
+ 		if (efiobj->handle == handle)
+ 			return efiobj;
+ 	}
+-- 
+2.14.1
+

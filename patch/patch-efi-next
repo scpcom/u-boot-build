@@ -22,6 +22,7 @@ git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
 # EFI protocol services
+git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol-CloseProtocol.patch
 git am ../patch/0002-efi_loader-implement-OpenProtocolInformation.patch
 
