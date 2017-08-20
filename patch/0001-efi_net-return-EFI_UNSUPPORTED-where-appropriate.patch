@@ -1,0 +1,56 @@
+From 98653c6f8852f7d59721a23b1377cc8e5c8c941a Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 21 Aug 2017 01:38:47 +0200
+Subject: [PATCH 1/1] efi_net: return EFI_UNSUPPORTED where appropriate
+
+The functions of the simple network protocol should return
+EFI_UNSUPPORTED where this is foreseen by the UEFI spec.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_net.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index 1785bcd347..7ec1c5a11f 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -83,7 +83,7 @@ static efi_status_t EFIAPI efi_net_receive_filters(
+ 
+ 	/* XXX Do we care? */
+ 
+-	return EFI_EXIT(EFI_SUCCESS);
++	return EFI_EXIT(EFI_UNSUPPORTED);
+ }
+ 
+ static efi_status_t EFIAPI efi_net_station_address(
+@@ -92,7 +92,7 @@ static efi_status_t EFIAPI efi_net_station_address(
+ {
+ 	EFI_ENTRY("%p, %x, %p", this, reset, new_mac);
+ 
+-	return EFI_EXIT(EFI_INVALID_PARAMETER);
++	return EFI_EXIT(EFI_UNSUPPORTED);
+ }
+ 
+ static efi_status_t EFIAPI efi_net_statistics(struct efi_simple_network *this,
+@@ -101,7 +101,7 @@ static efi_status_t EFIAPI efi_net_statistics(struct efi_simple_network *this,
+ {
+ 	EFI_ENTRY("%p, %x, %p, %p", this, reset, stat_size, stat_table);
+ 
+-	return EFI_EXIT(EFI_INVALID_PARAMETER);
++	return EFI_EXIT(EFI_UNSUPPORTED);
+ }
+ 
+ static efi_status_t EFIAPI efi_net_mcastiptomac(struct efi_simple_network *this,
+@@ -121,7 +121,7 @@ static efi_status_t EFIAPI efi_net_nvdata(struct efi_simple_network *this,
+ 	EFI_ENTRY("%p, %x, %lx, %lx, %p", this, read_write, offset, buffer_size,
+ 		  buffer);
+ 
+-	return EFI_EXIT(EFI_INVALID_PARAMETER);
++	return EFI_EXIT(EFI_UNSUPPORTED);
+ }
+ 
+ static efi_status_t EFIAPI efi_net_get_status(struct efi_simple_network *this,
+-- 
+2.14.1
+
