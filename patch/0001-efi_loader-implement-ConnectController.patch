@@ -1,7 +1,7 @@
-From 4b167784c41c982463822be1e7dda71dd1b8b7cf Mon Sep 17 00:00:00 2001
+From 26729a357d78724a8ba9b8fdb7b9cb4fe91b6222 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 1 Aug 2017 08:00:01 +0200
-Subject: [PATCH] efi_loader: implement ConnectController
+Subject: [PATCH 1/1] efi_loader: implement ConnectController
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
@@ -11,7 +11,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  3 files changed, 142 insertions(+), 1 deletion(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index ec1b321e8e..ed97db2380 100644
+index 1b853ff4c5..35569572a8 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
 @@ -609,4 +609,26 @@ struct efi_pxe {
@@ -42,7 +42,7 @@ index ec1b321e8e..ed97db2380 100644
 +
  #endif
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 3c909e0c32..a33a12bbd0 100644
+index e89407329a..9bb3163270 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -82,6 +82,7 @@ extern const struct efi_device_path_to_text_protocol efi_device_path_to_text;
@@ -54,7 +54,7 @@ index 3c909e0c32..a33a12bbd0 100644
  extern const efi_guid_t efi_guid_device_path_to_text_protocol;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 603d9f34ac..f692b47f88 100644
+index d15be9c003..01ca017558 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -21,6 +21,14 @@
@@ -82,7 +82,7 @@ index 603d9f34ac..f692b47f88 100644
  static int entry_count;
  static int nesting_level;
  
-@@ -918,15 +929,122 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -919,15 +930,122 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  	return efi_unsupported(__func__);
  }
  
@@ -98,7 +98,7 @@ index 603d9f34ac..f692b47f88 100644
 +	r = EFI_CALL(efi_open_protocol(driver_image_handle,
 +				       &efi_guid_driver_binding_protocol,
 +				       (void **) &binding_protocol,
-+				       NULL, NULL,
++				       driver_image_handle, NULL,
 +				       EFI_OPEN_PROTOCOL_GET_PROTOCOL));
 +	if (r != EFI_SUCCESS)
 +		return r;
@@ -111,7 +111,7 @@ index 603d9f34ac..f692b47f88 100644
 +						     remain_device_path));
 +	EFI_CALL(efi_close_protocol(driver_image_handle,
 +				    &efi_guid_driver_binding_protocol,
-+				    NULL, NULL));
++				    driver_image_handle, NULL));
 +	return r;
 +}
 +
