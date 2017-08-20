@@ -51,7 +51,7 @@ build:
 	cd denx && git reset --hard
 	# cd denx && git checkout $(TAGPREFIX)$(TAG)
 	cd denx && git checkout efi-next
-	cd denx && git reset --hard HEAD~10
+	cd denx && git reset --hard HEAD~30
 	cd denx && git rebase
 	cd denx && ( git branch -D build || true )
 	cd denx && ( git am --abort || true )
