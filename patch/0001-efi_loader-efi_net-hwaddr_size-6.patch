@@ -1,0 +1,27 @@
+From bed64af887d75512cbcd12105a9e75415369bd88 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 21 Aug 2017 00:05:15 +0200
+Subject: [PATCH 1/1] efi_loader: efi_net: hwaddr_size = 6
+
+The length of a MAC address is 6.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_net.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index bc3b84db48..a274eedd38 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -263,6 +263,7 @@ int efi_net_register(void **handle)
+ 	netobj->dp_end = dp_end;
+ 	memcpy(netobj->dp_mac.mac.addr, eth_get_ethaddr(), 6);
+ 	memcpy(netobj->net_mode.current_address.mac_addr, eth_get_ethaddr(), 6);
++	netobj->net_mode.hwaddr_size = 6;
+ 	netobj->net_mode.max_packet_size = PKTSIZE;
+ 
+ 	netobj->pxe.mode = &netobj->pxe_mode;
+-- 
+2.14.1
+

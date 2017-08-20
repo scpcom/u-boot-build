@@ -1,0 +1,30 @@
+From 1c99448a73faa4d09bc96dc62cebaa518adf0bd9 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 21 Aug 2017 00:14:36 +0200
+Subject: [PATCH 1/1] efi_loader: support 16 protocols per efi_object
+
+8 protocols per efi_object is insufficient for iPXE.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 9bb3163270..f3150e1430 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -109,8 +109,8 @@ struct efi_handler {
+ struct efi_object {
+ 	/* Every UEFI object is part of a global object list */
+ 	struct list_head link;
+-	/* We support up to 8 "protocols" an object can be accessed through */
+-	struct efi_handler protocols[8];
++	/* We support up to 16 "protocols" an object can be accessed through */
++	struct efi_handler protocols[16];
+ 	/* The object spawner can either use this for data or as identifier */
+ 	void *handle;
+ };
+-- 
+2.14.1
+

@@ -1,4 +1,5 @@
 #!/bin/sh
+git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 # git am ../patch/0001-efi_loader-efi_set_watchdog_timer-return-EFI_SUCCESS.patch
@@ -18,6 +19,7 @@ git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 # git am ../patch/0001-efi_loader-write-reboot-reason.patch
 
 # EFI protocol services
+git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
