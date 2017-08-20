@@ -1,15 +1,15 @@
-From 9b02af92d701ebf9e08e70bb5b64965afb7f3868 Mon Sep 17 00:00:00 2001
+From 84baa17c11d0a8f3ffa13be2f169e8b737a84962 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 22:46:44 +0200
-Subject: [PATCH 1/1] efi_loader: switch on debug in efi_boottime
+Subject: [PATCH] efi_loader: switch on debug in efi_boottime
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  cmd/bootefi.c                 |  2 ++
  lib/efi_loader/efi_boottime.c | 11 +++++++++++
  lib/efi_loader/efi_gop.c      |  2 ++
- lib/efi_loader/efi_net.c      |  4 ++++
- 4 files changed, 19 insertions(+)
+ lib/efi_loader/efi_net.c      | 10 ++++++++++
+ 4 files changed, 25 insertions(+)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
 index d1d8b00083..9be01eb569 100644
@@ -88,17 +88,52 @@ index 5655a76aad..c3d955f5ed 100644
  #include <dm.h>
  #include <efi_loader.h>
 diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
-index a4191d194a..a047bc101d 100644
+index a4191d194a..d501cd025f 100644
 --- a/lib/efi_loader/efi_net.c
 +++ b/lib/efi_loader/efi_net.c
-@@ -209,6 +211,8 @@ void efi_net_set_dhcp_ack(void *pkt, int len)
- 	memcpy(dhcp_ack, pkt, min(len, maxsize));
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
++
+ #include <common.h>
+ #include <efi_loader.h>
+ #include <inttypes.h>
+@@ -140,6 +142,8 @@ static efi_status_t EFIAPI efi_net_get_status(struct efi_simple_network *this,
+ 	return EFI_EXIT(EFI_SUCCESS);
  }
  
 +#undef _DEBUG
++#define _DEBUG 0
+ static efi_status_t EFIAPI efi_net_transmit(struct efi_simple_network *this,
+ 		ulong header_size, ulong buffer_size, void *buffer,
+ 		struct efi_mac_address *src_addr,
+@@ -165,12 +169,16 @@ static efi_status_t EFIAPI efi_net_transmit(struct efi_simple_network *this,
+ 
+ 	return EFI_EXIT(EFI_SUCCESS);
+ }
++#undef _DEBUG
 +#define _DEBUG 1
- /* This gets called from do_bootefi_exec(). */
- int efi_net_register(void **handle)
+ 
+ static void efi_net_push(void *pkt, int len)
+ {
+ 	new_rx_packet = true;
+ }
+ 
++#undef _DEBUG
++#define _DEBUG 0
+ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
+ 		ulong *header_size, ulong *buffer_size, void *buffer,
+ 		struct efi_mac_address *src_addr,
+@@ -198,6 +206,8 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
+ 
+ 	return EFI_EXIT(EFI_SUCCESS);
+ }
++#undef _DEBUG
++#define _DEBUG 1
+ 
+ void efi_net_set_dhcp_ack(void *pkt, int len)
  {
 -- 
 2.14.1
