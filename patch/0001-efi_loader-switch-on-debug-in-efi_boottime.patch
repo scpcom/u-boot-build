@@ -1,4 +1,4 @@
-From 0135f5ef40b2961c3e837af075914165fa04bf39 Mon Sep 17 00:00:00 2001
+From f9009faf0a351e1d264a22ebee9622a8d9d0d230 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 1 Jul 2017 22:46:44 +0200
 Subject: [PATCH 1/1] efi_loader: switch on debug in efi_boottime
@@ -25,7 +25,7 @@ index d1d8b00083..9be01eb569 100644
  #include <command.h>
  #include <dm.h>
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index f4867ab5be..0d638823fd 100644
+index aaa16acbb9..58d204bf7d 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -16,6 +16,9 @@
@@ -72,8 +72,8 @@ index f4867ab5be..0d638823fd 100644
 +#undef _DEBUG
 +#define _DEBUG 1
  
- static efi_status_t efi_search_protocol(void *handle, efi_guid_t *protocol_guid,
- 					struct efi_handler **handler)
+ static efi_status_t efi_search_protocol(void *handle,
+ 					const efi_guid_t *protocol_guid,
 diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
 index 5655a76aad..c3d955f5ed 100644
 --- a/lib/efi_loader/efi_gop.c

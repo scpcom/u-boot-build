@@ -1,4 +1,4 @@
-From a33211c1240f78da802bcbd047a9684eea6a8794 Mon Sep 17 00:00:00 2001
+From 516500efb460feb68196a1f524f1be083d3781ab Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 30 Jul 2017 15:52:37 +0200
 Subject: [PATCH 1/1] efi_loader: write protocol GUID in OpenProtocol
@@ -11,11 +11,11 @@ Cc: Rob Clark <robdclark@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |  8 ++++++++
- lib/efi_loader/efi_boottime.c | 13 +++++++++++++
- 2 files changed, 21 insertions(+)
+ lib/efi_loader/efi_boottime.c | 14 ++++++++++++++
+ 2 files changed, 22 insertions(+)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index a89977fe0f..16f61c9e17 100644
+index 8358adea2f..e89407329a 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -17,6 +17,7 @@
@@ -41,7 +41,7 @@ index a89977fe0f..16f61c9e17 100644
  extern struct efi_system_table systab;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 194a40d424..f4867ab5be 100644
+index aec8debceb..1e2f9b4ced 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -109,6 +109,11 @@ static const char *indent_string(int level)
@@ -56,7 +56,7 @@ index 194a40d424..f4867ab5be 100644
  const char *__efi_nesting_inc(void)
  {
  	return indent_string(nesting_level++);
-@@ -494,6 +499,7 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+@@ -495,6 +500,7 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
  		r = EFI_INVALID_PARAMETER;
  		goto out;
  	}
@@ -64,7 +64,7 @@ index 194a40d424..f4867ab5be 100644
  
  	/* Create new handle if requested. */
  	if (!*handle) {
-@@ -553,6 +559,7 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(void *handle,
+@@ -554,6 +560,7 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(void *handle,
  		r = EFI_INVALID_PARAMETER;
  		goto out;
  	}
@@ -72,7 +72,7 @@ index 194a40d424..f4867ab5be 100644
  
  	/* Find the protocol on the handle */
  	r = efi_search_protocol(handle, protocol, &handler);
-@@ -623,6 +630,7 @@ static efi_status_t efi_locate_handle(
+@@ -624,6 +631,7 @@ static efi_status_t efi_locate_handle(
  	case by_protocol:
  		if (!protocol)
  			return EFI_INVALID_PARAMETER;
@@ -80,7 +80,15 @@ index 194a40d424..f4867ab5be 100644
  		break;
  	default:
  		return EFI_INVALID_PARAMETER;
-@@ -1001,6 +1009,7 @@ static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
+@@ -959,6 +967,7 @@ efi_status_t EFIAPI efi_close_protocol(void *handle, const efi_guid_t *protocol,
+ 		r = EFI_INVALID_PARAMETER;
+ 		goto out;
+ 	}
++	EFI_PRINT_GUID("protocol", protocol);
+ 
+ 	list_for_each_entry(efiobj, &efi_obj_list, link) {
+ 		if (efiobj->handle != handle)
+@@ -1001,6 +1010,7 @@ static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
  		r = EFI_INVALID_PARAMETER;
  		goto out;
  	}
@@ -88,7 +96,7 @@ index 194a40d424..f4867ab5be 100644
  
  	/* Find the protocol */
  	r = efi_search_protocol(handle, protocol, &handler);
-@@ -1143,6 +1152,8 @@ static efi_status_t EFIAPI efi_locate_protocol(efi_guid_t *protocol,
+@@ -1143,6 +1153,8 @@ static efi_status_t EFIAPI efi_locate_protocol(const efi_guid_t *protocol,
  	if (!protocol || !protocol_interface)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  
@@ -97,7 +105,7 @@ index 194a40d424..f4867ab5be 100644
  	list_for_each(lhandle, &efi_obj_list) {
  		struct efi_object *efiobj;
  
-@@ -1347,6 +1358,8 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -1347,6 +1359,8 @@ efi_status_t EFIAPI efi_open_protocol(
  		goto out;
  	}
  
