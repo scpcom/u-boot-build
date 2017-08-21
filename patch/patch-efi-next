@@ -26,15 +26,16 @@ git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
 git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
 git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
-git am ../patch/0001-efi_loader-open_info-in-OpenProtocol-CloseProtocol.patch
+git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
+git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
 git am ../patch/0002-efi_loader-implement-OpenProtocolInformation.patch
 git am ../patch/0001-efi_loader-non-static-efi_open_protocol-efi_close_pr.patch
 git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
 
-git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
-git am ../patch/0001-efi_loader-debug-messages-for-protocol-interfaces.patch
-git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
 
 # git am ../patch/0001-efi_loader-define-EFI_PLATFORM_DRIVER_OVERRIDE_PROTO.patch
 # git am ../patch/0001-efi_loader-define-EFI_DRIVER_FAMILY_OVERRIDE_PROTOCO.patch
 git am ../patch/0001-efi_loader-implement-ConnectController.patch
+git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
+git am ../patch/0001-efi_loader-debug-messages-for-protocol-interfaces.patch
+git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch

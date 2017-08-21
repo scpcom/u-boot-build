@@ -1,4 +1,4 @@
-From 394385e166200a709bb11da3b11ff239e3da2e4d Mon Sep 17 00:00:00 2001
+From b4febe4e32abe08fa9716d9f008791da11e97c74 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 20 Aug 2017 18:26:20 +0200
 Subject: [PATCH 1/1] efi_loader: non-static efi_open_protocol,
@@ -14,7 +14,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  2 files changed, 13 insertions(+), 5 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index a89977fe0f..397ceb04ef 100644
+index b159300e28..5ada4d6909 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -181,6 +181,15 @@ efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
@@ -34,11 +34,11 @@ index a89977fe0f..397ceb04ef 100644
  /* Generic EFI memory allocator, call this to get memory */
  void *efi_alloc(uint64_t len, int memory_type);
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index a59db68a80..f38ab80369 100644
+index 370a34b1fb..db0147c7d4 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -943,10 +943,9 @@ static efi_status_t efi_protocol_close(struct efi_handler *protocol,
- 	return EFI_NOT_FOUND;
+@@ -936,10 +936,9 @@ static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
+ 	return EFI_EXIT(EFI_INVALID_PARAMETER);
  }
  
 -static efi_status_t EFIAPI efi_close_protocol(void *handle,
@@ -49,9 +49,9 @@ index a59db68a80..f38ab80369 100644
 +				       void *agent_handle,
 +				       void *controller_handle)
  {
- 	struct efi_object *efiobj;
+ 	struct efi_handler *handler;
  	size_t i;
-@@ -1275,7 +1274,7 @@ static efi_status_t efi_protocol_open(
+@@ -1323,7 +1322,7 @@ static efi_status_t efi_protocol_open(
  	return EFI_SUCCESS;
  }
  

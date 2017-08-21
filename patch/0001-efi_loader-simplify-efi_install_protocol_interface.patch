@@ -57,7 +57,7 @@ index e31e646cc0..a31525fbc6 100644
 -		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
 -			struct efi_handler *handler = &efiobj->protocols[i];
 +	/* Check if protocol is already installed on the handle. */
-+	r = efi_search_protocol(handle, protocol, NULL);
++	r = efi_search_protocol(*handle, protocol, NULL);
 +	if (r == EFI_SUCCESS) {
 +		r = EFI_INVALID_PARAMETER;
 +		goto out;

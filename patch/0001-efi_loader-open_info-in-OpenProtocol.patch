@@ -1,35 +1,27 @@
-From f2d1fa0dfb6e897c4cc9e5f4063f28725d7440bb Mon Sep 17 00:00:00 2001
+From c755d699c6e66c77574cd77d5932c4b12810f087 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 22 Jul 2017 09:22:54 +0200
-Subject: [PATCH v4 1/2] efi_loader: open_info in OpenProtocol, CloseProtocol
+Subject: [PATCH 1/1] efi_loader: open_info in OpenProtocol
 
 efi_open_protocol and close_protocol have to keep track of
 opened protocols.
 
 So we add an array open_info to each protocol of each handle.
 
+OpenProtocol has enter the agent and controller handle
+information into this array.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
-v4:
-	Rename efi_open_protocol_int to efi_protocol_open
-	and efi_close_protcol_int to efi_protocol_close
-	to avoid misintepretation.
-v3:
-	use EFI_CALL to avoid wrapper for efi_disconnect_controller
-	use list_for_each_entry
-	move variable declarations out of loops
-v2:
-	new patch
----
  include/efi_loader.h          |   1 +
- lib/efi_loader/efi_boottime.c | 162 +++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 153 insertions(+), 10 deletions(-)
+ lib/efi_loader/efi_boottime.c | 101 +++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 96 insertions(+), 6 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 037cc7c543..9cd55bf47b 100644
+index 21ffbd0788..b159300e28 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -74,6 +74,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
+@@ -87,6 +87,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
  struct efi_handler {
  	const efi_guid_t *guid;
  	void *protocol_interface;
@@ -38,91 +30,10 @@ index 037cc7c543..9cd55bf47b 100644
  
  /*
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 0d73d17359..a7a20f4c59 100644
+index a6bb4289f6..7144cbbaa6 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -901,23 +901,76 @@ static efi_status_t EFIAPI efi_connect_controller(
- 	return EFI_EXIT(EFI_NOT_FOUND);
- }
- 
--static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
--						     void *driver_image_handle,
--						     void *child_handle)
-+static efi_status_t EFIAPI efi_disconnect_controller(
-+						void *controller_handle,
-+						void *driver_image_handle,
-+						void *child_handle)
- {
- 	EFI_ENTRY("%p, %p, %p", controller_handle, driver_image_handle,
- 		  child_handle);
- 	return EFI_EXIT(EFI_INVALID_PARAMETER);
- }
- 
-+static efi_status_t efi_protocol_close(struct efi_handler *protocol,
-+				       void *agent_handle,
-+				       void *controller_handle)
-+{
-+	size_t i;
-+	struct efi_open_protocol_info_entry *open_info;
-+
-+	for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
-+		open_info = &protocol->open_info[i];
-+
-+		if (!open_info->open_count)
-+			continue;
-+
-+		if (open_info->agent_handle == agent_handle &&
-+		    open_info->controller_handle ==
-+		    controller_handle) {
-+			open_info->open_count--;
-+			return EFI_SUCCESS;
-+		}
-+	}
-+	return EFI_NOT_FOUND;
-+}
-+
- static efi_status_t EFIAPI efi_close_protocol(void *handle,
- 					      efi_guid_t *protocol,
- 					      void *agent_handle,
- 					      void *controller_handle)
- {
-+	struct efi_object *efiobj;
-+	size_t i;
-+	efi_status_t r = EFI_NOT_FOUND;
-+
- 	EFI_ENTRY("%p, %p, %p, %p", handle, protocol, agent_handle,
- 		  controller_handle);
--	return EFI_EXIT(EFI_NOT_FOUND);
-+
-+	if (!handle || !protocol || !agent_handle) {
-+		r = EFI_INVALID_PARAMETER;
-+		goto out;
-+	}
-+
-+	list_for_each_entry(efiobj, &efi_obj_list, link) {
-+		if (efiobj->handle != handle)
-+			continue;
-+
-+		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
-+			struct efi_handler *handler = &efiobj->protocols[i];
-+			const efi_guid_t *hprotocol = handler->guid;
-+			if (!hprotocol)
-+				continue;
-+			if (!guidcmp(hprotocol, protocol)) {
-+				r = efi_protocol_close(handler,
-+						       agent_handle,
-+						       controller_handle);
-+				goto out;
-+			}
-+		}
-+		goto out;
-+	}
-+out:
-+	return EFI_EXIT(r);
- }
- 
- static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
-@@ -1122,6 +1175,96 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
+@@ -1149,6 +1149,96 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
  	memset(buffer, value, size);
  }
  
@@ -219,7 +130,7 @@ index 0d73d17359..a7a20f4c59 100644
  static efi_status_t EFIAPI efi_open_protocol(
  			void *handle, efi_guid_t *protocol,
  			void **protocol_interface, void *agent_handle,
-@@ -1174,12 +1317,11 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -1201,12 +1291,11 @@ static efi_status_t EFIAPI efi_open_protocol(
  			if (!hprotocol)
  				continue;
  			if (!guidcmp(hprotocol, protocol)) {
