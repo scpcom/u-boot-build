@@ -82,11 +82,10 @@ index 21c2d04377..8ed3c017f9 100644
  static int entry_count;
  static int nesting_level;
  
-@@ -917,15 +928,122 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -917,15 +928,121 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  	return efi_unsupported(__func__);
  }
  
-+
 +static efi_status_t efi_bind_controller(
 +			efi_handle_t controller_handle,
 +			efi_handle_t driver_image_handle,

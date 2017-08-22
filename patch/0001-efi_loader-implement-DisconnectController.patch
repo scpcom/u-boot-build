@@ -77,9 +77,9 @@ index ec54e9863d..6960366186 100644
 +			continue;
 +
 +		r = EFI_CALL(binding_protocol->stop(binding_protocol,
-+						 controller_handle,
-+						 number_of_children,
-+						 child_handle_buffer));
++						    controller_handle,
++						    number_of_children,
++						    child_handle_buffer));
 +		if (r == EFI_SUCCESS)
 +			++stop_count;
 +		EFI_CALL(efi_close_protocol(driver_handle_buffer[i],

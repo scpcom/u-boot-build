@@ -1,7 +1,7 @@
 From 991ce76df5be618b7d01e7bd1e3375365fc41d41 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 15 Aug 2017 20:58:13 +0200
-Subject: [PATCH v2 1/1] efi_loader: allow return value in EFI_CALL
+Subject: [PATCH v3 1/1] efi_loader: allow return value in EFI_CALL
 
 Macro EFI_CALL was introduced to call an UEFI function.
 Unfortunately it does not support return values.
@@ -13,6 +13,8 @@ new EFI_CALL macro that supports return values.
 Cc: Rob Clark <robdclark@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v3
+	write (unsigned long) instead of (long unsigned)
 v2
 	print return value in debug mode
 	as suggested by Rob
@@ -39,7 +41,7 @@ index 1179234f68..12feff92dd 100644
 +	typeof(exp) _r = exp; \
 +	assert(__efi_entry_check()); \
 +	debug("%sEFI: %lu returned by %s\n", __efi_nesting_dec(), \
-+	      (long unsigned)((uintptr_t) _r & ~EFI_ERROR_MASK), #exp); \
++	      (unsigned long)((uintptr_t)_r & ~EFI_ERROR_MASK), #exp); \
 +	_r; \
 +})
 +

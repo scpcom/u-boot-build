@@ -19,7 +19,7 @@ index dd52755d1d..72044cb9b6 100644
  			efi_status_t reset_status,
  			unsigned long data_size, void *reset_data)
  {
-+	uint16_t new_line[] = {0x000d, 0x000a, 0x0000};
++	u16 new_line[] = {0x000d, 0x000a, 0x0000};
 +
  	EFI_ENTRY("%d %lx %lx %p", reset_type, reset_status, data_size,
  		  reset_data);

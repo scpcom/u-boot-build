@@ -23,8 +23,8 @@ index 9e1b2c1188..85cea31a24 100644
 +#define EFI_DRIVER_FAMILY_OVERRIDE_PROTOCOL_GUID \
 +	EFI_GUID(0xb1ee129e, 0xda36, 0x4181, \
 +		 0x91, 0xf8, 0x04, 0xa4, 0x92, 0x37, 0x66, 0xa7)
-+struct efi_driver_family_override_protocol{
-+	u32 (EFIAPI *get_version)(
++struct efi_driver_family_override_protocol {
++	u32 (EFIAPI * get_version)(
 +			struct efi_driver_family_override_protocol *this);
 +};
 +

@@ -37,7 +37,7 @@ index e31e646cc0..a31525fbc6 100644
  	/* Create new handle if requested. */
  	if (!*handle) {
 -		r = EFI_OUT_OF_RESOURCES;
-+		r =EFI_OUT_OF_RESOURCES;
++		r = EFI_OUT_OF_RESOURCES;
  		goto out;
  	}
 +

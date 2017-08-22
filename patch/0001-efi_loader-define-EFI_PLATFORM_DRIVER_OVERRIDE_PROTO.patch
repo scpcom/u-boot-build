@@ -22,18 +22,18 @@ index ec1b321e8e..9e1b2c1188 100644
  
 +#define EFI_PLATFORM_DRIVER_OVERRIDE_PROTOCOL_GUID \
 +	EFI_GUID(0x6b30c738, 0xa391, 0x11d4, \
-+		 0x9a,0x3b,0x00,0x90,0x27,0x3f,0xc1,0x4d)
-+struct efi_platform_driver_override_protocol{
++		 0x9a, 0x3b, 0x00, 0x90, 0x27, 0x3f, 0xc1, 0x4d)
++struct efi_platform_driver_override_protocol {
 +	//efi_status_t (EFIAPI *start)(struct efi_simple_network *this);
-+	efi_status_t (EFIAPI *get_driver)(
++	efi_status_t (EFIAPI * get_driver)(
 +			struct efi_platform_driver_override_protocol *this,
 +			efi_handle_t controller_handle,
 +			efi_handle_t *driver_image_handle);
-+	efi_status_t (EFIAPI *get_driver_path)(
++	efi_status_t (EFIAPI * get_driver_path)(
 +			struct efi_platform_driver_override_protocol *this,
 +			efi_handle_t controller_handle,
 +			struct efi_device_path_protocol **driver_image_path);
-+	efi_status_t (EFIAPI *driver_loaded)(
++	efi_status_t (EFIAPI * driver_loaded)(
 +			struct efi_platform_driver_override_protocol *this,
 +			efi_handle_t controller_handle,
 +			struct efi_device_path_protocol *driver_image_path,
