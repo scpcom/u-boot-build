@@ -4,6 +4,12 @@ Date: Mon, 21 Aug 2017 00:05:15 +0200
 Subject: [PATCH 1/1] efi_loader: efi_net: hwaddr_size = 6
 
 The length of a MAC address is 6.
+We have to set this length in the EFI_SIMPLE_NETWORK_MODE
+structure of the EFI_SIMPLE_NETWORK_PROTOCOL.
+
+Without this patch iPXE fails to initialize the network with
+error message
+SNP MAC(001e0633bcbf,0x0) has invalid hardware address length 0
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
