@@ -1,4 +1,4 @@
-From c755d699c6e66c77574cd77d5932c4b12810f087 Mon Sep 17 00:00:00 2001
+From 926b0d5ad715b1c162e2a13bcb7ab5b791ddbc07 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 22 Jul 2017 09:22:54 +0200
 Subject: [PATCH 1/1] efi_loader: open_info in OpenProtocol
@@ -14,8 +14,8 @@ information into this array.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |   1 +
- lib/efi_loader/efi_boottime.c | 101 +++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 96 insertions(+), 6 deletions(-)
+ lib/efi_loader/efi_boottime.c | 130 +++++++++++++++++++++++++++++++-----------
+ 2 files changed, 99 insertions(+), 32 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index 21ffbd0788..b159300e28 100644
@@ -30,10 +30,10 @@ index 21ffbd0788..b159300e28 100644
  
  /*
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index a6bb4289f6..7144cbbaa6 100644
+index 2e5e1db55c..4806de945e 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1149,6 +1149,96 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
+@@ -1149,24 +1149,111 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
  	memset(buffer, value, size);
  }
  
@@ -130,24 +130,66 @@ index a6bb4289f6..7144cbbaa6 100644
  static efi_status_t EFIAPI efi_open_protocol(
  			void *handle, efi_guid_t *protocol,
  			void **protocol_interface, void *agent_handle,
-@@ -1201,12 +1291,11 @@ static efi_status_t EFIAPI efi_open_protocol(
- 			if (!hprotocol)
- 				continue;
- 			if (!guidcmp(hprotocol, protocol)) {
+ 			void *controller_handle, uint32_t attributes)
+ {
+-	struct list_head *lhandle;
+-	int i;
++	struct efi_handler *handler;
+ 	efi_status_t r = EFI_INVALID_PARAMETER;
+ 
+ 	EFI_ENTRY("%p, %p, %p, %p, %p, 0x%x", handle, protocol,
+ 		  protocol_interface, agent_handle, controller_handle,
+ 		  attributes);
+ 
+-	if (!handle || !protocol ||
+-	    (!protocol_interface && attributes !=
+-	     EFI_OPEN_PROTOCOL_TEST_PROTOCOL)) {
++	if (!protocol_interface && attributes !=
++	    EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
+ 		goto out;
+-	}
+ 
+ 	switch (attributes) {
+ 	case EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL:
+@@ -1188,33 +1275,12 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 		goto out;
+ 	}
+ 
+-	list_for_each(lhandle, &efi_obj_list) {
+-		struct efi_object *efiobj;
+-		efiobj = list_entry(lhandle, struct efi_object, link);
+-
+-		if (efiobj->handle != handle)
+-			continue;
+-
+-		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
+-			struct efi_handler *handler = &efiobj->protocols[i];
+-			const efi_guid_t *hprotocol = handler->guid;
+-			if (!hprotocol)
+-				continue;
+-			if (!guidcmp(hprotocol, protocol)) {
 -				if (attributes !=
 -				    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
 -					*protocol_interface =
 -						handler->protocol_interface;
 -				}
 -				r = EFI_SUCCESS;
-+				r = efi_protocol_open(handler,
-+						      protocol_interface,
-+						      agent_handle,
-+						      controller_handle,
-+						      attributes);
- 				goto out;
- 			}
- 		}
+-				goto out;
+-			}
+-		}
+-		goto unsupported;
+-	}
++	r = efi_search_protocol(handle, protocol, &handler);
++	if (r != EFI_SUCCESS)
++		goto out;
+ 
+-unsupported:
+-	r = EFI_UNSUPPORTED;
++	r = efi_protocol_open(handler, protocol_interface, agent_handle,
++			      controller_handle, attributes);
+ out:
+ 	return EFI_EXIT(r);
+ }
 -- 
 2.14.1
 

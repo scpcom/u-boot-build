@@ -81,15 +81,6 @@ index 566b22dfae..1196ec545b 100644
  	list_for_each(lhandle, &efi_obj_list) {
  		struct efi_object *efiobj;
  
-@@ -1460,6 +1469,8 @@ efi_status_t EFIAPI efi_open_protocol(
- 		goto out;
- 	}
- 
-+	EFI_PRINT_GUID("protocol", protocol);
-+
- 	switch (attributes) {
- 	case EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL:
- 	case EFI_OPEN_PROTOCOL_GET_PROTOCOL:
 -- 
 2.14.1
 
