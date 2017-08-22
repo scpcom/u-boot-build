@@ -1,4 +1,4 @@
-From 15542dfca7075bd056a1aeff9a9cf672978b4cdb Mon Sep 17 00:00:00 2001
+From 4e9f914243e1aed2833ae9ecfd5488901c38fd13 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 22 Aug 2017 20:07:52 +0200
 Subject: [PATCH 1/1] efi_loader: implement DisconnectController
@@ -9,10 +9,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 76 insertions(+), 1 deletion(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 281ccd8c20..004e7d4d4c 100644
+index ec54e9863d..6960366186 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1068,9 +1068,84 @@ static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
+@@ -1050,9 +1050,84 @@ static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
  						     void *driver_image_handle,
  						     void *child_handle)
  {
@@ -71,7 +71,7 @@ index 281ccd8c20..004e7d4d4c 100644
 +		r = EFI_CALL(efi_open_protocol(driver_handle_buffer[i],
 +				       &efi_guid_driver_binding_protocol,
 +				       (void **)&binding_protocol,
-+				       driver_image_handle, NULL,
++				       driver_handle_buffer[i], NULL,
 +				       EFI_OPEN_PROTOCOL_GET_PROTOCOL));
 +		if (r != EFI_SUCCESS)
 +			continue;
@@ -84,7 +84,7 @@ index 281ccd8c20..004e7d4d4c 100644
 +			++stop_count;
 +		EFI_CALL(efi_close_protocol(driver_handle_buffer[i],
 +					    &efi_guid_driver_binding_protocol,
-+					    driver_image_handle, NULL));
++					    driver_handle_buffer[i], NULL));
 +	}
 +
 +	if (driver_image_handle)
