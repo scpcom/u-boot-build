@@ -21,16 +21,16 @@ index 1b853ff4c5..35569572a8 100644
 +#define EFI_DRIVER_BINDING_PROTOCOL_GUID \
 +	EFI_GUID(0x18a031ab, 0xb443, 0x4d1a,\
 +		 0xa5, 0xc0, 0x0c, 0x09, 0x26, 0x1e, 0x9f, 0x71)
-+struct efi_driver_binding_protocol{
-+	efi_status_t (EFIAPI *supported)(
++struct efi_driver_binding_protocol {
++	efi_status_t (EFIAPI * supported)(
 +			struct efi_driver_binding_protocol *this,
 +			efi_handle_t controller_handle,
 +			struct efi_device_path *remaining_device_path);
-+	efi_status_t (EFIAPI *start)(
++	efi_status_t (EFIAPI * start)(
 +			struct efi_driver_binding_protocol *this,
 +			efi_handle_t controller_handle,
 +			struct efi_device_path *remaining_device_path);
-+	efi_status_t (EFIAPI *stop)(
++	efi_status_t (EFIAPI * stop)(
 +			struct efi_driver_binding_protocol *this,
 +			efi_handle_t controller_handle,
 +			UINTN number_of_children,
@@ -97,7 +97,7 @@ index 21c2d04377..8ed3c017f9 100644
 +
 +	r = EFI_CALL(efi_open_protocol(driver_image_handle,
 +				       &efi_guid_driver_binding_protocol,
-+				       (void **) &binding_protocol,
++				       (void **)&binding_protocol,
 +				       driver_image_handle, NULL,
 +				       EFI_OPEN_PROTOCOL_GET_PROTOCOL));
 +	if (r != EFI_SUCCESS)
@@ -135,7 +135,7 @@ index 21c2d04377..8ed3c017f9 100644
 +
 +	/*  Context Override */
 +	if (driver_image_handle) {
-+		for (;*driver_image_handle; ++driver_image_handle) {
++		for (; *driver_image_handle; ++driver_image_handle) {
 +			for (i = 0; i < count; ++i) {
 +				if (buffer[i] == *driver_image_handle) {
 +					buffer[i] = NULL;
@@ -188,7 +188,7 @@ index 21c2d04377..8ed3c017f9 100644
 -	return EFI_EXIT(EFI_NOT_FOUND);
 +
 +	if (!controller_handle) {
-+		r =EFI_INVALID_PARAMETER;
++		r = EFI_INVALID_PARAMETER;
 +		goto out;
 +	}
 +
