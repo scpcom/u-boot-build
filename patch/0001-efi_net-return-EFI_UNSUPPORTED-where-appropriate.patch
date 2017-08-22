@@ -1,30 +1,35 @@
-From 98653c6f8852f7d59721a23b1377cc8e5c8c941a Mon Sep 17 00:00:00 2001
+From 6544e1320c167200d2a95e7970b3943db7804e09 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 21 Aug 2017 01:38:47 +0200
 Subject: [PATCH 1/1] efi_net: return EFI_UNSUPPORTED where appropriate
 
-The functions of the simple network protocol should return
-EFI_UNSUPPORTED where this is foreseen by the UEFI spec.
+U-Boot does not implement all functions of the simple network
+protocol. The unimplemented functions return either of
+EFI_SUCCESS and EFI_INVALID_PARAMETER.
+
+The UEFI spec foresees to return EFI_UNSUPPORTED in these cases.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_net.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/efi_loader/efi_net.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
-index 1785bcd347..7ec1c5a11f 100644
+index 0b949d86e8..2afadfc62a 100644
 --- a/lib/efi_loader/efi_net.c
 +++ b/lib/efi_loader/efi_net.c
-@@ -83,7 +83,7 @@ static efi_status_t EFIAPI efi_net_receive_filters(
+@@ -81,9 +81,7 @@ static efi_status_t EFIAPI efi_net_receive_filters(
+ 	EFI_ENTRY("%p, %x, %x, %x, %lx, %p", this, enable, disable,
+ 		  reset_mcast_filter, mcast_filter_count, mcast_filter);
  
- 	/* XXX Do we care? */
- 
+-	/* XXX Do we care? */
+-
 -	return EFI_EXIT(EFI_SUCCESS);
 +	return EFI_EXIT(EFI_UNSUPPORTED);
  }
  
  static efi_status_t EFIAPI efi_net_station_address(
-@@ -92,7 +92,7 @@ static efi_status_t EFIAPI efi_net_station_address(
+@@ -92,7 +90,7 @@ static efi_status_t EFIAPI efi_net_station_address(
  {
  	EFI_ENTRY("%p, %x, %p", this, reset, new_mac);
  
@@ -33,7 +38,7 @@ index 1785bcd347..7ec1c5a11f 100644
  }
  
  static efi_status_t EFIAPI efi_net_statistics(struct efi_simple_network *this,
-@@ -101,7 +101,7 @@ static efi_status_t EFIAPI efi_net_statistics(struct efi_simple_network *this,
+@@ -101,7 +99,7 @@ static efi_status_t EFIAPI efi_net_statistics(struct efi_simple_network *this,
  {
  	EFI_ENTRY("%p, %x, %p, %p", this, reset, stat_size, stat_table);
  
@@ -42,7 +47,7 @@ index 1785bcd347..7ec1c5a11f 100644
  }
  
  static efi_status_t EFIAPI efi_net_mcastiptomac(struct efi_simple_network *this,
-@@ -121,7 +121,7 @@ static efi_status_t EFIAPI efi_net_nvdata(struct efi_simple_network *this,
+@@ -121,7 +119,7 @@ static efi_status_t EFIAPI efi_net_nvdata(struct efi_simple_network *this,
  	EFI_ENTRY("%p, %x, %lx, %lx, %p", this, read_write, offset, buffer_size,
  		  buffer);
  
