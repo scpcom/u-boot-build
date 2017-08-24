@@ -1,4 +1,6 @@
 #!/bin/sh
+# git am ../patch/0001-.travis.yml-only-problematic-machines.patch
+git am ../patch/0001-efi_loader-call-__efi_exit_check-in-efi_exit.patch
 git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
 git am ../patch/0001-efi_net-return-EFI_UNSUPPORTED-where-appropriate.patch
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
