@@ -1,6 +1,6 @@
-From 3a0e3f69588834b9e456481991e13d492680a45b Mon Sep 17 00:00:00 2001
+From 0f86413eb5f5379465a18be589fb2861ff141c8f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Fri, 25 Aug 2017 12:37:10 +0200
+Date: Fri, 25 Aug 2017 18:37:10 +0200
 Subject: [PATCH 1/1] efi_loader: use events for efi_net_receive
 
 A timer event is defined. The timer handler cares for receiving new
@@ -14,14 +14,14 @@ separate patch.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_net.c | 30 +++++++++++++++++++++++++++---
- 1 file changed, 27 insertions(+), 3 deletions(-)
+ lib/efi_loader/efi_net.c | 35 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 32 insertions(+), 3 deletions(-)
 
 diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
-index 9c50d4fa14..a579d0077f 100644
+index 38a3a4fac4..74284af8fe 100644
 --- a/lib/efi_loader/efi_net.c
 +++ b/lib/efi_loader/efi_net.c
-@@ -152,6 +152,8 @@ static efi_status_t EFIAPI efi_net_transmit(struct efi_simple_network *this,
+@@ -146,6 +146,8 @@ static efi_status_t EFIAPI efi_net_transmit(struct efi_simple_network *this,
  	EFI_ENTRY("%p, %lx, %lx, %p, %p, %p, %p", this, header_size,
  		  buffer_size, buffer, src_addr, dest_addr, protocol);
  
@@ -30,7 +30,7 @@ index 9c50d4fa14..a579d0077f 100644
  	if (header_size) {
  		/* We would need to create the header if header_size != 0 */
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
-@@ -185,9 +187,7 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
+@@ -177,9 +179,7 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
  	EFI_ENTRY("%p, %p, %p, %p, %p, %p, %p", this, header_size,
  		  buffer_size, buffer, src_addr, dest_addr, protocol);
  
@@ -41,7 +41,7 @@ index 9c50d4fa14..a579d0077f 100644
  
  	if (!new_rx_packet)
  		return EFI_EXIT(EFI_NOT_READY);
-@@ -217,6 +217,21 @@ void efi_net_set_dhcp_ack(void *pkt, int len)
+@@ -207,6 +207,21 @@ void efi_net_set_dhcp_ack(void *pkt, int len)
  	memcpy(dhcp_ack, pkt, min(len, maxsize));
  }
  
@@ -63,7 +63,7 @@ index 9c50d4fa14..a579d0077f 100644
  /* This gets called from do_bootefi_exec(). */
  int efi_net_register(void **handle)
  {
-@@ -231,6 +246,7 @@ int efi_net_register(void **handle)
+@@ -221,6 +236,7 @@ int efi_net_register(void **handle)
  		.dp.sub_type = DEVICE_PATH_SUB_TYPE_END,
  		.dp.length = sizeof(dp_end),
  	};
@@ -71,7 +71,7 @@ index 9c50d4fa14..a579d0077f 100644
  
  	if (!eth_get_dev()) {
  		/* No eth device active, don't expose any */
-@@ -282,5 +298,13 @@ int efi_net_register(void **handle)
+@@ -270,5 +286,18 @@ int efi_net_register(void **handle)
  	if (handle)
  		*handle = &netobj->net;
  
@@ -82,6 +82,11 @@ index 9c50d4fa14..a579d0077f 100644
 +		printf("ERROR: Failed to register network event\n");
 +		return r;
 +	}
++	/* Network is time critical, call in every timer cyle */
++	r = efi_set_timer(network_timer_event, EFI_TIMER_PERIODIC, 0);
++	if (r != EFI_SUCCESS)
++		printf("ERROR: Failed to set network timer\n");
++	return r;
 +
  	return 0;
  }

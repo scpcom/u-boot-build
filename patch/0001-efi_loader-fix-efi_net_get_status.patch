@@ -1,6 +1,6 @@
 From 18542870a2c317561184e6c721840a12bdefd546 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Fri, 25 Aug 2017 12:37:10 +0200
+Date: Fri, 25 Aug 2017 18:37:10 +0200
 Subject: [PATCH 1/1] efi_loader: fix efi_net_get_status
 
 The returned interrupt status was wrong.
@@ -52,7 +52,7 @@ index a579d0077f..0354b02901 100644
 +	if (int_status) {
 +		/* We send packets synchronously, so nothing is outstanding */
 +		*int_status = EFI_SIMPLE_NETWORK_TRANSMIT_INTERRUPT;
-+		if (new_rx_packet) {
++		if (new_rx_packet)
 +			*int_status |= EFI_SIMPLE_NETWORK_RECEIVE_INTERRUPT;
 +	}
  	if (txbuf)
