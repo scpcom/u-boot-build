@@ -1,0 +1,152 @@
+From bc92630a2e65e131731e2205fa56dec625295824 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 25 Aug 2017 19:38:38 +0200
+Subject: [PATCH 1/1] efi_loader: implement SetWatchdogTimer
+
+The watchdog is initalized with a 5 minute timeout period.
+It can be reset by SetWatchdogTimer.
+It is stopped by ExitBoottimeServices.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c                 |  1 +
+ include/efi_loader.h          |  4 +++
+ lib/efi_loader/Makefile       |  2 +-
+ lib/efi_loader/efi_boottime.c |  3 ++-
+ lib/efi_loader/efi_watchdog.c | 58 +++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 66 insertions(+), 2 deletions(-)
+ create mode 100644 lib/efi_loader/efi_watchdog.c
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 9be01eb569..c94ad5d7ba 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -139,6 +139,7 @@ static void efi_init_obj_list(void)
+ #ifdef CONFIG_GENERATE_SMBIOS_TABLE
+ 	efi_smbios_register();
+ #endif
++	efi_watchdog_register();
+ 
+ 	/* Initialize EFI runtime services */
+ 	efi_reset_system_init();
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index dd429dba49..a16c26d101 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -158,11 +158,15 @@ int efi_disk_register(void);
+ int efi_gop_register(void);
+ /* Called by bootefi to make the network interface available */
+ int efi_net_register(void **handle);
++/* Called by bootefi to make the watchdog available */
++int efi_watchdog_register(void);
+ /* Called by bootefi to make SMBIOS tables available */
+ void efi_smbios_register(void);
+ 
+ /* Called by networking code to memorize the dhcp ack package */
+ void efi_net_set_dhcp_ack(void *pkt, int len);
++/* Called by efi_set_watchdog_timer to reset the timer */
++efi_status_t efi_set_watchdog(unsigned long timeout);
+ 
+ /* Called from places to check whether a timer expired */
+ void efi_timer_check(void);
+diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
+index 30bf343a36..6bca05aeb4 100644
+--- a/lib/efi_loader/Makefile
++++ b/lib/efi_loader/Makefile
+@@ -15,7 +15,7 @@ always := $(efiprogs-y)
+ 
+ obj-$(CONFIG_CMD_BOOTEFI_HELLO) += helloworld_efi.o
+ obj-y += efi_image_loader.o efi_boottime.o efi_runtime.o efi_console.o
+-obj-y += efi_memory.o efi_device_path_to_text.o
++obj-y += efi_memory.o efi_device_path_to_text.o efi_watchdog.o
+ obj-$(CONFIG_LCD) += efi_gop.o
+ obj-$(CONFIG_DM_VIDEO) += efi_gop.o
+ obj-$(CONFIG_PARTITIONS) += efi_disk.o
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index f9194a4060..f5c310a7bc 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -919,6 +919,7 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
+ 	bootm_disable_interrupts();
+ 
+ 	/* Give the payload some time to boot */
++	efi_set_watchdog(0);
+ 	WATCHDOG_RESET();
+ 
+ 	return EFI_EXIT(EFI_SUCCESS);
+@@ -946,7 +947,7 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+ {
+ 	EFI_ENTRY("%ld, 0x%"PRIx64", %ld, %p", timeout, watchdog_code,
+ 		  data_size, watchdog_data);
+-	return efi_unsupported(__func__);
++	return EFI_EXIT(efi_set_watchdog(timeout));
+ }
+ 
+ static efi_status_t efi_bind_controller(
+diff --git a/lib/efi_loader/efi_watchdog.c b/lib/efi_loader/efi_watchdog.c
+new file mode 100644
+index 0000000000..58c098e8bd
+--- /dev/null
++++ b/lib/efi_loader/efi_watchdog.c
+@@ -0,0 +1,58 @@
++/*
++ *  EFI device path interface
++ *
++ *  Copyright (c) 2017 Heinrich Schuchardt
++ *
++ *  SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#include <common.h>
++#include <efi_loader.h>
++
++static struct efi_event *watchdog_timer_event;
++
++static void EFIAPI efi_watchdog_timer_notify(struct efi_event *event,
++					     void *context)
++{
++	EFI_ENTRY("%p, %p", event, context);
++
++	printf("\nEFI: Watchdog timeout\n");
++	EFI_CALL_VOID(efi_reset_system(EFI_RESET_COLD, EFI_SUCCESS, 0, NULL));
++
++	EFI_EXIT(EFI_UNSUPPORTED);
++}
++
++efi_status_t efi_set_watchdog(unsigned long timeout)
++{
++	efi_status_t r;
++
++	if (timeout)
++		/* Reset watchdog */
++		r = efi_set_timer(watchdog_timer_event, EFI_TIMER_RELATIVE,
++				  10000000 * timeout);
++	else
++		/* Deactivate watchdog */
++		r = efi_set_timer(watchdog_timer_event, EFI_TIMER_STOP, 0);
++	return r;
++}
++
++/* This gets called from do_bootefi_exec(). */
++int efi_watchdog_register(void)
++{
++	efi_status_t r;
++
++	r = efi_create_event(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK,
++			     efi_watchdog_timer_notify, NULL,
++			     &watchdog_timer_event);
++	if (r != EFI_SUCCESS) {
++		printf("ERROR: Failed to register watchdog event\n");
++		return r;
++	}
++	/* Set watchdog to trigger after 5 minutes */
++	r = efi_set_watchdog(300);
++	if (r != EFI_SUCCESS) {
++		printf("ERROR: Failed to set watchdog timer\n");
++		return r;
++	}
++	return 0;
++}
+-- 
+2.14.1
+

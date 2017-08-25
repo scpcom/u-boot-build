@@ -6,6 +6,9 @@ Subject: [PATCH 1/1] efi_loader: call __efi_exit_check in efi_exit
 The calls to __efi_entry_check and __efi_exit_check have to match.
 If DEBUG is defined, panic() will be called otherwise.
 
+If debugging is activated some Travis CI builds fail due to an
+assertion in EFI_CALL without the patch.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_loader/efi_boottime.c | 2 ++

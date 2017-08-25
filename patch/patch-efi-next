@@ -1,28 +1,11 @@
 #!/bin/sh
-# git am ../patch/0001-.travis.yml-only-problematic-machines.patch
 git am ../patch/0001-efi_loader-call-__efi_exit_check-in-efi_exit.patch
-git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
-git am ../patch/0001-efi_net-return-EFI_UNSUPPORTED-where-appropriate.patch
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
-# git am ../patch/0001-efi_loader-efi_set_watchdog_timer-return-EFI_SUCCESS.patch
 
-# Print GUIDs
-git am ../patch/0001-Kconfig-add-option-to-build-with-fshort-wchar.patch
-git am ../patch/0002-lib-add-some-utf16-handling-helpers.patch
-git am ../patch/0003-vsprintf.c-add-UTF-16-string-ls-support.patch
-git am ../patch/0004-vsprintf.c-add-GUID-printing.patch
-git am ../patch/0005-examples-add-fallback-memcpy.patch
-
-# EFI event services
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
-
-# EFI console
-# git am ../patch/0001-efi_loader-split-of-efi_cout_output_string_ext.patch
-# git am ../patch/0001-efi_loader-write-reboot-reason.patch
 
 # EFI protocol services
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
-# git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
@@ -33,17 +16,25 @@ git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
 git am ../patch/0002-efi_loader-implement-OpenProtocolInformation.patch
 git am ../patch/0001-efi_loader-non-static-efi_open_protocol-efi_close_pr.patch
 git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
-
-
-# git am ../patch/0001-efi_loader-define-EFI_PLATFORM_DRIVER_OVERRIDE_PROTO.patch
-# git am ../patch/0001-efi_loader-define-EFI_DRIVER_FAMILY_OVERRIDE_PROTOCO.patch
 git am ../patch/0001-efi_loader-implement-ConnectController.patch
 git am ../patch/0001-efi_loader-implement-DisconnectController.patch
 
 # EFI Network
+git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
+git am ../patch/0001-efi_net-return-EFI_UNSUPPORTED-where-appropriate.patch
 git am ../patch/0001-efi_loader-correct-bits-of-receive_filters-bit-mask.patch
 git am ../patch/0001-efi_loader-use-events-for-efi_net_receive.patch
 git am ../patch/0001-efi_loader-fix-efi_net_get_status.patch
+
+# Implement Watchdog
+git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
+exit
+# Print GUIDs
+git am ../patch/0001-Kconfig-add-option-to-build-with-fshort-wchar.patch
+git am ../patch/0002-lib-add-some-utf16-handling-helpers.patch
+git am ../patch/0003-vsprintf.c-add-UTF-16-string-ls-support.patch
+git am ../patch/0004-vsprintf.c-add-GUID-printing.patch
+git am ../patch/0005-examples-add-fallback-memcpy.patch
 
 git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-debug-messages-for-protocol-interfaces.patch
