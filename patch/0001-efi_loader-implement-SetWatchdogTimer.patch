@@ -3,7 +3,7 @@ From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 25 Aug 2017 19:38:38 +0200
 Subject: [PATCH 1/1] efi_loader: implement SetWatchdogTimer
 
-The watchdog is initalized with a 5 minute timeout period.
+The watchdog is initialized with a 5 minute timeout period.
 It can be reset by SetWatchdogTimer.
 It is stopped by ExitBoottimeServices.
 
