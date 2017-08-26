@@ -34,6 +34,12 @@ git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
 # Implement Watchdog
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 
+# Clean up
+git am ../patch/0001-efi_disk-efi_disk_rw_blocks-is-not-an-API-function.patch
+
+# The patches below have dependencies that yet have to be merged.
+exit
+
 # Print GUIDs
 git am ../patch/0001-Kconfig-add-option-to-build-with-fshort-wchar.patch
 git am ../patch/0002-lib-add-some-utf16-handling-helpers.patch
