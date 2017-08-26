@@ -6,6 +6,7 @@ git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 
 # EFI protocol services
+git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
@@ -27,9 +28,12 @@ git am ../patch/0001-efi_loader-correct-bits-of-receive_filters-bit-mask.patch
 git am ../patch/0001-efi_loader-use-events-for-efi_net_receive.patch
 git am ../patch/0001-efi_loader-fix-efi_net_get_status.patch
 
+# Image loading
+git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
+
 # Implement Watchdog
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
-exit
+
 # Print GUIDs
 git am ../patch/0001-Kconfig-add-option-to-build-with-fshort-wchar.patch
 git am ../patch/0002-lib-add-some-utf16-handling-helpers.patch
