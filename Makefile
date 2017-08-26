@@ -53,7 +53,7 @@ build:
 	# cd denx && git checkout efi-next
 	cd denx && git checkout master
 	# cd denx && git reset --hard HEAD~30
-	# cd denx && git rebase
+	cd denx && git rebase
 	cd denx && ( git branch -D build || true )
 	cd denx && ( git am --abort || true )
 	cd denx && git checkout -b build
