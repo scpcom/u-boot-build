@@ -47,6 +47,9 @@ build:
 	cd denx && make oldconfig
 	cd denx && make -j$(NPROC)
 
+check:
+	/usr/bin/qemu-system-x86_64 -bios u-boot.r-serial stdio
+
 clean:
 
 install:
