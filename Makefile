@@ -20,12 +20,33 @@ prepare:
 	cd denx && git fetch
 	gpg --list-keys 87F9F635D31D7652 || \
 	gpg --keyserver keys.gnupg.net --recv-key 87F9F635D31D7652
+	test -d ipxe || git clone -v \
+	http://git.ipxe.org/ipxe.git ipxe
 	test -f ~/.gitconfig || \
 	  ( git config --global user.email "somebody@example.com"  && \
 	  git config --global user.name "somebody" )
+	test -d tftp || mkdir tftp
+
+build-ipxe:
+	cd ipxe && (git am --abort || true)
+	cd ipxe && (git fetch origin || true)
+	cd ipxe && (git am --abort || true)
+	cd ipxe && git reset --hard
+	cd ipxe && git checkout master
+	cd denx && ( git am --abort || true )
+	cd ipxe && git rebase
+	cd ipxe && ( git branch -D build || true )
+	cd ipxe && git checkout -b build
+	mkdir -p ipxe/src/config/local/
+	cp config/*.h ipxe/src/config/local/
+	cp config/myscript.ipxe ipxe/src/config/local/
+	cd ipxe/src && make bin-i386-efi/snp.efi -j$(NPROC) \
+	EMBED=config/local/myscript.ipxe
+	cp ipxe/src/bin-i386-efi/snp.efi tftp
 
 build:
-	cd denx && git fetch origin
+	test -f tftp/snp.efi || make build-ipxe
+	cd denx && (git fetch origin || true)
 	# cd denx && git fetch agraf
 	# cd denx && git verify-tag $(TAGPREFIX)$(TAG) 2>&1 | \
 	# grep 'E872 DB40 9C1A 687E FBE8  6336 87F9 F635 D31D 7652'
@@ -43,7 +64,6 @@ build:
 	cd denx && ../patch/patch-efi-next
 	cd denx && make distclean
 	cp config/config-$(TAG) denx/.config
-	# cp config/config-efi-next denx/.config
 	cd denx && make oldconfig
 	cd denx && make -j$(NPROC)
 
@@ -52,6 +72,8 @@ check:
 	-tftp tftp
 
 clean:
+	cd denx && make distclean
+	rm tftp/snp.efi
 
 install:
 
