@@ -68,8 +68,10 @@ build:
 	cd denx && make -j$(NPROC)
 
 check:
-	qemu-system-x86_64 -bios denx/u-boot.rom -serial stdio \
-	-tftp tftp
+	qemu-system-x86_64 -bios denx/u-boot.rom -nographic \
+	-netdev \
+	user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
+	-device e1000,netdev=eth0 -machine pc-i440fx-2.8
 
 clean:
 	cd denx && make distclean
