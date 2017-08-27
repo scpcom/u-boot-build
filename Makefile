@@ -48,7 +48,8 @@ build:
 	cd denx && make -j$(NPROC)
 
 check:
-	/usr/bin/qemu-system-x86_64 -bios u-boot.r-serial stdio
+	qemu-system-x86_64 -bios denx/u-boot.rom -serial stdio \
+	-tftp tftp
 
 clean:
 
