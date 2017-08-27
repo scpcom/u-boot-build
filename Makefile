@@ -8,6 +8,7 @@ REVISION=001
 NPROC=${shell nproc}
 
 export LOCALVERSION:=-P$(REVISION)
+export BUILD_ROM=y
 
 all:
 	make prepare
