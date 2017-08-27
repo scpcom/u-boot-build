@@ -1,0 +1,4 @@
+#!/bin/sh
+echo QEMU resetting >> a
+echo system_reset | socat - UNIX-CONNECT:/tmp/u-boot-monitor-socket
+true

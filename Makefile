@@ -7,6 +7,10 @@ REVISION=001
 
 NPROC=${shell nproc}
 
+PATH:=$(PATH):$(CURDIR)/u-boot-test
+
+export PATH
+
 export LOCALVERSION:=-P$(REVISION)
 export BUILD_ROM=y
 
@@ -66,6 +70,9 @@ build:
 	cp config/config-$(TAG) denx/.config
 	cd denx && make oldconfig
 	cd denx && make -j$(NPROC)
+
+unit-tests:
+	cd denx && test/py/test.py --bd qemu-x86 -k test_efi_loader
 
 check:
 	qemu-system-x86_64 -bios denx/u-boot.rom -nographic \
