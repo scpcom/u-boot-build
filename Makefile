@@ -8,8 +8,10 @@ REVISION=001
 NPROC=${shell nproc}
 
 PATH:=$(PATH):$(CURDIR)/u-boot-test
-
 export PATH
+
+PYTHONPATH:=$(CURDIR)/u-boot-test
+export PYTHONPATH
 
 export LOCALVERSION:=-P$(REVISION)
 export BUILD_ROM=y
@@ -72,6 +74,7 @@ build:
 	cd denx && make -j$(NPROC)
 
 unit-tests:
+	cd denx && test/py/test.py --bd qemu-x86 -k test_efi_dhcp
 	cd denx && test/py/test.py --bd qemu-x86 -k test_efi_loader
 
 check:
