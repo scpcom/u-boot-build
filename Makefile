@@ -74,7 +74,8 @@ build:
 	cd denx && make -j$(NPROC)
 
 unit-tests:
-	cd denx && test/py/test.py --bd qemu-x86 -k test_efi_dhcp
+	# cd denx && test/py/test.py --bd qemu-x86 -k test_efi_dhcp
+	# cd denx && test/py/test.py --bd qemu-x86 -k test_efi_helloworld_net
 	cd denx && test/py/test.py --bd qemu-x86 -k test_efi_loader
 
 check:

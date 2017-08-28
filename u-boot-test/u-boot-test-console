@@ -1,9 +1,9 @@
 #!/bin/sh
 touch /tmp/u-boot-monitor-socket
 echo Starting QEMU > a
-qemu-system-x86_64 -bios $UBOOT_BUILD_DIR/u-boot.rom -nographic \
+qemu-system-x86_64 -bios u-boot.rom -nographic \
 -netdev \
-user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
+user,id=eth0,tftp=../tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
 -device e1000,netdev=eth0 -machine pc-i440fx-2.8 \
 -monitor unix:/tmp/u-boot-monitor-socket,server,nowait
 echo QEMU has ended >> a
