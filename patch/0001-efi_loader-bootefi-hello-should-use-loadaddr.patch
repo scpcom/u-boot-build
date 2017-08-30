@@ -1,7 +1,7 @@
-From 0b2b44b86d64b0cca998ad54c2332931412f5e6c Mon Sep 17 00:00:00 2001
+From 5840f70dd4843d89c644f3177e46def598869357 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 28 Aug 2017 18:38:21 +0200
-Subject: [PATCH 1/1] efi_loader: bootefi hello should use loadaddr
+Subject: [PATCH v2 1/1] efi_loader: bootefi hello should use loadaddr
 
 Command 'bootefi hello' currently uses CONFIG_SYS_LOAD_ADDR
 as loading address.
@@ -10,28 +10,29 @@ qemu machines have by default 128 MiB RAM.
 CONFIG_SYS_LOAD_ADDR for x86 is 0x20000000 (512 MiB).
 This causes 'bootefi hello' to fail.
 
-We should use the environment variable loadaddr if available.
-It defaults to 0x1000000 (16 MiB) on qemu_x86.
+We should use the default address in variable load_addr
+like bootz. It defaults to 0x1000000 (16 MiB) on qemu_x86.
 
+Cc: Alexander Graf <agraf@suse.de>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+v2:
+	Use load_addr instead of the environment value loadaddr
+	as suggested by Alex.
+---
+ cmd/bootefi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 47771f87cc..a3768158a2 100644
+index 3196d86040..b1d74720f9 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
-@@ -300,7 +300,11 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+@@ -299,7 +299,7 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  	if (!strcmp(argv[1], "hello")) {
  		ulong size = __efi_hello_world_end - __efi_hello_world_begin;
  
 -		addr = CONFIG_SYS_LOAD_ADDR;
-+		saddr = env_get("loadaddr");
-+		if (saddr)
-+			addr = simple_strtoul(saddr, NULL, 16);
-+		else
-+			addr = CONFIG_SYS_LOAD_ADDR;
++		addr = load_addr;
  		memcpy((char *)addr, __efi_hello_world_begin, size);
  	} else
  #endif
