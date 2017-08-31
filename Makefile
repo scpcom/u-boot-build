@@ -78,6 +78,12 @@ unit-tests:
 	# cd denx && test/py/test.py --bd qemu-x86 -k test_efi_helloworld_net
 	cd denx && test/py/test.py --build-dir . --bd qemu-x86 -k test_efi_loader
 
+luv:
+	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
+	-netdev \
+	user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
+	-device e1000,netdev=eth0 -machine pc-i440fx-2.8 -hda img
+
 check:
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
 	-netdev \
