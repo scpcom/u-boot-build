@@ -1,7 +1,5 @@
 #!/bin/sh
 git am ../patch/0001-checkpatch-update-from-Linux-v4.13-rc6.patch
-git am ../patch/0001-efi_loader-bootefi-hello-should-use-loadaddr.patch
-git am ../patch/0001-efi_loader-call-__efi_exit_check-in-efi_exit.patch
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
@@ -34,9 +32,6 @@ git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
 
 # Implement Watchdog
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
-
-# Clean up
-git am ../patch/0001-efi_disk-efi_disk_rw_blocks-is-not-an-API-function.patch
 
 # The patches below have dependencies that yet have to be merged.
 exit
