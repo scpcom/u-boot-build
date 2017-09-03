@@ -1,7 +1,7 @@
-From ec222a2ae5a6cf8636647a73ab4e1960c7007c9d Mon Sep 17 00:00:00 2001
+From 83ced1d2a17d6e338d60b7f1d0240681cd47cfad Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
-Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
+Subject: [PATCH] efi_selftest: provide an EFI selftest application
 
 Provide a framework to which we can add all EFI API testing.
 
@@ -11,11 +11,61 @@ executed with the bootefi selftest command.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/Kconfig              |  2 ++
- lib/efi_selftest/Kconfig | 19 +++++++++++++++++++
- 2 files changed, 21 insertions(+)
+ arch/arm/lib/Makefile          |   1 +
+ arch/x86/config.mk             |   2 +-
+ arch/x86/lib/Makefile          |   2 +-
+ cmd/Kconfig                    |   2 ++
+ cmd/bootefi.c                  |  23 +++++++++++++++++---
+ include/asm-generic/sections.h |   2 ++
+ lib/Makefile                   |   1 +
+ lib/efi_loader/Makefile        |   4 +++-
+ lib/efi_selftest/Kconfig       |  19 +++++++++++++++++
+ lib/efi_selftest/Makefile      |  18 ++++++++++++++++
+ lib/efi_selftest/selftest.c    |  24 +++++++++++++++++++++
+ lib/efi_selftest/selftest.efi  | Bin 0 -> 4298 bytes
+ scripts/Makefile.lib           |  47 ++++++++++++++++++++++++++++++-----------
+ 13 files changed, 127 insertions(+), 18 deletions(-)
  create mode 100644 lib/efi_selftest/Kconfig
+ create mode 100644 lib/efi_selftest/Makefile
+ create mode 100644 lib/efi_selftest/selftest.c
+ create mode 100755 lib/efi_selftest/selftest.efi
 
+diff --git a/arch/arm/lib/Makefile b/arch/arm/lib/Makefile
+index 6e1c436933..050789e12b 100644
+--- a/arch/arm/lib/Makefile
++++ b/arch/arm/lib/Makefile
+@@ -106,4 +106,5 @@ CFLAGS_$(EFI_RELOC) := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_$(EFI_RELOC) := $(CFLAGS_NON_EFI)
+ 
+ extra-$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE) += $(EFI_CRT0) $(EFI_RELOC)
++extra-$(CONFIG_CMD_SELFTEST_COMPILE) += $(EFI_CRT0) $(EFI_RELOC)
+ extra-$(CONFIG_EFI) += $(EFI_CRT0) $(EFI_RELOC)
+diff --git a/arch/x86/config.mk b/arch/x86/config.mk
+index 8835dcf36f..fe8639aef6 100644
+--- a/arch/x86/config.mk
++++ b/arch/x86/config.mk
+@@ -91,7 +91,7 @@ else
+ PLATFORM_CPPFLAGS += -D__I386__
+ endif
+ 
+-ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
++ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE)$(CONFIG_CMD_SELFTEST_COMPILE),)
+ 
+ ifneq ($(CONFIG_EFI_STUB_64BIT),)
+ EFI_LDS := elf_x86_64_efi.lds
+diff --git a/arch/x86/lib/Makefile b/arch/x86/lib/Makefile
+index fe00d7573f..6575e1a0cb 100644
+--- a/arch/x86/lib/Makefile
++++ b/arch/x86/lib/Makefile
+@@ -77,7 +77,7 @@ extra-$(CONFIG_EFI_STUB_64BIT) += crt0_x86_64_efi.o reloc_x86_64_efi.o
+ 
+ endif
+ 
+-ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
++ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE)$(CONFIG_CMD_SELFTEST_COMPILE),)
+ ifeq ($(CONFIG_$(SPL_)X86_64),)
+ extra-y += $(EFI_CRT0) $(EFI_RELOC)
+ endif
 diff --git a/cmd/Kconfig b/cmd/Kconfig
 index 42d955c96a..98d4af53a2 100644
 --- a/cmd/Kconfig
@@ -29,6 +79,95 @@ index 42d955c96a..98d4af53a2 100644
  config CMD_BOOTMENU
  	bool "bootmenu"
  	select MENU
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index a3768158a2..0ddf71b19c 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -290,7 +290,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
+ /* Interpreter command to boot an arbitrary EFI image from memory */
+ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ {
+-	char *saddr, *sfdt;
++	char *saddr = NULL;
++	char *sfdt;
+ 	unsigned long addr, fdt_addr = 0;
+ 	unsigned long r;
+ 
+@@ -306,9 +307,21 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ 		else
+ 			addr = CONFIG_SYS_LOAD_ADDR;
+ 		memcpy((char *)addr, __efi_hello_world_begin, size);
+-	} else
++	}
+ #endif
+-	{
++#ifdef CONFIG_CMD_BOOTEFI_SELFTEST
++	if (!strcmp(argv[1], "selftest")) {
++		ulong size = __efi_selftest_end - __efi_selftest_begin;
++
++		saddr = env_get("loadaddr");
++		if (saddr)
++			addr = simple_strtoul(saddr, NULL, 16);
++		else
++			addr = CONFIG_SYS_LOAD_ADDR;
++		memcpy((char *)addr, __efi_selftest_begin, size);
++	}
++#endif
++	if (saddr == NULL) {
+ 		saddr = argv[1];
+ 
+ 		addr = simple_strtoul(saddr, NULL, 16);
+@@ -340,6 +353,10 @@ static char bootefi_help_text[] =
+ 	"hello\n"
+ 	"  - boot a sample Hello World application stored within U-Boot"
+ #endif
++#ifdef CONFIG_CMD_BOOTEFI_SELFTEST
++	"hello\n"
++	"  - boot an EFI selftest application stored within U-Boot"
++#endif
+ 	;
+ #endif
+ 
+diff --git a/include/asm-generic/sections.h b/include/asm-generic/sections.h
+index daf021b647..c199f3550b 100644
+--- a/include/asm-generic/sections.h
++++ b/include/asm-generic/sections.h
+@@ -24,6 +24,8 @@ extern char __initdata_begin[], __initdata_end[];
+ extern char __start_rodata[], __end_rodata[];
+ extern char __efi_hello_world_begin[];
+ extern char __efi_hello_world_end[];
++extern char __efi_selftest_begin[];
++extern char __efi_selftest_end[];
+ 
+ /* Start and end of .ctors section - used for constructor calls. */
+ extern char __ctors_start[], __ctors_end[];
+diff --git a/lib/Makefile b/lib/Makefile
+index 2eef1eb80e..2ffec5a455 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -9,6 +9,7 @@ ifndef CONFIG_SPL_BUILD
+ 
+ obj-$(CONFIG_EFI) += efi/
+ obj-$(CONFIG_EFI_LOADER) += efi_loader/
++obj-$(CONFIG_EFI_LOADER) += efi_selftest/
+ obj-$(CONFIG_LZMA) += lzma/
+ obj-$(CONFIG_LZO) += lzo/
+ obj-$(CONFIG_ZLIB) += zlib/
+diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
+index 6bca05aeb4..db4568e9c4 100644
+--- a/lib/efi_loader/Makefile
++++ b/lib/efi_loader/Makefile
+@@ -11,7 +11,9 @@ CFLAGS_helloworld.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_helloworld.o := $(CFLAGS_NON_EFI)
+ 
+ efiprogs-$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE) += helloworld.efi
+-always := $(efiprogs-y)
++ifneq ($(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
++always += helloworld.efi
++endif
+ 
+ obj-$(CONFIG_CMD_BOOTEFI_HELLO) += helloworld_efi.o
+ obj-y += efi_image_loader.o efi_boottime.o efi_runtime.o efi_console.o
 diff --git a/lib/efi_selftest/Kconfig b/lib/efi_selftest/Kconfig
 new file mode 100644
 index 0000000000..ff937a5dd9
@@ -54,6 +193,163 @@ index 0000000000..ff937a5dd9
 +	  This adds an EFI test application to U-Boot that can be executed
 +	  with the 'bootefi selftest' command. It provides extended tests of
 +	  the EFI API implementation.
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+new file mode 100644
+index 0000000000..86ad31dc94
+--- /dev/null
++++ b/lib/efi_selftest/Makefile
+@@ -0,0 +1,18 @@
++:
++# (C) Copyright 2016, Heinrich Schuchardt <xypron.glpk@gmx.de>
++#
++#  SPDX-License-Identifier:     GPL-2.0+
++#
++
++# This file only gets included with CONFIG_EFI_LOADER set, so all
++# object inclusion implicitly depends on it
++
++CFLAGS_selftest.o := $(CFLAGS_EFI)
++CFLAGS_REMOVE_selftest.o := $(CFLAGS_NON_EFI)
++
++efiprogs-$(CONFIG_CMD_BOOTEFI_SELFTEST_COMPILE) += selftest.efi
++ifneq ($(CONFIG_CMD_BOOTEFI_SELFTEST_COMPILE),)
++always += selftest.efi
++endif
++
++obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += selftest_efi.o
+diff --git a/lib/efi_selftest/selftest.c b/lib/efi_selftest/selftest.c
+new file mode 100644
+index 0000000000..c071ef6250
+--- /dev/null
++++ b/lib/efi_selftest/selftest.c
+@@ -0,0 +1,24 @@
++/*
++ * EFI selftest
++ *
++ * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#include <common.h>
++#include <part_efi.h>
++#include <efi_api.h>
++
++efi_status_t EFIAPI efi_main(efi_handle_t handle,
++			     struct efi_system_table *systable)
++{
++	struct efi_simple_text_output_protocol *con_out = systable->con_out;
++	struct efi_boot_services *boottime = systable->boottime;
++
++	con_out->output_string(con_out, L"Starting selftest\n");
++	con_out->output_string(con_out, L"Completed selftest\n");
++	boottime->exit(handle, 0, 0, NULL);
++
++	return EFI_SUCCESS;
++}
+diff --git a/lib/efi_selftest/selftest.efi b/lib/efi_selftest/selftest.efi
+new file mode 100755
+index 0000000000000000000000000000000000000000..8569a840275c7337402a35e481585edf9264f082
+GIT binary patch
+literal 4298
+zcmeHKTWb?h5T0BbVz1GP4@K%0f*_PN5s@N3Y}1PfX&XqjH*m8i+jh0P3CUSVK%^z4
+zP?mx}#)smAghtdp^aqrJ_#y=JpcE+)gmq?<*fhl;eNjRt%*o6*-<h*#_HxddT6_r(
+z0C1w3CcqB<lL%JZyjjO^@3q&x@an?;(2gy*KQz0lq_{*fzLJzwE-GnSoN-TNE~#sr
+zqH*IhVNQ+5WWJ}T(_2j)ngEDxx+<Orz>U^7aM`=;_N!n=r?X1L7?9S4Y>GEZ0s)-N
+zoBorojg&^eK5b*{j34^@yl4700eB{-8OA>mr#3gbDRshuFT$r{5|aSB3FlC$2G#PR
+zWr+a3JYS)~JRv?*;!$zyL;wzX8BJ1^=qlj?D)DMHN0Y?Lmz3Ay(P{{5VDYSruqaj|
+zfG0rtQW@165+YSz?+J%2%qN^i+TOpaz{9Q2rrvGp?jl{m{8pjk=&NaN6pn5JghRyz
+z1eca_dA*}Z55`_$?oqfXptbStLmz-K?!9cx4;$%wq0sgwJ-4B-8Fnr%Y;Rt#IZuIp
+zCi4!PbLs3`&Yxd;EEbI0UdpxgKD+Dm@A(h?$4201F3-4Z`4aPF%l)h`TfV4w8=bZv
+zC6{rlWH$z~yYAA#jtyWvx2L;vhx(vDUmD0AvMagc7vI-2PPgtdY__s(#CCAwW9bWx
+zgO}QtW)%>c1>3P!uRs_WNRY%<0S#7gNlAeWYp{%nj5f0tgE5GM3JJtz3y=MQ*Xq@3
+zz4_r++LGE<ql3IebxRSctoOK;f-Y3z4x-XZ(3aMyz_jnocCR%i)}F<=DuBDI-{&k3
+zzUlQx1`k-#bLDM!`adhc%V~wqojfYtT?fQ;Rn4F^ZFz){(E5-@t#HKgh3V0$2V=E}
+z1LS2zR3$~j&q<X-u>sWQrw}i}D71z+Kuj?yNyDR1W;@))Rut1CclZ^ViHWGlR(0(e
+hpHe`yPM{K#LA)QF35*8CnaRoU#H=_w8VF8^@C#EWzX|{V
+
+literal 0
+HcmV?d00001
+
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index 7f97e8ebf3..d49d7ec21e 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -345,21 +345,24 @@ $(obj)/%.S: $(src)/%.ttf
+ # EFI Hello World application
+ # ---------------------------------------------------------------------------
+ 
+-# Generate an assembly file to wrap the EFI app
+-cmd_S_efi=						\
+-(							\
+-	echo '.section .rodata.efi.init,"a"';		\
+-	echo '.balign 16';				\
+-	echo '.global __efi_hello_world_begin';		\
+-	echo '__efi_hello_world_begin:';		\
+-	echo '.incbin "$<" ';				\
+-	echo '__efi_hello_world_end:';			\
+-	echo '.global __efi_hello_world_end';		\
+-	echo '.balign 16';				\
++# Generate an assembly file to wrap the EFI helloworld app
++cmd_S_helloworld_efi=						\
++(								\
++	echo '.section .rodata.helloworld_efi.init,"a"';	\
++	echo '.balign 16';					\
++	echo '.global __efi_hello_world_begin';			\
++	echo '__efi_hello_world_begin:';			\
++	echo '.incbin "$<" ';					\
++	echo '__efi_hello_world_end:';				\
++	echo '.global __efi_hello_world_end';			\
++	echo '.balign 16';					\
+ ) > $@
+ 
+ $(obj)/%_efi.S: $(obj)/%.efi
+-	$(call cmd,S_efi)
++	$(call cmd,S_$*_efi)
++	@echo === start of $@
++	cat $@
++	@echo === end of $@
+ 
+ quiet_cmd_efi_objcopy = OBJCOPY $@
+ cmd_efi_objcopy = $(OBJCOPY) -j .header -j .text -j .sdata -j .data -j \
+@@ -367,6 +370,7 @@ cmd_efi_objcopy = $(OBJCOPY) -j .header -j .text -j .sdata -j .data -j \
+ 		$(if $(EFI_TARGET),$(EFI_TARGET),-O binary) $^ $@
+ 
+ $(obj)/%.efi: $(obj)/%.so
++	echo 373 $@
+ 	$(call cmd,efi_objcopy)
+ 
+ quiet_cmd_efi_ld = LD      $@
+@@ -375,10 +379,29 @@ cmd_efi_ld = $(LD) -nostdlib -znocombreloc -T $(EFI_LDS_PATH) -shared \
+ 
+ EFI_LDS_PATH = $(srctree)/arch/$(ARCH)/lib/$(EFI_LDS)
+ 
++$(obj)/selftest.so: $(obj)/selftest.o arch/$(ARCH)/lib/$(EFI_CRT0) \
++		arch/$(ARCH)/lib/$(EFI_RELOC)
++	echo 383
++	$(call cmd,efi_ld)
++
+ $(obj)/helloworld.so: $(obj)/helloworld.o arch/$(ARCH)/lib/$(EFI_CRT0) \
+ 		arch/$(ARCH)/lib/$(EFI_RELOC)
++	echo 388
+ 	$(call cmd,efi_ld)
+ 
++# Generate an assembly file to wrap the EFI selftest app
++cmd_S_selftest_efi=						\
++(								\
++	echo '.section .rodata.selftest_efi.init,"a"';	\
++	echo '.balign 16';					\
++	echo '.global __efi_selftest_begin';			\
++	echo '__efi_selftest_begin:';			\
++	echo '.incbin "$<" ';					\
++	echo '__efi_selftest_end:';				\
++	echo '.global __efi_selftest_end';			\
++	echo '.balign 16';					\
++) > $@
++
+ # ACPI
+ # ---------------------------------------------------------------------------
+ quiet_cmd_acpi_c_asl= ASL     $<
 -- 
 2.11.0
 
