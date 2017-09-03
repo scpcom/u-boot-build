@@ -1,4 +1,4 @@
-From 6af6f541d15989ead4f4a0cef87f332079d0d583 Mon Sep 17 00:00:00 2001
+From 9f5b6cac2ee268fa3f22f3358b5673cb02154d5e Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 12:35:47 +0200
 Subject: [PATCH 1/1] selftest
@@ -11,10 +11,11 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  cmd/bootefi.c                  | 23 ++++++++++++++++++++---
  include/asm-generic/sections.h |  2 ++
  lib/Makefile                   |  1 +
- lib/efi_selftest/Makefile      | 16 ++++++++++++++++
+ lib/efi_loader/Makefile        |  4 +++-
+ lib/efi_selftest/Makefile      | 18 ++++++++++++++++++
  lib/efi_selftest/selftest.c    | 24 ++++++++++++++++++++++++
  scripts/Makefile.lib           | 35 ++++++++++++++++++++++++++++++-----
- 9 files changed, 96 insertions(+), 10 deletions(-)
+ 10 files changed, 101 insertions(+), 11 deletions(-)
  create mode 100644 lib/efi_selftest/Makefile
  create mode 100644 lib/efi_selftest/selftest.c
 
@@ -128,13 +129,28 @@ index 2eef1eb80e..2ffec5a455 100644
  obj-$(CONFIG_LZMA) += lzma/
  obj-$(CONFIG_LZO) += lzo/
  obj-$(CONFIG_ZLIB) += zlib/
+diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
+index 6bca05aeb4..db4568e9c4 100644
+--- a/lib/efi_loader/Makefile
++++ b/lib/efi_loader/Makefile
+@@ -11,7 +11,9 @@ CFLAGS_helloworld.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_helloworld.o := $(CFLAGS_NON_EFI)
+ 
+ efiprogs-$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE) += helloworld.efi
+-always := $(efiprogs-y)
++ifneq ($(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
++always += helloworld.efi
++endif
+ 
+ obj-$(CONFIG_CMD_BOOTEFI_HELLO) += helloworld_efi.o
+ obj-y += efi_image_loader.o efi_boottime.o efi_runtime.o efi_console.o
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
 new file mode 100644
-index 0000000000..32598c2aea
+index 0000000000..f0d9c41e2f
 --- /dev/null
 +++ b/lib/efi_selftest/Makefile
-@@ -0,0 +1,16 @@
-+#
+@@ -0,0 +1,18 @@
++:
 +# (C) Copyright 2016, Heinrich Schuchardt <xypron.glpk@gmx.de>
 +#
 +#  SPDX-License-Identifier:     GPL-2.0+
@@ -147,7 +163,9 @@ index 0000000000..32598c2aea
 +CFLAGS_REMOVE_selftest.o := $(CFLAGS_NON_EFI)
 +
 +efiprogs-$(CONFIG_CMD_BOOTEFI_SELFTEST_COMPILE) += selftest.efi
-+always := $(efiprogs-y)
++ifneq ($(CONFIG_CMD_BOOTEFI_SELFTEST_COMPILE),)
++always += selftest.efi
++endif
 +
 +obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += selftest.o
 diff --git a/lib/efi_selftest/selftest.c b/lib/efi_selftest/selftest.c
@@ -181,7 +199,7 @@ index 0000000000..c071ef6250
 +	return EFI_SUCCESS;
 +}
 diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index 9ce47b4d22..2b376ebbea 100644
+index 9ce47b4d22..13d2894feb 100644
 --- a/scripts/Makefile.lib
 +++ b/scripts/Makefile.lib
 @@ -346,9 +346,9 @@ $(obj)/%.S: $(src)/%.ttf
@@ -202,8 +220,8 @@ index 9ce47b4d22..2b376ebbea 100644
  
 -$(obj)/%_efi.S: $(obj)/%.efi
 -	$(call cmd,S_efi)
-+$(obj)/helloworld_efi.S: $(obj)/helloworld.efi
-+	$(call cmd_helloworld_efi)
++$(obj)/%.S: $(obj)/%.efi
++	$(call cmd,$%_efi)
  
  quiet_cmd_efi_objcopy = OBJCOPY $@
  cmd_efi_objcopy = $(OBJCOPY) -j .header -j .text -j .sdata -j .data -j \
@@ -226,7 +244,7 @@ index 9ce47b4d22..2b376ebbea 100644
 +# Generate an assembly file to wrap the EFI app
 +cmd_selftest_efi=					\
 +(							\
-+	echo '.section .rodata.efi_selftest.init,"a"';		\
++	echo '.section .rodata.efi_selftest.init,"a"';	\
 +	echo '.balign 16';				\
 +	echo '.global __efi_selftest_begin';		\
 +	echo '__efi_selftest_begin:';			\
@@ -236,8 +254,8 @@ index 9ce47b4d22..2b376ebbea 100644
 +	echo '.balign 16';				\
 +) >> $@
 +
-+$(obj)/selftest_efi.S: $(obj)/selftest.efi
-+	$(call cmd_selftest_efi)
++#$(obj)/selftest_efi.S: $(obj)/selftest.efi
++#	$(call cmd_selftest_efi)
 +
 +$(obj)/selftest.so: $(EFI_LDS_PATH)
 +

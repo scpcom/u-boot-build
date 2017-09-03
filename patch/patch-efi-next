@@ -1,4 +1,5 @@
 #!/bin/sh
+git am ../patch/0001-scripts-Makefile.lib-remove-overridden-target-obj-he.patch
 git am ../patch/0001-checkpatch-update-from-Linux-v4.13-rc6.patch
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 

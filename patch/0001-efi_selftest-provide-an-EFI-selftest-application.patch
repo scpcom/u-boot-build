@@ -1,0 +1,59 @@
+From ec222a2ae5a6cf8636647a73ab4e1960c7007c9d Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 2 Sep 2017 08:07:49 +0200
+Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
+
+Provide a framework to which we can add all EFI API testing.
+
+A standalone EFI application is provided.
+This application can also be incorporated into U-Boot and be
+executed with the bootefi selftest command.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/Kconfig              |  2 ++
+ lib/efi_selftest/Kconfig | 19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+)
+ create mode 100644 lib/efi_selftest/Kconfig
+
+diff --git a/cmd/Kconfig b/cmd/Kconfig
+index 42d955c96a..98d4af53a2 100644
+--- a/cmd/Kconfig
++++ b/cmd/Kconfig
+@@ -222,6 +222,8 @@ config CMD_BOOTEFI_HELLO
+ 	  for testing that EFI is working at a basic level, and for bringing
+ 	  up EFI support on a new architecture.
+ 
++source lib/efi_selftest/Kconfig
++
+ config CMD_BOOTMENU
+ 	bool "bootmenu"
+ 	select MENU
+diff --git a/lib/efi_selftest/Kconfig b/lib/efi_selftest/Kconfig
+new file mode 100644
+index 0000000000..ff937a5dd9
+--- /dev/null
++++ b/lib/efi_selftest/Kconfig
+@@ -0,0 +1,19 @@
++config CMD_BOOTEFI_SELFTEST_COMPILE
++	bool "Compile an EFI selftest application"
++	depends on CMD_BOOTEFI && (ARM || X86)
++	default y
++	help
++	  This compiles an EFI application that can be used with the test/py
++	  testing framework. It provides extended tests for of EFI
++	  API implementation.
++
++	  No additional space will be required in the resulting U-Boot binary
++	  when this option is enabled.
++
++config CMD_BOOTEFI_SELFTEST
++	bool "Allow booting an EFI selftest"
++	depends on CMD_BOOTEFI_SELFTEST_COMPILE
++	help
++	  This adds an EFI test application to U-Boot that can be executed
++	  with the 'bootefi selftest' command. It provides extended tests of
++	  the EFI API implementation.
+-- 
+2.11.0
+

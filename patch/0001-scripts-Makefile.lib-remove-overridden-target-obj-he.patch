@@ -1,0 +1,49 @@
+From 9a79a02965b908be242421099e8f632788478b23 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 3 Sep 2017 08:02:44 +0200
+Subject: [PATCH 1/1] scripts/Makefile.lib: remove overridden target
+ $(obj)/helloworld.so:
+
+The target
+$(obj)/helloworld.so:
+exists twice in Makefile.lib.
+
+If you add an echo command to each of the two recipes you get
+warnings like:
+
+scripts/Makefile.lib:383: warning:
+overriding recipe for target 'drivers/power/battery/helloworld.so'
+scripts/Makefile.lib:379: warning:
+ignoring old recipe for target 'drivers/power/battery/helloworld.so'
+
+This patch removes the obsolete target.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+Hello Alex,
+
+could you, please, review the change as it relates to EFI.
+
+Best regards
+
+Heinrich
+---
+ scripts/Makefile.lib | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index 9ce47b4d22..7f97e8ebf3 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -375,8 +375,6 @@ cmd_efi_ld = $(LD) -nostdlib -znocombreloc -T $(EFI_LDS_PATH) -shared \
+ 
+ EFI_LDS_PATH = $(srctree)/arch/$(ARCH)/lib/$(EFI_LDS)
+ 
+-$(obj)/helloworld.so: $(EFI_LDS_PATH)
+-
+ $(obj)/helloworld.so: $(obj)/helloworld.o arch/$(ARCH)/lib/$(EFI_CRT0) \
+ 		arch/$(ARCH)/lib/$(EFI_RELOC)
+ 	$(call cmd,efi_ld)
+-- 
+2.11.0
+
