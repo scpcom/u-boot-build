@@ -1,0 +1,27 @@
+From bbcddffda0206c953e71b8e9bb187907b4b02708 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 4 Sep 2017 09:21:25 +0200
+Subject: [PATCH 1/1] efi_loader: helloworld.c: remove superfluous include
+
+Remove a superfluous include from helloworld.c
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/helloworld.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/lib/efi_loader/helloworld.c b/lib/efi_loader/helloworld.c
+index 03e65ab133..77130a36dd 100644
+--- a/lib/efi_loader/helloworld.c
++++ b/lib/efi_loader/helloworld.c
+@@ -8,7 +8,6 @@
+  */
+ 
+ #include <common.h>
+-#include <part_efi.h>
+ #include <efi_api.h>
+ 
+ efi_status_t EFIAPI efi_main(efi_handle_t handle,
+-- 
+2.11.0
+
