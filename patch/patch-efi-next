@@ -1,5 +1,13 @@
 #!/bin/sh
+
+# Fix IDE
+git am ../patch/0001-blk-Use-macros-for-block-device-vendor-product-rev-s.patch
+git am ../patch/0002-block-ide-Fix-block-read-write-with-driver-model.patch
+git am ../patch/0003-block-ide-Don-t-bother-to-create-BLK-device-if-no-CD.patch
+git am ../patch/0004-cmd-ide-Make-the-first-device-the-default-one.patch
+
 # Diverse
+git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 git am ../patch/0001-checkpatch-update-from-Linux-v4.13-rc6.patch
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 

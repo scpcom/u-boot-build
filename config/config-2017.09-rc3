@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2017.09-rc2 Configuration
+# U-Boot 2017.09-rc3 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
@@ -118,6 +118,7 @@ CONFIG_SYS_MALLOC_CLEAR_ON_INIT=y
 #
 # Boot images
 #
+# CONFIG_ANDROID_BOOT_IMAGE is not set
 CONFIG_FIT=y
 CONFIG_FIT_ENABLE_SHA256_SUPPORT=y
 # CONFIG_FIT_SIGNATURE is not set
@@ -211,7 +212,6 @@ CONFIG_AUTOBOOT=y
 #
 # FASTBOOT
 #
-# CONFIG_FASTBOOT is not set
 
 #
 # Commands
@@ -327,6 +327,7 @@ CONFIG_CMD_SPI=y
 # CONFIG_CMD_TSI148 is not set
 # CONFIG_CMD_UNIVERSE is not set
 CONFIG_CMD_USB=y
+# CONFIG_CMD_USB_SDP is not set
 # CONFIG_CMD_USB_MASS_STORAGE is not set
 
 #
@@ -785,6 +786,7 @@ CONFIG_USB_EHCI_PCI=y
 # CONFIG_USB_OHCI_HCD is not set
 # CONFIG_USB_UHCI_HCD is not set
 # CONFIG_USB_DWC2 is not set
+# CONFIG_USB_DWC3 is not set
 
 #
 # MUSB Controller Driver
@@ -894,6 +896,7 @@ CONFIG_FS_FAT_MAX_CLUSTSIZE=65536
 #
 # Library routines
 #
+# CONFIG_BCH is not set
 # CONFIG_CC_OPTIMIZE_LIBS_FOR_SPEED is not set
 CONFIG_HAVE_PRIVATE_LIBGCC=y
 CONFIG_USE_PRIVATE_LIBGCC=y

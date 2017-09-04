@@ -1,0 +1,32 @@
+From e53ee1fbc499c1e29b81bfa6d56f2fd2cb648410 Mon Sep 17 00:00:00 2001
+From: Bin Meng <bmeng.cn@gmail.com>
+Date: Sun, 3 Sep 2017 21:00:10 -0700
+Subject: [PATCH 4/4] cmd: ide: Make the first device the default one
+
+At present the IDE device number is initialized to -1, which means
+we cannot type "ide read" command before setting the device number
+via "ide device #".
+
+For convenience, let's set the first device as the default one.
+
+Signed-off-by: Bin Meng <bmeng.cn@gmail.com>
+---
+ cmd/ide.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cmd/ide.c b/cmd/ide.c
+index e3c32420cf..bdb598050c 100644
+--- a/cmd/ide.c
++++ b/cmd/ide.c
+@@ -30,7 +30,7 @@
+ #endif
+ 
+ /* Current I/O Device	*/
+-static int curr_device = -1;
++static int curr_device;
+ 
+ int do_ide(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
+ {
+-- 
+2.11.0
+
