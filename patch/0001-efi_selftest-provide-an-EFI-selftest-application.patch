@@ -96,7 +96,7 @@ index a3768158a2..0ddf71b19c 100644
 @@ -306,9 +307,21 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  		else
  			addr = CONFIG_SYS_LOAD_ADDR;
- 		memcpy((char *)addr, __efi_hello_world_begin, size);
+ 		memcpy((char *)addr, __efi_helloworld_begin, size);
 -	} else
 +	}
  #endif
@@ -134,8 +134,8 @@ index daf021b647..c199f3550b 100644
 +++ b/include/asm-generic/sections.h
 @@ -24,6 +24,8 @@ extern char __initdata_begin[], __initdata_end[];
  extern char __start_rodata[], __end_rodata[];
- extern char __efi_hello_world_begin[];
- extern char __efi_hello_world_end[];
+ extern char __efi_helloworld_begin[];
+ extern char __efi_helloworld_end[];
 +extern char __efi_selftest_begin[];
 +extern char __efi_selftest_end[];
  
@@ -271,85 +271,6 @@ hpHe`yPM{K#LA)QF35*8CnaRoU#H=_w8VF8^@C#EWzX|{V
 literal 0
 HcmV?d00001
 
-diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index 7f97e8ebf3..d49d7ec21e 100644
---- a/scripts/Makefile.lib
-+++ b/scripts/Makefile.lib
-@@ -345,21 +345,24 @@ $(obj)/%.S: $(src)/%.ttf
- # EFI Hello World application
- # ---------------------------------------------------------------------------
- 
--# Generate an assembly file to wrap the EFI app
--cmd_S_efi=						\
--(							\
--	echo '.section .rodata.efi.init,"a"';		\
--	echo '.balign 16';				\
--	echo '.global __efi_hello_world_begin';		\
--	echo '__efi_hello_world_begin:';		\
--	echo '.incbin "$<" ';				\
--	echo '__efi_hello_world_end:';			\
--	echo '.global __efi_hello_world_end';		\
--	echo '.balign 16';				\
-+# Generate an assembly file to wrap the EFI helloworld app
-+cmd_S_helloworld_efi=						\
-+(								\
-+	echo '.section .rodata.helloworld_efi.init,"a"';	\
-+	echo '.balign 16';					\
-+	echo '.global __efi_hello_world_begin';			\
-+	echo '__efi_hello_world_begin:';			\
-+	echo '.incbin "$<" ';					\
-+	echo '__efi_hello_world_end:';				\
-+	echo '.global __efi_hello_world_end';			\
-+	echo '.balign 16';					\
- ) > $@
- 
- $(obj)/%_efi.S: $(obj)/%.efi
--	$(call cmd,S_efi)
-+	$(call cmd,S_$*_efi)
-+	@echo === start of $@
-+	cat $@
-+	@echo === end of $@
- 
- quiet_cmd_efi_objcopy = OBJCOPY $@
- cmd_efi_objcopy = $(OBJCOPY) -j .header -j .text -j .sdata -j .data -j \
-@@ -367,6 +370,7 @@ cmd_efi_objcopy = $(OBJCOPY) -j .header -j .text -j .sdata -j .data -j \
- 		$(if $(EFI_TARGET),$(EFI_TARGET),-O binary) $^ $@
- 
- $(obj)/%.efi: $(obj)/%.so
-+	echo 373 $@
- 	$(call cmd,efi_objcopy)
- 
- quiet_cmd_efi_ld = LD      $@
-@@ -375,10 +379,29 @@ cmd_efi_ld = $(LD) -nostdlib -znocombreloc -T $(EFI_LDS_PATH) -shared \
- 
- EFI_LDS_PATH = $(srctree)/arch/$(ARCH)/lib/$(EFI_LDS)
- 
-+$(obj)/selftest.so: $(obj)/selftest.o arch/$(ARCH)/lib/$(EFI_CRT0) \
-+		arch/$(ARCH)/lib/$(EFI_RELOC)
-+	echo 383
-+	$(call cmd,efi_ld)
-+
- $(obj)/helloworld.so: $(obj)/helloworld.o arch/$(ARCH)/lib/$(EFI_CRT0) \
- 		arch/$(ARCH)/lib/$(EFI_RELOC)
-+	echo 388
- 	$(call cmd,efi_ld)
- 
-+# Generate an assembly file to wrap the EFI selftest app
-+cmd_S_selftest_efi=						\
-+(								\
-+	echo '.section .rodata.selftest_efi.init,"a"';	\
-+	echo '.balign 16';					\
-+	echo '.global __efi_selftest_begin';			\
-+	echo '__efi_selftest_begin:';			\
-+	echo '.incbin "$<" ';					\
-+	echo '__efi_selftest_end:';				\
-+	echo '.global __efi_selftest_end';			\
-+	echo '.balign 16';					\
-+) > $@
-+
- # ACPI
- # ---------------------------------------------------------------------------
- quiet_cmd_acpi_c_asl= ASL     $<
 -- 
 2.11.0
 
