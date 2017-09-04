@@ -1,7 +1,7 @@
-From 90639cd1332bc735df7d23b7dd66c6fe10a3b245 Mon Sep 17 00:00:00 2001
+From ab481f5fc97da7de1dee4d5815d35e317cc2751f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 4 Sep 2017 02:30:42 +0200
-Subject: [PATCH 1/1] scripts/Makefile.lib: generalize building  built in EFI
+Subject: [PATCH 1/1] scripts/Makefile.lib: generalize building built in EFI
  app
 
 Replace all occurences of helloworld by generalized forms.
@@ -15,7 +15,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 15 insertions(+), 13 deletions(-)
 
 diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index 164c234b4c..ebc74f8987 100644
+index 164c234b4c..c73464b854 100644
 --- a/scripts/Makefile.lib
 +++ b/scripts/Makefile.lib
 @@ -342,20 +342,22 @@ cmd_S_ttf=						\
@@ -66,7 +66,7 @@ index 164c234b4c..ebc74f8987 100644
  EFI_LDS_PATH = $(srctree)/arch/$(ARCH)/lib/$(EFI_LDS)
  
 -$(obj)/helloworld.so: $(obj)/helloworld.o arch/$(ARCH)/lib/$(EFI_CRT0) \
-+$(obj)/%_efi.so: $(obj)/%.o arch/$(ARCH)/lib/$(EFI_CRT0) \
++$(obj)/%_efi.so: $(obj)/%.o $(%_deps) arch/$(ARCH)/lib/$(EFI_CRT0) \
  		arch/$(ARCH)/lib/$(EFI_RELOC)
  	$(call cmd,efi_ld)
  

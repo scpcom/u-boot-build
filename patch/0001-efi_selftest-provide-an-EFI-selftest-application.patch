@@ -1,4 +1,4 @@
-From 4c095a27e7bdf16f9b54d6b1c32f1d35c6906e79 Mon Sep 17 00:00:00 2001
+From c4954aa314e862c1f6680cf529a619629a713d87 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
 Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
@@ -11,25 +11,26 @@ executed with the bootefi selftest command.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- arch/arm/lib/Makefile          |   1 +
- arch/x86/config.mk             |   2 +-
- arch/x86/lib/Makefile          |   2 +-
- cmd/Kconfig                    |   2 ++
- cmd/bootefi.c                  |  23 +++++++++++++++++++---
- include/asm-generic/sections.h |   2 ++
- include/efi_selftest.h         |  43 +++++++++++++++++++++++++++++++++++++++++
- lib/Makefile                   |   1 +
- lib/efi_loader/Makefile        |   4 +++-
- lib/efi_selftest/Kconfig       |  19 ++++++++++++++++++
- lib/efi_selftest/Makefile      |  18 +++++++++++++++++
- lib/efi_selftest/selftest.c    |  22 +++++++++++++++++++++
- lib/efi_selftest/selftest.efi  | Bin 0 -> 4298 bytes
- 13 files changed, 133 insertions(+), 6 deletions(-)
+ arch/arm/lib/Makefile              |   1 +
+ arch/x86/config.mk                 |   2 +-
+ arch/x86/lib/Makefile              |   2 +-
+ cmd/Kconfig                        |   2 ++
+ cmd/bootefi.c                      |  23 +++++++++++++++++---
+ include/asm-generic/sections.h     |   2 ++
+ include/efi_selftest.h             |  43 +++++++++++++++++++++++++++++++++++++
+ lib/Makefile                       |   1 +
+ lib/efi_selftest/Kconfig           |  19 ++++++++++++++++
+ lib/efi_selftest/Makefile          |  17 +++++++++++++++
+ lib/efi_selftest/selftest.c        |  22 +++++++++++++++++++
+ lib/efi_selftest/selftest.efi      | Bin 0 -> 4298 bytes
+ lib/efi_selftest/selftest_events.c |  19 ++++++++++++++++
+ 13 files changed, 148 insertions(+), 5 deletions(-)
  create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
  create mode 100644 lib/efi_selftest/selftest.c
  create mode 100755 lib/efi_selftest/selftest.efi
+ create mode 100644 lib/efi_selftest/selftest_events.c
 
 diff --git a/arch/arm/lib/Makefile b/arch/arm/lib/Makefile
 index 6e1c436933..050789e12b 100644
@@ -144,7 +145,7 @@ index b6535705a5..5d48cbaa37 100644
  extern char __ctors_start[], __ctors_end[];
 diff --git a/include/efi_selftest.h b/include/efi_selftest.h
 new file mode 100644
-index 0000000000..d67de31ed8
+index 0000000000..5d95990799
 --- /dev/null
 +++ b/include/efi_selftest.h
 @@ -0,0 +1,43 @@
@@ -187,7 +188,7 @@ index 0000000000..d67de31ed8
 +};
 +
 +/* Declare a new EFI unit test */
-+#define UCLASS_DRIVER(__name)						\
++#define EFI_UNIT_TEST(__name)						\
 +	ll_entry_declare(struct efi_unit_test, __name, efi_unit_test)
 +
 +#endif /* _EFI_SELFTEST_H */
@@ -203,21 +204,6 @@ index 2eef1eb80e..2ffec5a455 100644
  obj-$(CONFIG_LZMA) += lzma/
  obj-$(CONFIG_LZO) += lzo/
  obj-$(CONFIG_ZLIB) += zlib/
-diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
-index 6bca05aeb4..db4568e9c4 100644
---- a/lib/efi_loader/Makefile
-+++ b/lib/efi_loader/Makefile
-@@ -11,7 +11,9 @@ CFLAGS_helloworld.o := $(CFLAGS_EFI)
- CFLAGS_REMOVE_helloworld.o := $(CFLAGS_NON_EFI)
- 
- efiprogs-$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE) += helloworld.efi
--always := $(efiprogs-y)
-+ifneq ($(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
-+always += helloworld.efi
-+endif
- 
- obj-$(CONFIG_CMD_BOOTEFI_HELLO) += helloworld_efi.o
- obj-y += efi_image_loader.o efi_boottime.o efi_runtime.o efi_console.o
 diff --git a/lib/efi_selftest/Kconfig b/lib/efi_selftest/Kconfig
 new file mode 100644
 index 0000000000..ff937a5dd9
@@ -245,10 +231,10 @@ index 0000000000..ff937a5dd9
 +	  the EFI API implementation.
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
 new file mode 100644
-index 0000000000..86ad31dc94
+index 0000000000..3ef2fa9060
 --- /dev/null
 +++ b/lib/efi_selftest/Makefile
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,17 @@
 +:
 +# (C) Copyright 2016, Heinrich Schuchardt <xypron.glpk@gmx.de>
 +#
@@ -261,7 +247,6 @@ index 0000000000..86ad31dc94
 +CFLAGS_selftest.o := $(CFLAGS_EFI)
 +CFLAGS_REMOVE_selftest.o := $(CFLAGS_NON_EFI)
 +
-+efiprogs-$(CONFIG_CMD_BOOTEFI_SELFTEST_COMPILE) += selftest.efi
 +ifneq ($(CONFIG_CMD_BOOTEFI_SELFTEST_COMPILE),)
 +always += selftest.efi
 +endif
@@ -319,6 +304,31 @@ hpHe`yPM{K#LA)QF35*8CnaRoU#H=_w8VF8^@C#EWzX|{V
 literal 0
 HcmV?d00001
 
+diff --git a/lib/efi_selftest/selftest_events.c b/lib/efi_selftest/selftest_events.c
+new file mode 100644
+index 0000000000..6d67ebc3bc
+--- /dev/null
++++ b/lib/efi_selftest/selftest_events.c
+@@ -0,0 +1,19 @@
++
++#include <efi_selftest.h>
++
++static int setup(efi_handle_t handle, struct efi_system_table *systable)
++{
++	return 0;
++}
++
++int execute(void)
++{
++	return 0;
++}
++
++EFI_UNIT_TEST(events) = {
++	.name = "event services",
++	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++};
 -- 
 2.11.0
 

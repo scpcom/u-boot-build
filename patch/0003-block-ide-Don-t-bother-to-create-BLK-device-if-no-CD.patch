@@ -1,6 +1,6 @@
-From b08ed675284d3afd77cdfe7f0dae80df139bd9e0 Mon Sep 17 00:00:00 2001
+From d6649e5c3594945cfbb7ca37f90182bf7310ea3c Mon Sep 17 00:00:00 2001
 From: Bin Meng <bmeng.cn@gmail.com>
-Date: Sun, 3 Sep 2017 21:00:09 -0700
+Date: Mon, 4 Sep 2017 02:08:06 -0700
 Subject: [PATCH 3/4] block: ide: Don't bother to create BLK device if no CDROM
  inserted
 

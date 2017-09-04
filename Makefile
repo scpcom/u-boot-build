@@ -61,8 +61,8 @@ build:
 	# cd denx && git checkout $(TAGPREFIX)$(TAG)
 	cd denx && git checkout master
 	cd denx && ( git branch -D pre-build || true )
-	cd denx && git checkout origin/master -b pre-build
-	cd denx && git rebase efi-next
+	cd denx && git checkout agraf/efi-next -b pre-build
+	cd denx && git rebase origin/master
 	# cd denx && git checkout efi-next
 	# cd denx && git checkout master
 	# cd denx && git reset --hard HEAD~30
@@ -82,6 +82,13 @@ unit-tests:
 	# cd denx && test/py/test.py --bd qemu-x86 -k test_efi_dhcp
 	# cd denx && test/py/test.py --bd qemu-x86 -k test_efi_helloworld_net
 	cd denx && test/py/test.py --build-dir . --bd qemu-x86 -k test_efi_loader
+
+lav:
+	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
+	-netdev \
+	user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
+	-device e1000,netdev=eth0 -machine pc-i440fx-2.8 \
+	-drive file=img,if=pci,bus=0,unit=6
 
 luv:
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
