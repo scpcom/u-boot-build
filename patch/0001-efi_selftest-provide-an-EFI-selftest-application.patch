@@ -1,7 +1,7 @@
-From 83ced1d2a17d6e338d60b7f1d0240681cd47cfad Mon Sep 17 00:00:00 2001
+From 4c095a27e7bdf16f9b54d6b1c32f1d35c6906e79 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
-Subject: [PATCH] efi_selftest: provide an EFI selftest application
+Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
 
 Provide a framework to which we can add all EFI API testing.
 
@@ -15,16 +15,17 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  arch/x86/config.mk             |   2 +-
  arch/x86/lib/Makefile          |   2 +-
  cmd/Kconfig                    |   2 ++
- cmd/bootefi.c                  |  23 +++++++++++++++++---
+ cmd/bootefi.c                  |  23 +++++++++++++++++++---
  include/asm-generic/sections.h |   2 ++
+ include/efi_selftest.h         |  43 +++++++++++++++++++++++++++++++++++++++++
  lib/Makefile                   |   1 +
  lib/efi_loader/Makefile        |   4 +++-
- lib/efi_selftest/Kconfig       |  19 +++++++++++++++++
- lib/efi_selftest/Makefile      |  18 ++++++++++++++++
- lib/efi_selftest/selftest.c    |  24 +++++++++++++++++++++
+ lib/efi_selftest/Kconfig       |  19 ++++++++++++++++++
+ lib/efi_selftest/Makefile      |  18 +++++++++++++++++
+ lib/efi_selftest/selftest.c    |  22 +++++++++++++++++++++
  lib/efi_selftest/selftest.efi  | Bin 0 -> 4298 bytes
- scripts/Makefile.lib           |  47 ++++++++++++++++++++++++++++++-----------
- 13 files changed, 127 insertions(+), 18 deletions(-)
+ 13 files changed, 133 insertions(+), 6 deletions(-)
+ create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
  create mode 100644 lib/efi_selftest/selftest.c
@@ -67,7 +68,7 @@ index fe00d7573f..6575e1a0cb 100644
  extra-y += $(EFI_CRT0) $(EFI_RELOC)
  endif
 diff --git a/cmd/Kconfig b/cmd/Kconfig
-index 42d955c96a..98d4af53a2 100644
+index d6d130edfa..3ef9b16b08 100644
 --- a/cmd/Kconfig
 +++ b/cmd/Kconfig
 @@ -222,6 +222,8 @@ config CMD_BOOTEFI_HELLO
@@ -80,7 +81,7 @@ index 42d955c96a..98d4af53a2 100644
  	bool "bootmenu"
  	select MENU
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index a3768158a2..0ddf71b19c 100644
+index c5bfab1147..5bed03e003 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -290,7 +290,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
@@ -129,7 +130,7 @@ index a3768158a2..0ddf71b19c 100644
  #endif
  
 diff --git a/include/asm-generic/sections.h b/include/asm-generic/sections.h
-index daf021b647..c199f3550b 100644
+index b6535705a5..5d48cbaa37 100644
 --- a/include/asm-generic/sections.h
 +++ b/include/asm-generic/sections.h
 @@ -24,6 +24,8 @@ extern char __initdata_begin[], __initdata_end[];
@@ -141,6 +142,55 @@ index daf021b647..c199f3550b 100644
  
  /* Start and end of .ctors section - used for constructor calls. */
  extern char __ctors_start[], __ctors_end[];
+diff --git a/include/efi_selftest.h b/include/efi_selftest.h
+new file mode 100644
+index 0000000000..d67de31ed8
+--- /dev/null
++++ b/include/efi_selftest.h
+@@ -0,0 +1,43 @@
++/*
++ *  EFI application loader
++ *
++ *  Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
++ *
++ *  SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#ifndef _EFI_SELFTEST_H
++#define _EFI_SELFTEST_H
++
++#include <common.h>
++#include <efi_api.h>
++#include <linker_lists.h>
++
++enum efi_test_phase {
++	EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	EFI_SETUP_BEFORE_BOOTTIME_EXIT,
++	EFI_SETUP_AFTER_BOOTTIME_EXT,
++};
++
++/**
++ * struct efi_unit_test - EFI unit test
++ *
++ * A efi_unit_test provides a interface to an EFI unit test.
++ *
++ * @name: Name of unit test
++ * @phase: specifies when setup and execute are executed
++ * @setup: set up the unit test
++ * @execute: execute the unit test
++ */
++struct efi_unit_test {
++	const char *name;
++	const enum efi_test_phase phase;
++	int (*setup)(efi_handle_t handle, struct efi_system_table *systable);
++	int (*execute)(void);
++};
++
++/* Declare a new EFI unit test */
++#define UCLASS_DRIVER(__name)						\
++	ll_entry_declare(struct efi_unit_test, __name, efi_unit_test)
++
++#endif /* _EFI_SELFTEST_H */
 diff --git a/lib/Makefile b/lib/Makefile
 index 2eef1eb80e..2ffec5a455 100644
 --- a/lib/Makefile
@@ -219,10 +269,10 @@ index 0000000000..86ad31dc94
 +obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += selftest_efi.o
 diff --git a/lib/efi_selftest/selftest.c b/lib/efi_selftest/selftest.c
 new file mode 100644
-index 0000000000..c071ef6250
+index 0000000000..c39544cfec
 --- /dev/null
 +++ b/lib/efi_selftest/selftest.c
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,22 @@
 +/*
 + * EFI selftest
 + *
@@ -231,9 +281,7 @@ index 0000000000..c071ef6250
 + * SPDX-License-Identifier:     GPL-2.0+
 + */
 +
-+#include <common.h>
-+#include <part_efi.h>
-+#include <efi_api.h>
++#include <efi_selftest.h>
 +
 +efi_status_t EFIAPI efi_main(efi_handle_t handle,
 +			     struct efi_system_table *systable)
