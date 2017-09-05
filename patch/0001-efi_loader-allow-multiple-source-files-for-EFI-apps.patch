@@ -1,0 +1,86 @@
+From d7a287242ba0780c1266ec9c52495e3c4afbba04 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 5 Sep 2017 14:29:26 +0200
+Subject: [PATCH 1/1] efi_loader: allow multiple source files for EFI apps
+
+With this patch an EFI application can be built
+out of multiple source files.
+
+All object files that are to be included into the EFI
+application %.efi must be added to variable %-objs. E.g.
+
+	helloworld-objs = helloworld.o
+
+script/Makefile.lib automatically generates file %_efi.d
+containing the dependency definition.
+
+This file is included in the next run of make. From now on
+all objects in %-objs are built.
+
+The %_efi.d file should be included in the source
+distribution.
+
+After adding a new file to %-objs the first make run will
+fail due to the outdated %_efi.d file.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/Makefile         |  3 +++
+ lib/efi_loader/helloworld_efi.d |  1 +
+ scripts/Makefile.lib            | 12 ++++++++++--
+ 3 files changed, 14 insertions(+), 2 deletions(-)
+ create mode 100644 lib/efi_loader/helloworld_efi.d
+
+diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
+index 5200497230..d6a9635cc8 100644
+--- a/lib/efi_loader/Makefile
++++ b/lib/efi_loader/Makefile
+@@ -10,6 +10,9 @@
+ CFLAGS_helloworld.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_helloworld.o := $(CFLAGS_NON_EFI)
+ 
++helloworld-objs = \
++helloworld.o
++
+ ifneq ($(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
+ always += helloworld.efi
+ endif
+diff --git a/lib/efi_loader/helloworld_efi.d b/lib/efi_loader/helloworld_efi.d
+new file mode 100644
+index 0000000000..892db64c8b
+--- /dev/null
++++ b/lib/efi_loader/helloworld_efi.d
+@@ -0,0 +1 @@
++lib/efi_loader/helloworld_efi.d: lib/efi_loader/helloworld.o
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index c73464b854..1a9f32902d 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -373,14 +373,22 @@ $(obj)/%.efi: $(obj)/%_efi.so
+ 
+ quiet_cmd_efi_ld = LD      $@
+ cmd_efi_ld = $(LD) -nostdlib -znocombreloc -T $(EFI_LDS_PATH) -shared \
+-		-Bsymbolic $^ -o $@
++		-Bsymbolic $(foreach _s, $($*-objs), $(obj)/$(_s)) -o $@
+ 
+ EFI_LDS_PATH = $(srctree)/arch/$(ARCH)/lib/$(EFI_LDS)
+ 
+-$(obj)/%_efi.so: $(obj)/%.o arch/$(ARCH)/lib/$(EFI_CRT0) \
++.PRECIOUS: $(obj)/%_efi.d
++
++$(obj)/%_efi.so: $(obj)/%.o $(obj)/%.d arch/$(ARCH)/lib/$(EFI_CRT0) \
+ 		arch/$(ARCH)/lib/$(EFI_RELOC)
++	@echo $(obj)/$*_efi.d: $(foreach _s, $($*-objs), $(obj)/$(_s)) \
++		> $(obj)/$*_efi.d
+ 	$(call cmd,efi_ld)
+ 
++$(obj)/%.d:;
++
++include $(wildcard $(foreach _s, $(filter %_efi.o, $(obj-y)), $(_s:.o=.d)))
++
+ # ACPI
+ # ---------------------------------------------------------------------------
+ quiet_cmd_acpi_c_asl= ASL     $<
+-- 
+2.11.0
+

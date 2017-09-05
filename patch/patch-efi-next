@@ -45,6 +45,7 @@ git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 git am ../patch/0001-efi_loader-rename-__efi_hello_world_.patch
 git am ../patch/0001-scripts-Makefile.lib-generalize-building-built-in-EF.patch
 git am ../patch/0001-efi_loader-usage-of-always-in-Makefile.patch
+git am ../patch/0001-efi_loader-allow-multiple-source-files-for-EFI-apps.patch
 git am ../patch/0001-efi_selftest-provide-an-EFI-selftest-application.patch
 
 # The patches below have dependencies that yet have to be merged.

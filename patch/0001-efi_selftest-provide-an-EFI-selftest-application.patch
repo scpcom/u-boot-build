@@ -1,4 +1,4 @@
-From c4954aa314e862c1f6680cf529a619629a713d87 Mon Sep 17 00:00:00 2001
+From 297c47902c68b1eab0314af58996a7c7a53ef149 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
 Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
@@ -11,25 +11,25 @@ executed with the bootefi selftest command.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- arch/arm/lib/Makefile              |   1 +
- arch/x86/config.mk                 |   2 +-
- arch/x86/lib/Makefile              |   2 +-
- cmd/Kconfig                        |   2 ++
- cmd/bootefi.c                      |  23 +++++++++++++++++---
- include/asm-generic/sections.h     |   2 ++
- include/efi_selftest.h             |  43 +++++++++++++++++++++++++++++++++++++
- lib/Makefile                       |   1 +
- lib/efi_selftest/Kconfig           |  19 ++++++++++++++++
- lib/efi_selftest/Makefile          |  17 +++++++++++++++
- lib/efi_selftest/selftest.c        |  22 +++++++++++++++++++
- lib/efi_selftest/selftest.efi      | Bin 0 -> 4298 bytes
- lib/efi_selftest/selftest_events.c |  19 ++++++++++++++++
- 13 files changed, 148 insertions(+), 5 deletions(-)
+ arch/arm/lib/Makefile              |  1 +
+ arch/x86/config.mk                 |  2 +-
+ arch/x86/lib/Makefile              |  2 +-
+ cmd/Kconfig                        |  2 ++
+ cmd/bootefi.c                      | 23 +++++++++++++++++---
+ include/asm-generic/sections.h     |  2 ++
+ include/efi_selftest.h             | 43 ++++++++++++++++++++++++++++++++++++++
+ lib/Makefile                       |  1 +
+ lib/efi_selftest/Kconfig           | 19 +++++++++++++++++
+ lib/efi_selftest/Makefile          | 23 ++++++++++++++++++++
+ lib/efi_selftest/selftest.c        | 22 +++++++++++++++++++
+ lib/efi_selftest/selftest_efi.d    |  1 +
+ lib/efi_selftest/selftest_events.c | 19 +++++++++++++++++
+ 13 files changed, 155 insertions(+), 5 deletions(-)
  create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
  create mode 100644 lib/efi_selftest/selftest.c
- create mode 100755 lib/efi_selftest/selftest.efi
+ create mode 100644 lib/efi_selftest/selftest_efi.d
  create mode 100644 lib/efi_selftest/selftest_events.c
 
 diff --git a/arch/arm/lib/Makefile b/arch/arm/lib/Makefile
@@ -231,10 +231,10 @@ index 0000000000..ff937a5dd9
 +	  the EFI API implementation.
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
 new file mode 100644
-index 0000000000..3ef2fa9060
+index 0000000000..4f951db021
 --- /dev/null
 +++ b/lib/efi_selftest/Makefile
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,23 @@
 +:
 +# (C) Copyright 2016, Heinrich Schuchardt <xypron.glpk@gmx.de>
 +#
@@ -246,6 +246,12 @@ index 0000000000..3ef2fa9060
 +
 +CFLAGS_selftest.o := $(CFLAGS_EFI)
 +CFLAGS_REMOVE_selftest.o := $(CFLAGS_NON_EFI)
++CFLAGS_selftest_events.o := $(CFLAGS_EFI)
++CFLAGS_REMOVE_selftest_events.o := $(CFLAGS_NON_EFI)
++
++selftest-objs = \
++selftest.o \
++selftest_events.o
 +
 +ifneq ($(CONFIG_CMD_BOOTEFI_SELFTEST_COMPILE),)
 +always += selftest.efi
@@ -280,30 +286,13 @@ index 0000000000..c39544cfec
 +
 +	return EFI_SUCCESS;
 +}
-diff --git a/lib/efi_selftest/selftest.efi b/lib/efi_selftest/selftest.efi
-new file mode 100755
-index 0000000000000000000000000000000000000000..8569a840275c7337402a35e481585edf9264f082
-GIT binary patch
-literal 4298
-zcmeHKTWb?h5T0BbVz1GP4@K%0f*_PN5s@N3Y}1PfX&XqjH*m8i+jh0P3CUSVK%^z4
-zP?mx}#)smAghtdp^aqrJ_#y=JpcE+)gmq?<*fhl;eNjRt%*o6*-<h*#_HxddT6_r(
-z0C1w3CcqB<lL%JZyjjO^@3q&x@an?;(2gy*KQz0lq_{*fzLJzwE-GnSoN-TNE~#sr
-zqH*IhVNQ+5WWJ}T(_2j)ngEDxx+<Orz>U^7aM`=;_N!n=r?X1L7?9S4Y>GEZ0s)-N
-zoBorojg&^eK5b*{j34^@yl4700eB{-8OA>mr#3gbDRshuFT$r{5|aSB3FlC$2G#PR
-zWr+a3JYS)~JRv?*;!$zyL;wzX8BJ1^=qlj?D)DMHN0Y?Lmz3Ay(P{{5VDYSruqaj|
-zfG0rtQW@165+YSz?+J%2%qN^i+TOpaz{9Q2rrvGp?jl{m{8pjk=&NaN6pn5JghRyz
-z1eca_dA*}Z55`_$?oqfXptbStLmz-K?!9cx4;$%wq0sgwJ-4B-8Fnr%Y;Rt#IZuIp
-zCi4!PbLs3`&Yxd;EEbI0UdpxgKD+Dm@A(h?$4201F3-4Z`4aPF%l)h`TfV4w8=bZv
-zC6{rlWH$z~yYAA#jtyWvx2L;vhx(vDUmD0AvMagc7vI-2PPgtdY__s(#CCAwW9bWx
-zgO}QtW)%>c1>3P!uRs_WNRY%<0S#7gNlAeWYp{%nj5f0tgE5GM3JJtz3y=MQ*Xq@3
-zz4_r++LGE<ql3IebxRSctoOK;f-Y3z4x-XZ(3aMyz_jnocCR%i)}F<=DuBDI-{&k3
-zzUlQx1`k-#bLDM!`adhc%V~wqojfYtT?fQ;Rn4F^ZFz){(E5-@t#HKgh3V0$2V=E}
-z1LS2zR3$~j&q<X-u>sWQrw}i}D71z+Kuj?yNyDR1W;@))Rut1CclZ^ViHWGlR(0(e
-hpHe`yPM{K#LA)QF35*8CnaRoU#H=_w8VF8^@C#EWzX|{V
-
-literal 0
-HcmV?d00001
-
+diff --git a/lib/efi_selftest/selftest_efi.d b/lib/efi_selftest/selftest_efi.d
+new file mode 100644
+index 0000000000..49ac16635a
+--- /dev/null
++++ b/lib/efi_selftest/selftest_efi.d
+@@ -0,0 +1 @@
++lib/efi_selftest/selftest_efi.d: lib/efi_selftest/selftest.o lib/efi_selftest/selftest_events.o
 diff --git a/lib/efi_selftest/selftest_events.c b/lib/efi_selftest/selftest_events.c
 new file mode 100644
 index 0000000000..6d67ebc3bc
