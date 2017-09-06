@@ -148,7 +148,7 @@ new file mode 100644
 index 0000000000..5d95990799
 --- /dev/null
 +++ b/include/efi_selftest.h
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,44 @@
 +/*
 + *  EFI application loader
 + *
@@ -161,6 +161,7 @@ index 0000000000..5d95990799
 +#define _EFI_SELFTEST_H
 +
 +#include <common.h>
++#include <efi.h>
 +#include <efi_api.h>
 +#include <linker_lists.h>
 +
@@ -292,7 +293,7 @@ index 0000000000..49ac16635a
 --- /dev/null
 +++ b/lib/efi_selftest/selftest_efi.d
 @@ -0,0 +1 @@
-+lib/efi_selftest/selftest_efi.d: lib/efi_selftest/selftest.o lib/efi_selftest/selftest_events.o
++lib/efi_selftest/selftest_efi.dep: lib/efi_selftest/selftest.o lib/efi_selftest/selftest_events.o
 diff --git a/lib/efi_selftest/selftest_events.c b/lib/efi_selftest/selftest_events.c
 new file mode 100644
 index 0000000000..6d67ebc3bc

@@ -1,7 +1,7 @@
-From d7a287242ba0780c1266ec9c52495e3c4afbba04 Mon Sep 17 00:00:00 2001
+From 457b365d7929be2451603510159ba6f6df94bbf0 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Tue, 5 Sep 2017 14:29:26 +0200
-Subject: [PATCH 1/1] efi_loader: allow multiple source files for EFI apps
+Date: Tue, 5 Sep 2017 16:07:19 +0200
+Subject: [PATCH v3 4/4] efi_loader: allow multiple source files for EFI apps
 
 With this patch an EFI application can be built
 out of multiple source files.
@@ -25,10 +25,15 @@ fail due to the outdated %_efi.d file.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v3:
+	Add missing dependencies for EFI binary
+	(EFI_CRT0, EFI_RELOC).
+	Support building out of tree.
+---
  lib/efi_loader/Makefile         |  3 +++
  lib/efi_loader/helloworld_efi.d |  1 +
- scripts/Makefile.lib            | 12 ++++++++++--
- 3 files changed, 14 insertions(+), 2 deletions(-)
+ scripts/Makefile.lib            | 13 +++++++++++--
+ 3 files changed, 15 insertions(+), 2 deletions(-)
  create mode 100644 lib/efi_loader/helloworld_efi.d
 
 diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
@@ -47,36 +52,37 @@ index 5200497230..d6a9635cc8 100644
  endif
 diff --git a/lib/efi_loader/helloworld_efi.d b/lib/efi_loader/helloworld_efi.d
 new file mode 100644
-index 0000000000..892db64c8b
+index 0000000000..fc70d1e383
 --- /dev/null
 +++ b/lib/efi_loader/helloworld_efi.d
 @@ -0,0 +1 @@
-+lib/efi_loader/helloworld_efi.d: lib/efi_loader/helloworld.o
++lib/efi_loader/helloworld_efi.dep: lib/efi_loader/helloworld.o
 diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index c73464b854..1a9f32902d 100644
+index ebc74f8987..f407d96537 100644
 --- a/scripts/Makefile.lib
 +++ b/scripts/Makefile.lib
-@@ -373,14 +373,22 @@ $(obj)/%.efi: $(obj)/%_efi.so
+@@ -373,14 +373,23 @@ $(obj)/%.efi: $(obj)/%_efi.so
  
  quiet_cmd_efi_ld = LD      $@
  cmd_efi_ld = $(LD) -nostdlib -znocombreloc -T $(EFI_LDS_PATH) -shared \
 -		-Bsymbolic $^ -o $@
-+		-Bsymbolic $(foreach _s, $($*-objs), $(obj)/$(_s)) -o $@
++		-Bsymbolic $(foreach _s, $($*-objs), $(obj)/$(_s)) \
++		arch/$(ARCH)/lib/$(EFI_CRT0) arch/$(ARCH)/lib/$(EFI_RELOC) \
++		-o $@
  
  EFI_LDS_PATH = $(srctree)/arch/$(ARCH)/lib/$(EFI_LDS)
  
 -$(obj)/%_efi.so: $(obj)/%.o arch/$(ARCH)/lib/$(EFI_CRT0) \
-+.PRECIOUS: $(obj)/%_efi.d
-+
-+$(obj)/%_efi.so: $(obj)/%.o $(obj)/%.d arch/$(ARCH)/lib/$(EFI_CRT0) \
++$(obj)/%_efi.so: $(obj)/%.o $(obj)/%_efi.dep arch/$(ARCH)/lib/$(EFI_CRT0) \
  		arch/$(ARCH)/lib/$(EFI_RELOC)
-+	@echo $(obj)/$*_efi.d: $(foreach _s, $($*-objs), $(obj)/$(_s)) \
++	@echo $(obj)/$*_efi.dep: $(foreach _s, $($*-objs), $(obj)/$(_s)) \
 +		> $(obj)/$*_efi.d
  	$(call cmd,efi_ld)
  
-+$(obj)/%.d:;
++$(obj)/%_efi.dep:;
 +
-+include $(wildcard $(foreach _s, $(filter %_efi.o, $(obj-y)), $(_s:.o=.d)))
++include $(wildcard $(foreach _s, \
++		     $(filter %_efi.o, $(obj-y)), $(_s:%.o=$(srctree)/%.d)))
 +
  # ACPI
  # ---------------------------------------------------------------------------
