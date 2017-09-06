@@ -1,4 +1,4 @@
-From 457b365d7929be2451603510159ba6f6df94bbf0 Mon Sep 17 00:00:00 2001
+From b2e31d618b26b3c545deafe2b1d82f83de975690 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 5 Sep 2017 16:07:19 +0200
 Subject: [PATCH v3 4/4] efi_loader: allow multiple source files for EFI apps
@@ -58,7 +58,7 @@ index 0000000000..fc70d1e383
 @@ -0,0 +1 @@
 +lib/efi_loader/helloworld_efi.dep: lib/efi_loader/helloworld.o
 diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index ebc74f8987..f407d96537 100644
+index ebc74f8987..97da58a70d 100644
 --- a/scripts/Makefile.lib
 +++ b/scripts/Makefile.lib
 @@ -373,14 +373,23 @@ $(obj)/%.efi: $(obj)/%_efi.so
@@ -82,7 +82,7 @@ index ebc74f8987..f407d96537 100644
 +$(obj)/%_efi.dep:;
 +
 +include $(wildcard $(foreach _s, \
-+		     $(filter %_efi.o, $(obj-y)), $(_s:%.o=$(srctree)/%.d)))
++		     $(filter %.efi, $(always)), $(_s:%.efi=$(srctree)/%_efi.d)))
 +
  # ACPI
  # ---------------------------------------------------------------------------
