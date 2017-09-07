@@ -1,7 +1,7 @@
-From 297c47902c68b1eab0314af58996a7c7a53ef149 Mon Sep 17 00:00:00 2001
+From d9a7ae4cdc9c59ee2ef4465b8028dd408368c374 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
-Subject: [PATCH 1/1] efi_selftest: provide an EFI efi_selftest application
+Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
 
 Provide a framework to which we can add all EFI API testing.
 
@@ -11,23 +11,25 @@ executed with the bootefi efi_selftest command.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- arch/arm/lib/Makefile              |  1 +
- arch/x86/config.mk                 |  2 +-
- arch/x86/lib/Makefile              |  2 +-
- cmd/Kconfig                        |  2 ++
- cmd/bootefi.c                      | 23 +++++++++++++++++---
- include/asm-generic/sections.h     |  2 ++
- include/efi_selftest.h             | 43 ++++++++++++++++++++++++++++++++++++++
- lib/Makefile                       |  1 +
- lib/efi_selftest/Kconfig           | 19 +++++++++++++++++
- lib/efi_selftest/Makefile          | 23 ++++++++++++++++++++
- lib/efi_selftest/efi_selftest.c        | 22 +++++++++++++++++++
- lib/efi_selftest/efi_selftest_efi.d    |  1 +
- lib/efi_selftest/efi_selftest_events.c | 19 +++++++++++++++++
- 13 files changed, 155 insertions(+), 5 deletions(-)
+ arch/arm/lib/Makefile                  |   1 +
+ arch/x86/config.mk                     |   2 +-
+ arch/x86/lib/Makefile                  |   2 +-
+ cmd/Kconfig                            |   2 +
+ cmd/bootefi.c                          |  25 +++++-
+ include/asm-generic/sections.h         |   2 +
+ include/efi_selftest.h                 |  49 ++++++++++++
+ lib/Makefile                           |   1 +
+ lib/efi_selftest/Kconfig               |  19 +++++
+ lib/efi_selftest/Makefile              |  26 ++++++
+ lib/efi_selftest/efi_conout.c          | 142 +++++++++++++++++++++++++++++++++
+ lib/efi_selftest/efi_selftest.c        |  39 +++++++++
+ lib/efi_selftest/efi_selftest_efi.d    |   1 +
+ lib/efi_selftest/efi_selftest_events.c |  35 ++++++++
+ 14 files changed, 340 insertions(+), 6 deletions(-)
  create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
+ create mode 100644 lib/efi_selftest/efi_conout.c
  create mode 100644 lib/efi_selftest/efi_selftest.c
  create mode 100644 lib/efi_selftest/efi_selftest_efi.d
  create mode 100644 lib/efi_selftest/efi_selftest_events.c
@@ -82,7 +84,7 @@ index d6d130edfa..3ef9b16b08 100644
  	bool "bootmenu"
  	select MENU
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index c5bfab1147..5bed03e003 100644
+index c5bfab1147..9dfa00032c 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -290,7 +290,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
@@ -104,7 +106,7 @@ index c5bfab1147..5bed03e003 100644
  #endif
 -	{
 +#ifdef CONFIG_CMD_BOOTEFI_SELFTEST
-+	if (!strcmp(argv[1], "efi_selftest")) {
++	if (!strcmp(argv[1], "selftest")) {
 +		ulong size = __efi_efi_selftest_end - __efi_efi_selftest_begin;
 +
 +		saddr = env_get("loadaddr");
@@ -119,19 +121,21 @@ index c5bfab1147..5bed03e003 100644
  		saddr = argv[1];
  
  		addr = simple_strtoul(saddr, NULL, 16);
-@@ -340,6 +353,10 @@ static char bootefi_help_text[] =
+@@ -338,7 +351,11 @@ static char bootefi_help_text[] =
+ 	"    exposed as EFI configuration table.\n"
+ #ifdef CONFIG_CMD_BOOTEFI_HELLO
  	"hello\n"
- 	"  - boot a sample Hello World application stored within U-Boot"
- #endif
-+#ifdef CONFIG_CMD_BOOTEFI_SELFTEST
-+	"hello\n"
-+	"  - boot an EFI efi_selftest application stored within U-Boot"
+-	"  - boot a sample Hello World application stored within U-Boot"
++	"  - boot a sample Hello World application stored within U-Boot\n"
 +#endif
++#ifdef CONFIG_CMD_BOOTEFI_SELFTEST
++	"selftest\n"
++	"  - boot an EFI efi_selftest application stored within U-Boot\n"
+ #endif
  	;
  #endif
- 
 diff --git a/include/asm-generic/sections.h b/include/asm-generic/sections.h
-index b6535705a5..5d48cbaa37 100644
+index b6535705a5..5594082b5b 100644
 --- a/include/asm-generic/sections.h
 +++ b/include/asm-generic/sections.h
 @@ -24,6 +24,8 @@ extern char __initdata_begin[], __initdata_end[];
@@ -145,10 +149,10 @@ index b6535705a5..5d48cbaa37 100644
  extern char __ctors_start[], __ctors_end[];
 diff --git a/include/efi_selftest.h b/include/efi_selftest.h
 new file mode 100644
-index 0000000000..5d95990799
+index 0000000000..fce2afc975
 --- /dev/null
 +++ b/include/efi_selftest.h
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,49 @@
 +/*
 + *  EFI application loader
 + *
@@ -166,15 +170,20 @@ index 0000000000..5d95990799
 +#include <linker_lists.h>
 +
 +enum efi_test_phase {
-+	EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	EFI_EXECUTE_BEFORE_BOOTTIME_EXIT = 1,
 +	EFI_SETUP_BEFORE_BOOTTIME_EXIT,
-+	EFI_SETUP_AFTER_BOOTTIME_EXT,
++	EFI_SETUP_AFTER_BOOTTIME_EXIT,
 +};
++
++struct efi_simple_text_output_protocol *con_out;
++
++void wsprintf(const char *fmt, ...)
++		 __attribute__ ((format (__printf__, 1, 2)));
 +
 +/**
 + * struct efi_unit_test - EFI unit test
 + *
-+ * A efi_unit_test provides a interface to an EFI unit test.
++ * An efi_unit_test provides a interface to an EFI unit test.
 + *
 + * @name: Name of unit test
 + * @phase: specifies when setup and execute are executed
@@ -207,7 +216,7 @@ index 2eef1eb80e..2ffec5a455 100644
  obj-$(CONFIG_ZLIB) += zlib/
 diff --git a/lib/efi_selftest/Kconfig b/lib/efi_selftest/Kconfig
 new file mode 100644
-index 0000000000..ff937a5dd9
+index 0000000000..5e67ed2422
 --- /dev/null
 +++ b/lib/efi_selftest/Kconfig
 @@ -0,0 +1,19 @@
@@ -232,10 +241,10 @@ index 0000000000..ff937a5dd9
 +	  the EFI API implementation.
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
 new file mode 100644
-index 0000000000..4f951db021
+index 0000000000..ed39f52b67
 --- /dev/null
 +++ b/lib/efi_selftest/Makefile
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,26 @@
 +:
 +# (C) Copyright 2016, Heinrich Schuchardt <xypron.glpk@gmx.de>
 +#
@@ -245,12 +254,15 @@ index 0000000000..4f951db021
 +# This file only gets included with CONFIG_EFI_LOADER set, so all
 +# object inclusion implicitly depends on it
 +
++CFLAGS_efi_conout.o := $(CFLAGS_EFI)
++CFLAGS_REMOVE_efi_conout.o := $(CFLAGS_NON_EFI)
 +CFLAGS_efi_selftest.o := $(CFLAGS_EFI)
 +CFLAGS_REMOVE_efi_selftest.o := $(CFLAGS_NON_EFI)
 +CFLAGS_efi_selftest_events.o := $(CFLAGS_EFI)
 +CFLAGS_REMOVE_efi_selftest_events.o := $(CFLAGS_NON_EFI)
 +
 +efi_selftest-objs = \
++efi_conout.o \
 +efi_selftest.o \
 +efi_selftest_events.o
 +
@@ -259,12 +271,12 @@ index 0000000000..4f951db021
 +endif
 +
 +obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += efi_selftest_efi.o
-diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
+diff --git a/lib/efi_selftest/efi_conout.c b/lib/efi_selftest/efi_conout.c
 new file mode 100644
-index 0000000000..c39544cfec
+index 0000000000..b13a7fd7ec
 --- /dev/null
-+++ b/lib/efi_selftest/efi_selftest.c
-@@ -0,0 +1,22 @@
++++ b/lib/efi_selftest/efi_conout.c
+@@ -0,0 +1,142 @@
 +/*
 + * EFI efi_selftest
 + *
@@ -274,48 +286,229 @@ index 0000000000..c39544cfec
 + */
 +
 +#include <efi_selftest.h>
++#include <vsprintf.h>
++
++struct efi_simple_text_output_protocol *con_out;
++
++/*
++ * Print a pointer to an u16 string
++ *
++ * @pointer: pointer
++ * @buf: pointer to buffer address
++ * on return position of terminating zero word
++ */
++static void pointer(void *pointer, u16 **buf)
++{
++	int i;
++	u16 c;
++	uintptr_t p = (uintptr_t) pointer;
++	u16 *pos = *buf;
++
++	for (i = 8 * sizeof(p) - 4; i >= 0; i -= 4) {
++		c = (p >> i) & 0x0f;
++		c += '0';
++		if (c > '9')
++			c += 'a' - '9' - 1;
++		*pos++ = c;
++	}
++	*pos = 0;
++	*buf = pos;
++}
++
++/*
++ * Print an unsigned 32bit value as decimal number to an u16 string
++ *
++ * @value: value to be printed
++ * @buf: pointer to buffer address
++ * on return position of terminating zero word
++ */
++static void uint2dec(u32 value, u16 **buf)
++{
++	u16 *pos = *buf;
++	int i;
++	u16 c;
++	/*
++	 * Increment by .5 and multiply with
++	 * (2 << 60) / 1,000,000,000 = 0x44B82FA0.9B5A52CC
++	 * to move the first digit to bit 60-63.
++	 */
++	u64 f = 0x225C17D0;
++	f += (0x9B5A52DULL * value) >> 28;
++	f += 0x44B82FA0ULL * value;
++
++	for (i = 0; i < 10; ++i) {
++		/* Write current digit */
++		c = f >> 60;
++		if (c || pos != *buf)
++			*pos++ = c + '0';
++		/* Eliminate current digit */
++		f &= 0xfffffffffffffff;
++		/* Get next digit */
++		f *= 0xaULL;
++	}
++	if (pos == *buf)
++		*pos++ = '0';
++	*pos = 0;
++	*buf = pos;
++}
++
++/*
++ * Print a formatted string to the EFI console
++ *
++ * @fmt: format string
++ * @...: optional arguments
++ */
++void wsprintf(const char *fmt, ...)
++{
++	va_list args;
++	u16 buf[160];
++	const char *c;
++	u16 *pos = buf;
++	const char *s;
++
++	va_start(args, fmt);
++
++	c = fmt;
++	for (; *c; ++c) {
++		switch (*c) {
++		case '\\':
++			++c;
++			switch (*c) {
++			case '\0':
++				--c;
++				break;
++			case 'n':
++				*pos++ = '\n';
++				break;
++			case 'r':
++				*pos++ = '\r';
++				break;
++			case 't':
++				*pos++ = '\t';
++				break;
++			default:
++				*pos++ = *c;
++			}
++			break;
++		case '%':
++			++c;
++			switch (*c) {
++			case '\0':
++				--c;
++				break;
++			case 'p':
++				pointer(va_arg(args, void*), &pos);
++				break;
++			case 's':
++				s = va_arg(args, const char *);
++				for (; *s; ++s)
++					*pos++ = *s;
++				break;
++			case 'u':
++				uint2dec(va_arg(args, u32), &pos);
++				break;
++			default:
++				break;
++			}
++			break;
++		default:
++			*pos++ = *c;
++		}
++	}
++	va_end(args);
++	*pos = 0;
++	con_out->output_string(con_out, buf);
++}
+diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
+new file mode 100644
+index 0000000000..63d6e183a9
+--- /dev/null
++++ b/lib/efi_selftest/efi_selftest.c
+@@ -0,0 +1,39 @@
++/*
++ * EFI efi_selftest
++ *
++ * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#include <efi_selftest.h>
++#include <vsprintf.h>
++
++static const struct efi_boot_services *boottime;
 +
 +efi_status_t EFIAPI efi_main(efi_handle_t handle,
 +			     struct efi_system_table *systable)
 +{
-+	struct efi_simple_text_output_protocol *con_out = systable->con_out;
-+	struct efi_boot_services *boottime = systable->boottime;
++	struct efi_unit_test *test;
 +
-+	con_out->output_string(con_out, L"Starting efi_selftest\n");
-+	con_out->output_string(con_out, L"Completed efi_selftest\n");
++	boottime = systable->boottime;
++	con_out = systable->con_out;
++
++	wsprintf("Starting efi_selftest\n");
++
++	wsprintf("Number of tests: %u\n", ll_entry_count(struct efi_unit_test, efi_unit_test));
++
++	test = ll_entry_start(struct efi_unit_test, efi_unit_test);
++	for (; test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
++		wsprintf("Found test: %s\n", test->name);
++		wsprintf("Execute routine %p\n", test->execute);
++		wsprintf("Setup routine %p\n", test->setup);
++		wsprintf("Phase %u\n", (u32) test->phase);
++		/* test->setup(handle, systable); */
++	}
++
++	wsprintf("Completed efi_selftest\n");
 +	boottime->exit(handle, 0, 0, NULL);
 +
 +	return EFI_SUCCESS;
 +}
 diff --git a/lib/efi_selftest/efi_selftest_efi.d b/lib/efi_selftest/efi_selftest_efi.d
 new file mode 100644
-index 0000000000..49ac16635a
+index 0000000000..f53b94b86d
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_efi.d
 @@ -0,0 +1 @@
-+lib/efi_selftest/efi_selftest_efi.dep: lib/efi_selftest/efi_selftest.o lib/efi_selftest/efi_selftest_events.o
++lib/efi_selftest/efi_selftest_efi.dep: lib/efi_selftest/efi_conout.o lib/efi_selftest/efi_selftest.o lib/efi_selftest/efi_selftest_events.o
 diff --git a/lib/efi_selftest/efi_selftest_events.c b/lib/efi_selftest/efi_selftest_events.c
 new file mode 100644
-index 0000000000..6d67ebc3bc
+index 0000000000..54db5a8d73
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_events.c
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,35 @@
 +
 +#include <efi_selftest.h>
 +
 +static int setup(efi_handle_t handle, struct efi_system_table *systable)
 +{
++	wsprintf("%s(%d) %s\n", __FILE__, __LINE__, __func__);
 +	return 0;
 +}
 +
 +int execute(void)
 +{
++	wsprintf("%s(%d) %s\n", __FILE__, __LINE__, __func__);
 +	return 0;
 +}
 +
 +EFI_UNIT_TEST(events) = {
 +	.name = "event services",
 +	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++};
++
++EFI_UNIT_TEST(events2) = {
++	.name = "EventServices2",
++	.phase = EFI_SETUP_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++};
++
++EFI_UNIT_TEST(events3) = {
++	.name = "EventServices3",
++	.phase = EFI_SETUP_AFTER_BOOTTIME_EXIT,
 +	.setup = setup,
 +	.execute = execute,
 +};
