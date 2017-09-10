@@ -1,7 +1,7 @@
-From 2c60372bb308372c43b934cb01db0f742f461532 Mon Sep 17 00:00:00 2001
+From a9a728538ea9e29ee306a83813ed77931d84467b Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
-Subject: [PATCH 1/1] efi_selftest: provide an EFI efi_selftest application
+Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
 
 Provide a framework to which we can add all EFI API testing.
 
@@ -15,17 +15,17 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  arch/x86/config.mk                     |   2 +-
  arch/x86/lib/Makefile                  |   2 +-
  cmd/Kconfig                            |   2 +
- cmd/bootefi.c                          |  25 +++++-
+ cmd/bootefi.c                          |  25 ++++-
  include/asm-generic/sections.h         |   2 +
- include/efi_selftest.h                 |  49 ++++++++++++
+ include/efi_selftest.h                 |  49 ++++++++++
  lib/Makefile                           |   1 +
- lib/efi_selftest/Kconfig               |  19 +++++
+ lib/efi_selftest/Kconfig               |  19 ++++
  lib/efi_selftest/Makefile              |  26 ++++++
- lib/efi_selftest/efi_conout.c          | 142 +++++++++++++++++++++++++++++++++
- lib/efi_selftest/efi_selftest.c        |  39 +++++++++
+ lib/efi_selftest/efi_conout.c          | 166 +++++++++++++++++++++++++++++++++
+ lib/efi_selftest/efi_selftest.c        |  51 ++++++++++
  lib/efi_selftest/efi_selftest_efi.d    |   1 +
- lib/efi_selftest/efi_selftest_events.c |  35 ++++++++
- 14 files changed, 340 insertions(+), 6 deletions(-)
+ lib/efi_selftest/efi_selftest_events.c |  38 ++++++++
+ 14 files changed, 379 insertions(+), 6 deletions(-)
  create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
@@ -273,10 +273,10 @@ index 0000000000..ed39f52b67
 +obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += efi_selftest_efi.o
 diff --git a/lib/efi_selftest/efi_conout.c b/lib/efi_selftest/efi_conout.c
 new file mode 100644
-index 0000000000..b13a7fd7ec
+index 0000000000..a87b9936bf
 --- /dev/null
 +++ b/lib/efi_selftest/efi_conout.c
-@@ -0,0 +1,142 @@
+@@ -0,0 +1,166 @@
 +/*
 + * EFI efi_selftest
 + *
@@ -353,6 +353,27 @@ index 0000000000..b13a7fd7ec
 +}
 +
 +/*
++ * Print a signed 32bit value as decimal number to an u16 string
++ *
++ * @value: value to be printed
++ * @buf: pointer to buffer address
++ * on return position of terminating zero word
++ */
++static void int2dec(s32 value, u16 **buf)
++{
++	u32 u;
++	u16 *pos = *buf;
++
++	if (value < 0) {
++		*pos++ = '-';
++		u = -value;
++	} else {
++		u = value;
++	}
++	uint2dec(u, &pos);
++	*buf = pos;
++}
++/*
 + * Print a formatted string to the EFI console
 + *
 + * @fmt: format string
@@ -396,6 +417,9 @@ index 0000000000..b13a7fd7ec
 +			case '\0':
 +				--c;
 +				break;
++			case 'd':
++				int2dec(va_arg(args, s32), &pos);
++				break;
 +			case 'p':
 +				pointer(va_arg(args, void*), &pos);
 +				break;
@@ -421,10 +445,10 @@ index 0000000000..b13a7fd7ec
 +}
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
 new file mode 100644
-index 0000000000..63d6e183a9
+index 0000000000..2cb79d7a08
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest.c
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,51 @@
 +/*
 + * EFI efi_selftest
 + *
@@ -452,11 +476,23 @@ index 0000000000..63d6e183a9
 +
 +	test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	for (; test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
++		int ret;
 +		wsprintf("Found test: %s\n", test->name);
 +		wsprintf("Execute routine %p\n", test->execute);
 +		wsprintf("Setup routine %p\n", test->setup);
 +		wsprintf("Phase %u\n", (u32) test->phase);
 +		/* test->setup(handle, systable); */
++
++		ret = test->setup(handle, systable);
++		if (ret)
++			wsprintf("Setup '%s' failed\n", test->name);
++		else
++			wsprintf("Setup '%s' succeeded\n", test->name);
++		ret = test->execute();
++		if (ret)
++			wsprintf("Execution '%s' failed\n", test->name);
++		else
++			wsprintf("Execution '%s' succeeded\n", test->name);
 +	}
 +
 +	wsprintf("Completed efi_selftest\n");
@@ -473,22 +509,25 @@ index 0000000000..f53b94b86d
 +lib/efi_selftest/efi_selftest_efi.dep: lib/efi_selftest/efi_conout.o lib/efi_selftest/efi_selftest.o lib/efi_selftest/efi_selftest_events.o
 diff --git a/lib/efi_selftest/efi_selftest_events.c b/lib/efi_selftest/efi_selftest_events.c
 new file mode 100644
-index 0000000000..54db5a8d73
+index 0000000000..c9588a8e3a
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_events.c
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,38 @@
 +
 +#include <efi_selftest.h>
 +
 +static int setup(efi_handle_t handle, struct efi_system_table *systable)
 +{
-+	wsprintf("%s(%d) %s\n", __FILE__, __LINE__, __func__);
++	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
 +	return 0;
 +}
 +
 +int execute(void)
 +{
-+	wsprintf("%s(%d) %s\n", __FILE__, __LINE__, __func__);
++	int i;
++	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
++	for (i = -3; i < 4; ++i)
++		wsprintf("i = %d\n", i);
 +	return 0;
 +}
 +
