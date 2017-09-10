@@ -14,6 +14,8 @@ git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 
+git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
+
 # EFI protocol services
 git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
@@ -47,6 +49,7 @@ git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 # git am ../patch/0001-efi_loader-rename-__efi_hello_world_.patch
 # git am ../patch/0001-scripts-Makefile.lib-generalize-building-built-in-EF.patch
 # git am ../patch/0001-efi_loader-usage-of-always-in-Makefile.patch
+git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch
 git am ../patch/0001-efi_loader-allow-multiple-source-files-for-EFI-apps.patch
 git am ../patch/0001-efi_selftest-provide-an-EFI-selftest-application.patch
 
