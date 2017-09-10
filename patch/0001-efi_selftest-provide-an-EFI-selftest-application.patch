@@ -1,7 +1,7 @@
-From 5270fa219b29fa67cbe7325d66cc75681362738a Mon Sep 17 00:00:00 2001
+From 2c60372bb308372c43b934cb01db0f742f461532 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
-Subject: [PATCH] efi_selftest: provide an EFI efi_selftest application
+Subject: [PATCH 1/1] efi_selftest: provide an EFI efi_selftest application
 
 Provide a framework to which we can add all EFI API testing.
 
@@ -45,7 +45,7 @@ index 6e1c436933..050789e12b 100644
 +extra-$(CONFIG_CMD_SELFTEST_COMPILE) += $(EFI_CRT0) $(EFI_RELOC)
  extra-$(CONFIG_EFI) += $(EFI_CRT0) $(EFI_RELOC)
 diff --git a/arch/x86/config.mk b/arch/x86/config.mk
-index 8835dcf36f..fe8639aef6 100644
+index fccb14fd06..a87dd33837 100644
 --- a/arch/x86/config.mk
 +++ b/arch/x86/config.mk
 @@ -91,7 +91,7 @@ else
@@ -55,8 +55,8 @@ index 8835dcf36f..fe8639aef6 100644
 -ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
 +ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE)$(CONFIG_CMD_SELFTEST_COMPILE),)
  
- ifneq ($(CONFIG_EFI_STUB_64BIT),)
- EFI_LDS := elf_x86_64_efi.lds
+ ifeq ($(IS_32BIT),y)
+ EFI_LDS := elf_ia32_efi.lds
 diff --git a/arch/x86/lib/Makefile b/arch/x86/lib/Makefile
 index fe00d7573f..6575e1a0cb 100644
 --- a/arch/x86/lib/Makefile

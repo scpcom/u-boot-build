@@ -40,7 +40,7 @@ index fe8639aef6..a87dd33837 100644
 +++ b/arch/x86/config.mk
 @@ -93,16 +93,16 @@ endif
  
- ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE)$(CONFIG_CMD_SELFTEST_COMPILE),)
+ ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
  
 -ifneq ($(CONFIG_EFI_STUB_64BIT),)
 -EFI_LDS := elf_x86_64_efi.lds
