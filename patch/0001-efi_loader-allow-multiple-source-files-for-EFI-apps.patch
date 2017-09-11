@@ -45,7 +45,7 @@ index 1a77779db4..d9171b0d8a 100644
  
  CFLAGS_NON_EFI := -fno-pic -ffixed-r9 -ffunction-sections -fdata-sections
 -CFLAGS_EFI := -fpic -fshort-wchar
-+CFLAGS_EFI := -no-pie -fno-PIE -fshort-wchar
++CFLAGS_EFI := -fno-PIE -fshort-wchar
  
  LDFLAGS_FINAL += --gc-sections
  PLATFORM_RELFLAGS += -ffunction-sections -fdata-sections \
@@ -58,7 +58,7 @@ index fccb14fd06..d802801dda 100644
  CFLAGS_NON_EFI := -mregparm=3
  endif
 -CFLAGS_EFI := -fpic -fshort-wchar
-+CFLAGS_EFI := -no-pie -fno-PIE -fshort-wchar
++CFLAGS_EFI := -fno-PIE -fshort-wchar
  
  ifeq ($(CONFIG_EFI_STUB_64BIT),)
  CFLAGS_EFI += $(call cc-option, -mno-red-zone)
