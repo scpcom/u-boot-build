@@ -1,4 +1,4 @@
-From a9a728538ea9e29ee306a83813ed77931d84467b Mon Sep 17 00:00:00 2001
+From a520e99873fe33e388ada90d455a28082283e1c7 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
 Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
@@ -22,10 +22,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  lib/efi_selftest/Kconfig               |  19 ++++
  lib/efi_selftest/Makefile              |  26 ++++++
  lib/efi_selftest/efi_conout.c          | 166 +++++++++++++++++++++++++++++++++
- lib/efi_selftest/efi_selftest.c        |  51 ++++++++++
+ lib/efi_selftest/efi_selftest.c        | 140 +++++++++++++++++++++++++++
  lib/efi_selftest/efi_selftest_efi.d    |   1 +
  lib/efi_selftest/efi_selftest_events.c |  38 ++++++++
- 14 files changed, 379 insertions(+), 6 deletions(-)
+ 14 files changed, 468 insertions(+), 6 deletions(-)
  create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
@@ -45,7 +45,7 @@ index 6e1c436933..050789e12b 100644
 +extra-$(CONFIG_CMD_SELFTEST_COMPILE) += $(EFI_CRT0) $(EFI_RELOC)
  extra-$(CONFIG_EFI) += $(EFI_CRT0) $(EFI_RELOC)
 diff --git a/arch/x86/config.mk b/arch/x86/config.mk
-index fccb14fd06..a87dd33837 100644
+index 62d00fb95f..4d7809c19c 100644
 --- a/arch/x86/config.mk
 +++ b/arch/x86/config.mk
 @@ -91,7 +91,7 @@ else
@@ -445,10 +445,10 @@ index 0000000000..a87b9936bf
 +}
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
 new file mode 100644
-index 0000000000..2cb79d7a08
+index 0000000000..5c93c4bd84
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest.c
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,140 @@
 +/*
 + * EFI efi_selftest
 + *
@@ -461,38 +461,127 @@ index 0000000000..2cb79d7a08
 +#include <vsprintf.h>
 +
 +static const struct efi_boot_services *boottime;
++static efi_handle_t handle;
 +
-+efi_status_t EFIAPI efi_main(efi_handle_t handle,
++static void exit_boot_services(void) {
++	unsigned long  map_size = 0;
++	unsigned long  map_key;
++	unsigned long desc_size;
++	uint32_t desc_version;
++	efi_status_t ret;
++	struct efi_mem_desc *memory_map;
++
++	ret = boottime->get_memory_map(&map_size, NULL, &map_key, &desc_size, &desc_version);
++	if (ret != EFI_BUFFER_TOO_SMALL) {
++		wsprintf("ERROR: GetMemoryMap did not return EFI_BUFFER_TOO_SMALL\n");
++		return;
++	}
++	/* Allocate extra space for newly allocated memory */
++	map_size += sizeof(struct efi_mem_desc);
++	ret = boottime->allocate_pool(EFI_BOOT_SERVICES_DATA, map_size, (void**)&memory_map);
++	if (ret != EFI_SUCCESS) {
++		wsprintf("ERROR: AllocatePool did not return EFI_SUCCESS\n");
++		return;
++	}
++	ret = boottime->get_memory_map(&map_size, memory_map, &map_key, &desc_size, &desc_version);
++	if (ret != EFI_SUCCESS) {
++		wsprintf("ERROR: GetMemoryMap did not return EFI_SUCCESS\n");
++		return;
++	}
++	wsprintf("Map key = %u\n", (unsigned) map_key);
++	ret = boottime->exit_boot_services(handle, map_key);
++	if (ret != EFI_SUCCESS) {
++		wsprintf("ERROR: ExitBootServices did not return EFI_SUCCESS\n");
++		return;
++	}
++	wsprintf("Boot services terminated\n");
++}
++
++efi_status_t EFIAPI efi_main(efi_handle_t image_handle,
 +			     struct efi_system_table *systable)
 +{
 +	struct efi_unit_test *test;
++	int ret;
 +
 +	boottime = systable->boottime;
++	handle = image_handle;
 +	con_out = systable->con_out;
 +
 +	wsprintf("Starting efi_selftest\n");
 +
 +	wsprintf("Number of tests: %u\n", ll_entry_count(struct efi_unit_test, efi_unit_test));
 +
-+	test = ll_entry_start(struct efi_unit_test, efi_unit_test);
-+	for (; test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+		int ret;
-+		wsprintf("Found test: %s\n", test->name);
-+		wsprintf("Execute routine %p\n", test->execute);
-+		wsprintf("Setup routine %p\n", test->setup);
-+		wsprintf("Phase %u\n", (u32) test->phase);
-+		/* test->setup(handle, systable); */
++	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
++	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +
++		if (test->phase != EFI_EXECUTE_BEFORE_BOOTTIME_EXIT)
++			continue;
++
++		wsprintf("Setting up '%s'\n", test->name);
 +		ret = test->setup(handle, systable);
 +		if (ret)
-+			wsprintf("Setup '%s' failed\n", test->name);
++			wsprintf("Setting up '%s' failed\n", test->name);
 +		else
-+			wsprintf("Setup '%s' succeeded\n", test->name);
++			wsprintf("Setting up '%s' succeeded\n", test->name);
++		wsprintf("Executing '%s'\n", test->name);
 +		ret = test->execute();
 +		if (ret)
-+			wsprintf("Execution '%s' failed\n", test->name);
++			wsprintf("Executing '%s' failed\n", test->name);
 +		else
-+			wsprintf("Execution '%s' succeeded\n", test->name);
++			wsprintf("Executing '%s' succeeded\n", test->name);
++	}
++
++	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
++	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
++
++		if (test->phase != EFI_SETUP_BEFORE_BOOTTIME_EXIT)
++			continue;
++		wsprintf("Test: %s\n", test->name);
++
++		wsprintf("Setting up '%s'\n", test->name);
++		ret = test->setup(handle, systable);
++		if (ret)
++			wsprintf("Setting up '%s' failed\n", test->name);
++		else
++			wsprintf("Setting up '%s' succeeded\n", test->name);
++	}
++
++	exit_boot_services();
++
++	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
++	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
++
++		if (test->phase != EFI_SETUP_BEFORE_BOOTTIME_EXIT)
++			continue;
++		wsprintf("Test: %s\n", test->name);
++
++		wsprintf("Executing '%s'\n", test->name);
++		ret = test->execute();
++		if (ret)
++			wsprintf("Executing '%s' failed\n", test->name);
++		else
++			wsprintf("Executing '%s' succeeded\n", test->name);
++	}
++
++	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
++	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
++
++		if (test->phase != EFI_SETUP_AFTER_BOOTTIME_EXIT)
++			continue;
++		wsprintf("Test: %s\n", test->name);
++
++		wsprintf("Setting up '%s'\n", test->name);
++		ret = test->setup(handle, systable);
++		if (ret)
++			wsprintf("Setting up '%s' failed\n", test->name);
++		else
++			wsprintf("Setting up '%s' succeeded\n", test->name);
++		wsprintf("Executing '%s'\n", test->name);
++		ret = test->execute();
++		if (ret)
++			wsprintf("Executing '%s' failed\n", test->name);
++		else
++			wsprintf("Executing '%s' succeeded\n", test->name);
 +	}
 +
 +	wsprintf("Completed efi_selftest\n");
