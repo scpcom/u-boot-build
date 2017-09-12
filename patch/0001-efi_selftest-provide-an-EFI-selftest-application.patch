@@ -1,4 +1,4 @@
-From a520e99873fe33e388ada90d455a28082283e1c7 Mon Sep 17 00:00:00 2001
+From a49fb1ce6def8d80539117798779d804359ff090 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
 Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
@@ -17,15 +17,15 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  cmd/Kconfig                            |   2 +
  cmd/bootefi.c                          |  25 ++++-
  include/asm-generic/sections.h         |   2 +
- include/efi_selftest.h                 |  49 ++++++++++
+ include/efi_selftest.h                 |  50 ++++++++++
  lib/Makefile                           |   1 +
  lib/efi_selftest/Kconfig               |  19 ++++
  lib/efi_selftest/Makefile              |  26 ++++++
  lib/efi_selftest/efi_conout.c          | 166 +++++++++++++++++++++++++++++++++
- lib/efi_selftest/efi_selftest.c        | 140 +++++++++++++++++++++++++++
+ lib/efi_selftest/efi_selftest.c        | 154 ++++++++++++++++++++++++++++++
  lib/efi_selftest/efi_selftest_efi.d    |   1 +
- lib/efi_selftest/efi_selftest_events.c |  38 ++++++++
- 14 files changed, 468 insertions(+), 6 deletions(-)
+ lib/efi_selftest/efi_selftest_events.c |  55 +++++++++++
+ 14 files changed, 500 insertions(+), 6 deletions(-)
  create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
@@ -149,10 +149,10 @@ index b6535705a5..5594082b5b 100644
  extern char __ctors_start[], __ctors_end[];
 diff --git a/include/efi_selftest.h b/include/efi_selftest.h
 new file mode 100644
-index 0000000000..a843d4778c
+index 0000000000..0da59897cd
 --- /dev/null
 +++ b/include/efi_selftest.h
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,50 @@
 +/*
 + *  EFI application loader
 + *
@@ -193,7 +193,8 @@ index 0000000000..a843d4778c
 +struct efi_unit_test {
 +	const char *name;
 +	const enum efi_test_phase phase;
-+	int (*setup)(efi_handle_t handle, struct efi_system_table *systable);
++	int (*setup)(const efi_handle_t handle,
++		     const struct efi_system_table *systable);
 +	int (*execute)(void);
 +};
 +
@@ -445,10 +446,10 @@ index 0000000000..a87b9936bf
 +}
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
 new file mode 100644
-index 0000000000..5c93c4bd84
+index 0000000000..ba122e8ad7
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest.c
-@@ -0,0 +1,140 @@
+@@ -0,0 +1,154 @@
 +/*
 + * EFI efi_selftest
 + *
@@ -460,10 +461,14 @@ index 0000000000..5c93c4bd84
 +#include <efi_selftest.h>
 +#include <vsprintf.h>
 +
++static const struct efi_system_table *systable;
 +static const struct efi_boot_services *boottime;
++static const struct efi_runtime_services *runtime;
 +static efi_handle_t handle;
++static u16 reset_message[] = L"Selftest completed";
 +
-+static void exit_boot_services(void) {
++static void exit_boot_services(void)
++{
 +	unsigned long  map_size = 0;
 +	unsigned long  map_key;
 +	unsigned long desc_size;
@@ -497,53 +502,71 @@ index 0000000000..5c93c4bd84
 +	wsprintf("Boot services terminated\n");
 +}
 +
-+efi_status_t EFIAPI efi_main(efi_handle_t image_handle,
-+			     struct efi_system_table *systable)
++static int setup(struct efi_unit_test *test, unsigned *failures)
 +{
-+	struct efi_unit_test *test;
 +	int ret;
 +
++	wsprintf("\nSetting up '%s'\n", test->name);
++	ret = test->setup(handle, systable);
++	if (ret) {
++		wsprintf("ERROR: Setting up '%s' failed\n", test->name);
++		++*failures;
++	} else {
++		wsprintf("Setting up '%s' succeeded\n", test->name);
++	}
++	return ret;
++}
++
++static int execute(struct efi_unit_test *test, unsigned *failures)
++{
++	int ret;
++
++	wsprintf("\nExecuting '%s'\n", test->name);
++	ret = test->execute();
++	if (ret) {
++		wsprintf("ERROR: Executing '%s' failed\n", test->name);
++		++*failures;
++	} else {
++		wsprintf("Executing '%s' succeeded\n", test->name);
++	}
++	return ret;
++}
++
++efi_status_t EFIAPI efi_main(efi_handle_t image_handle,
++                             struct efi_system_table *systab)
++{
++	struct efi_unit_test *test;
++	struct efi_simple_input_interface *con_in;
++	struct efi_input_key input_key;
++	unsigned failures = 0;
++	int ret;
++
++	systable = systab;
 +	boottime = systable->boottime;
++	runtime = systable->runtime;
 +	handle = image_handle;
 +	con_out = systable->con_out;
++	con_in = systable->con_in;
 +
 +	wsprintf("Starting efi_selftest\n");
 +
-+	wsprintf("Number of tests: %u\n", ll_entry_count(struct efi_unit_test, efi_unit_test));
++	wsprintf("Number of tests: %u\n",
++		 ll_entry_count(struct efi_unit_test, efi_unit_test));
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +
-+		if (test->phase != EFI_EXECUTE_BEFORE_BOOTTIME_EXIT)
-+			continue;
-+
-+		wsprintf("Setting up '%s'\n", test->name);
-+		ret = test->setup(handle, systable);
-+		if (ret)
-+			wsprintf("Setting up '%s' failed\n", test->name);
-+		else
-+			wsprintf("Setting up '%s' succeeded\n", test->name);
-+		wsprintf("Executing '%s'\n", test->name);
-+		ret = test->execute();
-+		if (ret)
-+			wsprintf("Executing '%s' failed\n", test->name);
-+		else
-+			wsprintf("Executing '%s' succeeded\n", test->name);
++		if (test->phase == EFI_EXECUTE_BEFORE_BOOTTIME_EXIT) {
++			setup(test, &failures);
++			execute(test, &failures);
++		}
 +	}
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +
-+		if (test->phase != EFI_SETUP_BEFORE_BOOTTIME_EXIT)
-+			continue;
-+		wsprintf("Test: %s\n", test->name);
-+
-+		wsprintf("Setting up '%s'\n", test->name);
-+		ret = test->setup(handle, systable);
-+		if (ret)
-+			wsprintf("Setting up '%s' failed\n", test->name);
-+		else
-+			wsprintf("Setting up '%s' succeeded\n", test->name);
++		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
++			setup(test, &failures);
 +	}
 +
 +	exit_boot_services();
@@ -551,43 +574,35 @@ index 0000000000..5c93c4bd84
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +
-+		if (test->phase != EFI_SETUP_BEFORE_BOOTTIME_EXIT)
-+			continue;
-+		wsprintf("Test: %s\n", test->name);
-+
-+		wsprintf("Executing '%s'\n", test->name);
-+		ret = test->execute();
-+		if (ret)
-+			wsprintf("Executing '%s' failed\n", test->name);
-+		else
-+			wsprintf("Executing '%s' succeeded\n", test->name);
++		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
++			execute(test, &failures);
 +	}
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +
-+		if (test->phase != EFI_SETUP_AFTER_BOOTTIME_EXIT)
-+			continue;
-+		wsprintf("Test: %s\n", test->name);
-+
-+		wsprintf("Setting up '%s'\n", test->name);
-+		ret = test->setup(handle, systable);
-+		if (ret)
-+			wsprintf("Setting up '%s' failed\n", test->name);
-+		else
-+			wsprintf("Setting up '%s' succeeded\n", test->name);
-+		wsprintf("Executing '%s'\n", test->name);
-+		ret = test->execute();
-+		if (ret)
-+			wsprintf("Executing '%s' failed\n", test->name);
-+		else
-+			wsprintf("Executing '%s' succeeded\n", test->name);
++		if (test->phase == EFI_SETUP_AFTER_BOOTTIME_EXIT) {
++			setup(test, &failures);
++			execute(test, &failures);
++		}
 +	}
 +
-+	wsprintf("Completed efi_selftest\n");
-+	boottime->exit(handle, 0, 0, NULL);
++	wsprintf("\nSummary: %u failures\n\n", failures);
++	wsprintf("Preparing for reset.\n");
++	/* Empty key buffer */
++	do {
++		ret = con_in->read_key_stroke(con_in, &input_key);
++	} while (ret == EFI_SUCCESS);
++	wsprintf("Press any key.\n");
++	/* Wait for next key */
++	do {
++		ret = con_in->read_key_stroke(con_in, &input_key);
++	} while (ret == EFI_NOT_READY);
++	runtime->reset_system(EFI_RESET_WARM, EFI_NOT_READY,
++	                      sizeof(reset_message), reset_message);
++	wsprintf("\nERROR: reset failed.\n");
 +
-+	return EFI_SUCCESS;
++	return EFI_UNSUPPORTED;
 +}
 diff --git a/lib/efi_selftest/efi_selftest_efi.d b/lib/efi_selftest/efi_selftest_efi.d
 new file mode 100644
@@ -598,14 +613,15 @@ index 0000000000..f53b94b86d
 +lib/efi_selftest/efi_selftest_efi.dep: lib/efi_selftest/efi_conout.o lib/efi_selftest/efi_selftest.o lib/efi_selftest/efi_selftest_events.o
 diff --git a/lib/efi_selftest/efi_selftest_events.c b/lib/efi_selftest/efi_selftest_events.c
 new file mode 100644
-index 0000000000..c9588a8e3a
+index 0000000000..607933bde3
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_events.c
-@@ -0,0 +1,38 @@
+@@ -0,0 +1,55 @@
 +
 +#include <efi_selftest.h>
 +
-+static int setup(efi_handle_t handle, struct efi_system_table *systable)
++static int setup(const efi_handle_t handle,
++		 const struct efi_system_table *systable)
 +{
 +	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
 +	return 0;
@@ -620,6 +636,22 @@ index 0000000000..c9588a8e3a
 +	return 0;
 +}
 +
++static int setup2(const efi_handle_t handle,
++		  const struct efi_system_table *systable)
++{
++	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
++	return 1;
++}
++
++int execute2(void)
++{
++	int i;
++	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
++	for (i = -3; i < 4; ++i)
++		wsprintf("i = %d\n", i);
++	return 1;
++}
++
 +EFI_UNIT_TEST(events) = {
 +	.name = "event services",
 +	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
@@ -630,8 +662,8 @@ index 0000000000..c9588a8e3a
 +EFI_UNIT_TEST(events2) = {
 +	.name = "EventServices2",
 +	.phase = EFI_SETUP_BEFORE_BOOTTIME_EXIT,
-+	.setup = setup,
-+	.execute = execute,
++	.setup = setup2,
++	.execute = execute2,
 +};
 +
 +EFI_UNIT_TEST(events3) = {

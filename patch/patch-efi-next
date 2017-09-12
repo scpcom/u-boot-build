@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Fix building u-boot.rom for qemu-x86_64_defconfig
+git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
+
 # Fix IDE
 git am ../patch/0001-blk-Use-macros-for-block-device-vendor-product-rev-s.patch
 git am ../patch/0002-block-ide-Fix-block-read-write-with-driver-model.patch
