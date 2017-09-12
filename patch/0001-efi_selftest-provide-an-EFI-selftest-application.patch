@@ -1,4 +1,4 @@
-From a49fb1ce6def8d80539117798779d804359ff090 Mon Sep 17 00:00:00 2001
+From 158b321ca739564f2e99de15dc0154e78f35965f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
 Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
@@ -17,15 +17,15 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  cmd/Kconfig                            |   2 +
  cmd/bootefi.c                          |  25 ++++-
  include/asm-generic/sections.h         |   2 +
- include/efi_selftest.h                 |  50 ++++++++++
+ include/efi_selftest.h                 |  54 +++++++++++
  lib/Makefile                           |   1 +
  lib/efi_selftest/Kconfig               |  19 ++++
- lib/efi_selftest/Makefile              |  26 ++++++
- lib/efi_selftest/efi_conout.c          | 166 +++++++++++++++++++++++++++++++++
- lib/efi_selftest/efi_selftest.c        | 154 ++++++++++++++++++++++++++++++
+ lib/efi_selftest/Makefile              |  26 +++++
+ lib/efi_selftest/efi_conout.c          | 166 ++++++++++++++++++++++++++++++++
+ lib/efi_selftest/efi_selftest.c        | 150 +++++++++++++++++++++++++++++
  lib/efi_selftest/efi_selftest_efi.d    |   1 +
- lib/efi_selftest/efi_selftest_events.c |  55 +++++++++++
- 14 files changed, 500 insertions(+), 6 deletions(-)
+ lib/efi_selftest/efi_selftest_events.c | 167 +++++++++++++++++++++++++++++++++
+ 14 files changed, 612 insertions(+), 6 deletions(-)
  create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
@@ -149,10 +149,10 @@ index b6535705a5..5594082b5b 100644
  extern char __ctors_start[], __ctors_end[];
 diff --git a/include/efi_selftest.h b/include/efi_selftest.h
 new file mode 100644
-index 0000000000..0da59897cd
+index 0000000000..dd5e60169f
 --- /dev/null
 +++ b/include/efi_selftest.h
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,54 @@
 +/*
 + *  EFI application loader
 + *
@@ -168,6 +168,10 @@ index 0000000000..0da59897cd
 +#include <efi.h>
 +#include <efi_api.h>
 +#include <linker_lists.h>
++
++#define st_error(...) \
++	wsprintf("%s(%u):\nERROR: ", __FILE__, __LINE__); \
++	wsprintf(__VA_ARGS__) \
 +
 +enum efi_test_phase {
 +	EFI_EXECUTE_BEFORE_BOOTTIME_EXIT = 1,
@@ -446,10 +450,10 @@ index 0000000000..a87b9936bf
 +}
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
 new file mode 100644
-index 0000000000..ba122e8ad7
+index 0000000000..15d3906a6b
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest.c
-@@ -0,0 +1,154 @@
+@@ -0,0 +1,150 @@
 +/*
 + * EFI efi_selftest
 + *
@@ -555,7 +559,6 @@ index 0000000000..ba122e8ad7
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+
 +		if (test->phase == EFI_EXECUTE_BEFORE_BOOTTIME_EXIT) {
 +			setup(test, &failures);
 +			execute(test, &failures);
@@ -564,7 +567,6 @@ index 0000000000..ba122e8ad7
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+
 +		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
 +			setup(test, &failures);
 +	}
@@ -573,14 +575,12 @@ index 0000000000..ba122e8ad7
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+
 +		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
 +			execute(test, &failures);
 +	}
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+
 +		if (test->phase == EFI_SETUP_AFTER_BOOTTIME_EXIT) {
 +			setup(test, &failures);
 +			execute(test, &failures);
@@ -599,7 +599,7 @@ index 0000000000..ba122e8ad7
 +		ret = con_in->read_key_stroke(con_in, &input_key);
 +	} while (ret == EFI_NOT_READY);
 +	runtime->reset_system(EFI_RESET_WARM, EFI_NOT_READY,
-+	                      sizeof(reset_message), reset_message);
++			      sizeof(reset_message), reset_message);
 +	wsprintf("\nERROR: reset failed.\n");
 +
 +	return EFI_UNSUPPORTED;
@@ -613,62 +613,174 @@ index 0000000000..f53b94b86d
 +lib/efi_selftest/efi_selftest_efi.dep: lib/efi_selftest/efi_conout.o lib/efi_selftest/efi_selftest.o lib/efi_selftest/efi_selftest_events.o
 diff --git a/lib/efi_selftest/efi_selftest_events.c b/lib/efi_selftest/efi_selftest_events.c
 new file mode 100644
-index 0000000000..607933bde3
+index 0000000000..ccca849008
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_events.c
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,167 @@
 +
 +#include <efi_selftest.h>
 +
++static struct efi_event *event_notify;
++static struct efi_event *event_wait;
++static unsigned int counter;
++static struct efi_boot_services *boottime;
++
++void EFIAPI notify(struct efi_event *event, void *context)
++{
++	if (!context)
++		return;
++	++*(unsigned int *)context;
++}
 +static int setup(const efi_handle_t handle,
 +		 const struct efi_system_table *systable)
 +{
-+	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
++	efi_status_t ret;
++
++	boottime = systable->boottime;
++
++	ret = boottime->create_event(EVT_TIMER | EVT_NOTIFY_SIGNAL,
++				     TPL_CALLBACK, notify, (void *)&counter,
++				     &event_notify);
++	if (ret != EFI_SUCCESS) {
++		st_error("could not create event\n");
++		return 1;
++	}
++	ret = boottime->create_event(EVT_TIMER | EVT_NOTIFY_WAIT,
++				     TPL_CALLBACK, notify, (void *)&counter,
++				     &event_wait);
++	if (ret != EFI_SUCCESS) {
++		st_error("could not create event\n");
++		return 1;
++	}
++	return 0;
++}
++
++int teardown(void)
++{
++	efi_status_t ret;
++
++	if (event_notify) {
++		ret = boottime->close_event(event_notify);
++		event_notify = NULL;
++		if (ret != EFI_SUCCESS) {
++			st_error("could not close event\n");
++			return 1;
++		}
++	}
++	if (event_wait) {
++		ret = boottime->close_event(event_wait);
++		event_wait = NULL;
++		if (ret != EFI_SUCCESS) {
++			st_error("could not close event\n");
++			return 1;
++		}
++	}
 +	return 0;
 +}
 +
 +int execute(void)
 +{
-+	int i;
-+	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
-+	for (i = -3; i < 4; ++i)
-+		wsprintf("i = %d\n", i);
-+	return 0;
-+}
++	unsigned long index;
++	efi_status_t ret;
 +
-+static int setup2(const efi_handle_t handle,
-+		  const struct efi_system_table *systable)
-+{
-+	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
-+	return 1;
-+}
++	/* Set 10 ms timer */
++	counter = 0;
++	ret = boottime->set_timer(event_notify, EFI_TIMER_PERIODIC, 100000);
++	if (ret != EFI_SUCCESS) {
++		st_error("Could not set timer\n");
++		teardown();
++		return 1;
++	}
++	/* Set 100 ms timer */
++	ret = boottime->set_timer(event_wait, EFI_TIMER_RELATIVE, 1000000);
++	if (ret != EFI_SUCCESS) {
++		st_error("Could not set timer\n");
++		teardown();
++		return 1;
++	}
 +
-+int execute2(void)
-+{
-+	int i;
-+	wsprintf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
-+	for (i = -3; i < 4; ++i)
-+		wsprintf("i = %d\n", i);
-+	return 1;
++	index = 5;
++	ret = boottime->wait_for_event(1, &event_wait, &index);
++	if (ret != EFI_SUCCESS) {
++		st_error("Could not wait for event\n");
++		teardown();
++		return 1;
++	}
++	if (index != 0) {
++		st_error("WaitForEvent returned wrong index\n");
++		teardown();
++		return 1;
++	}
++	wsprintf("Counter periodic: %u\n", counter);
++	if (counter < 8 || counter > 12) {
++		st_error("Incorrect timing of events\n");
++		teardown();
++		return 1;
++	}
++	ret = boottime->check_event(event_wait);
++	if (ret != EFI_NOT_READY) {
++		st_error("Signaled state was not cleared.\n");
++		teardown();
++		return 1;
++	}
++	ret = boottime->set_timer(event_notify, EFI_TIMER_STOP, 0);
++	if (index != 0) {
++		st_error("Could not cancel timer\n");
++		teardown();
++		return 1;
++	}
++	/* Set 10 ms timer */
++	counter = 0;
++	ret = boottime->set_timer(event_notify, EFI_TIMER_RELATIVE, 100000);
++	if (index != 0) {
++		st_error("Could not set timer\n");
++		teardown();
++		return 1;
++	}
++	/* Set 100 ms timer */
++	ret = boottime->set_timer(event_wait, EFI_TIMER_PERIODIC, 1000000);
++	if (index != 0) {
++		st_error("Could not set timer\n");
++		teardown();
++		return 1;
++	}
++	ret = boottime->wait_for_event(1, &event_wait, &index);
++	if (ret != EFI_SUCCESS) {
++		st_error("Could not wait for event\n");
++		teardown();
++		return 1;
++	}
++	wsprintf("Counter single shot: %u\n", counter);
++	if (counter != 1) {
++		st_error("Single shot timer failed\n");
++		teardown();
++		return 1;
++	}
++	ret = boottime->wait_for_event(1, &event_wait, &index);
++	if (ret != EFI_SUCCESS) {
++		st_error("Could not wait for event\n");
++		teardown();
++		return 1;
++	}
++	wsprintf("Stopped counter: %u\n", counter);
++	if (counter != 1) {
++		st_error("Stopped timer fired\n");
++		teardown();
++		return 1;
++	}
++	ret = boottime->set_timer(event_wait, EFI_TIMER_STOP, 0);
++	if (index != 0) {
++		st_error("Could not cancel timer\n");
++		teardown();
++		return 1;
++	}
++
++	return teardown();
 +}
 +
 +EFI_UNIT_TEST(events) = {
 +	.name = "event services",
 +	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
-+	.setup = setup,
-+	.execute = execute,
-+};
-+
-+EFI_UNIT_TEST(events2) = {
-+	.name = "EventServices2",
-+	.phase = EFI_SETUP_BEFORE_BOOTTIME_EXIT,
-+	.setup = setup2,
-+	.execute = execute2,
-+};
-+
-+EFI_UNIT_TEST(events3) = {
-+	.name = "EventServices3",
-+	.phase = EFI_SETUP_AFTER_BOOTTIME_EXIT,
 +	.setup = setup,
 +	.execute = execute,
 +};
