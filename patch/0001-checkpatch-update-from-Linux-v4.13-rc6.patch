@@ -1,7 +1,7 @@
-From 2d0a0ec72a239def7ee8b8cca7f2a8faa9346290 Mon Sep 17 00:00:00 2001
+From a59878d542834575a7ed7fceb78b89c6a059afed Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 26 Aug 2017 04:31:14 +0200
-Subject: [PATCH 1/1] checkpatch: update from Linux v4.13-rc6
+Subject: [PATCH v2 1/1] checkpatch: update from Linux v4.13-rc6
 
 Checkpatch produces the following warning:
 
@@ -22,9 +22,13 @@ We can later fill it according to our needs.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v2
+	Provide dummy entry in scripts/const_structs.checkpatch
+	to avoid false warnings.
+---
  scripts/checkpatch.pl            | 2644 ++++++++++++++++++++++++++++++++------
- scripts/const_structs.checkpatch |    0
- 2 files changed, 2222 insertions(+), 422 deletions(-)
+ scripts/const_structs.checkpatch |    2 +
+ 2 files changed, 2224 insertions(+), 422 deletions(-)
  create mode 100644 scripts/const_structs.checkpatch
 
 diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
@@ -4123,7 +4127,12 @@ index 3afc870f0f..2287a0bca8 100755
  }
 diff --git a/scripts/const_structs.checkpatch b/scripts/const_structs.checkpatch
 new file mode 100644
-index 0000000000..e69de29bb2
+index 0000000000..da775bca0c
+--- /dev/null
++++ b/scripts/const_structs.checkpatch
+@@ -0,0 +1,2 @@
++# Put structs here that should be constant
++__dummy__
 -- 
-2.14.1
+2.11.0
 
