@@ -218,7 +218,7 @@ index 2eef1eb80e..2ffec5a455 100644
 +obj-$(CONFIG_EFI_LOADER) += efi_selftest/
  obj-$(CONFIG_LZMA) += lzma/
  obj-$(CONFIG_LZO) += lzo/
- obj-$(CONFIG_ZLIB) += zlib/
+ obj-$(CONFIG_BZIP2) += bzip2/
 diff --git a/lib/efi_selftest/Kconfig b/lib/efi_selftest/Kconfig
 new file mode 100644
 index 0000000000..5e67ed2422
