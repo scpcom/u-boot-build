@@ -12,8 +12,8 @@ git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # EFI event services
+git am ../patch/0001-efi_loader-implement-queueing-of-the-notification-fu.patch
 git am ../patch/0001-efi_loader-efi_set_timer-reset-signaled-state.patch
-git am ../patch/0001-efi_loader-efi_check_events-should-invoke-notify-fun.patch
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 
 # Prepare EFI selftest
