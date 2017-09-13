@@ -1,4 +1,4 @@
-From 84520fcf53f8f366cfe449bb8a63e807083c4204 Mon Sep 17 00:00:00 2001
+From 27dba6a0bbac541bed1dfeb1b42d591ee065f92e Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 2 Sep 2017 08:07:49 +0200
 Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
@@ -24,8 +24,8 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  lib/efi_selftest/efi_conout.c          | 166 ++++++++++++++++++++++++++++++++
  lib/efi_selftest/efi_selftest.c        | 150 +++++++++++++++++++++++++++++
  lib/efi_selftest/efi_selftest_efi.d    |   1 +
- lib/efi_selftest/efi_selftest_events.c | 168 +++++++++++++++++++++++++++++++++
- 14 files changed, 613 insertions(+), 6 deletions(-)
+ lib/efi_selftest/efi_selftest_events.c | 167 +++++++++++++++++++++++++++++++++
+ 14 files changed, 612 insertions(+), 6 deletions(-)
  create mode 100644 include/efi_selftest.h
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
@@ -84,10 +84,10 @@ index d6d130edfa..3ef9b16b08 100644
  	bool "bootmenu"
  	select MENU
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index c5bfab1147..9dfa00032c 100644
+index ffd50ba159..31889c3491 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
-@@ -290,7 +290,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
+@@ -289,7 +289,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt)
  /* Interpreter command to boot an arbitrary EFI image from memory */
  static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  {
@@ -97,7 +97,7 @@ index c5bfab1147..9dfa00032c 100644
  	unsigned long addr, fdt_addr = 0;
  	unsigned long r;
  
-@@ -306,9 +307,21 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+@@ -305,9 +306,21 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  		else
  			addr = CONFIG_SYS_LOAD_ADDR;
  		memcpy((char *)addr, __efi_helloworld_begin, size);
@@ -121,7 +121,7 @@ index c5bfab1147..9dfa00032c 100644
  		saddr = argv[1];
  
  		addr = simple_strtoul(saddr, NULL, 16);
-@@ -338,7 +351,11 @@ static char bootefi_help_text[] =
+@@ -337,7 +350,11 @@ static char bootefi_help_text[] =
  	"    exposed as EFI configuration table.\n"
  #ifdef CONFIG_CMD_BOOTEFI_HELLO
  	"hello\n"
@@ -208,7 +208,7 @@ index 0000000000..dd5e60169f
 +
 +#endif /* _EFI_SELFTEST_H */
 diff --git a/lib/Makefile b/lib/Makefile
-index 2eef1eb80e..2ffec5a455 100644
+index 15bba9eac2..8b339dfa22 100644
 --- a/lib/Makefile
 +++ b/lib/Makefile
 @@ -9,6 +9,7 @@ ifndef CONFIG_SPL_BUILD
@@ -613,10 +613,10 @@ index 0000000000..f53b94b86d
 +lib/efi_selftest/efi_selftest_efi.dep: lib/efi_selftest/efi_conout.o lib/efi_selftest/efi_selftest.o lib/efi_selftest/efi_selftest_events.o
 diff --git a/lib/efi_selftest/efi_selftest_events.c b/lib/efi_selftest/efi_selftest_events.c
 new file mode 100644
-index 0000000000..b3122a1b3e
+index 0000000000..d787b49399
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_events.c
-@@ -0,0 +1,168 @@
+@@ -0,0 +1,167 @@
 +
 +#include <efi_selftest.h>
 +
@@ -646,8 +646,7 @@ index 0000000000..b3122a1b3e
 +		return 1;
 +	}
 +	ret = boottime->create_event(EVT_TIMER | EVT_NOTIFY_WAIT,
-+				     TPL_CALLBACK, notify, (void *)&counter,
-+				     &event_wait);
++				     TPL_CALLBACK, notify, NULL, &event_wait);
 +	if (ret != EFI_SUCCESS) {
 +		st_error("could not create event\n");
 +		return 1;
