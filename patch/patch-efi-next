@@ -52,9 +52,6 @@ git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 
 # Prepare EFI selftest
-# git am ../patch/0001-efi_loader-rename-__efi_hello_world_.patch
-# git am ../patch/0001-scripts-Makefile.lib-generalize-building-built-in-EF.patch
-# git am ../patch/0001-efi_loader-usage-of-always-in-Makefile.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
 git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch
@@ -66,12 +63,6 @@ git am ../patch/0001-efi_selftest-provide-an-EFI-selftest-application.patch
 exit
 
 # Print GUIDs
-git am ../patch/0001-Kconfig-add-option-to-build-with-fshort-wchar.patch
-git am ../patch/0002-lib-add-some-utf16-handling-helpers.patch
-git am ../patch/0003-vsprintf.c-add-UTF-16-string-ls-support.patch
-git am ../patch/0004-vsprintf.c-add-GUID-printing.patch
-git am ../patch/0005-examples-add-fallback-memcpy.patch
-
 git am ../patch/0001-efi_loader-write-protocol-GUID-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-debug-messages-for-protocol-interfaces.patch
 git am ../patch/0001-efi_loader-switch-on-debug-in-efi_boottime.patch
