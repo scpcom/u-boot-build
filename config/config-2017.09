@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2017.09-rc4 Configuration
+# U-Boot 2017.09 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
@@ -932,6 +932,7 @@ CONFIG_MD5=y
 # CONFIG_LZ4 is not set
 # CONFIG_LZMA is not set
 # CONFIG_LZO is not set
+# CONFIG_SPL_GZIP is not set
 # CONFIG_ERRNO_STR is not set
 CONFIG_OF_LIBFDT=y
 # CONFIG_OF_LIBFDT_OVERLAY is not set
