@@ -1,0 +1,150 @@
+From 37c60fc88f3cfd4e71e93ce8e899a58b01f92cb0 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 14 Sep 2017 18:17:29 +0200
+Subject: [PATCH 1/1] efi_selftest: check notification of ExitBootServices
+
+Check that the notification function of an
+EVT_SIGNAL_EXIT_BOOT_SERVICES event is called
+exactly once.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/Makefile                        |   3 +
+ lib/efi_selftest/efi_selftest_exitbootservices.c | 106 +++++++++++++++++++++++
+ 2 files changed, 109 insertions(+)
+ create mode 100644 lib/efi_selftest/efi_selftest_exitbootservices.c
+
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index ddf304e1fa..4a2152c46c 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -13,6 +13,8 @@ CFLAGS_efi_selftest_console.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_console.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_events.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_events.o := $(CFLAGS_NON_EFI)
++CFLAGS_efi_selftest_exitbootservices.o := $(CFLAGS_EFI)
++CFLAGS_REMOVE_efi_selftest_exitbootservices.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_tpl.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_tpl.o := $(CFLAGS_NON_EFI)
+ 
+@@ -20,4 +22,5 @@ obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
+ efi_selftest.o \
+ efi_selftest_console.o \
+ efi_selftest_events.o \
++efi_selftest_exitbootservices.o \
+ efi_selftest_tpl.o
+diff --git a/lib/efi_selftest/efi_selftest_exitbootservices.c b/lib/efi_selftest/efi_selftest_exitbootservices.c
+new file mode 100644
+index 0000000000..091b48974c
+--- /dev/null
++++ b/lib/efi_selftest/efi_selftest_exitbootservices.c
+@@ -0,0 +1,106 @@
++/*
++ * efi_selftest_events
++ *
++ * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ *
++ * This unit test checks that the notification function of an
++ * EVT_SIGNAL_EXIT_BOOT_SERVICES event is called exactly once.
++ */
++
++#include <efi_selftest.h>
++
++static struct efi_event *event_notify;
++static unsigned int counter;
++
++/*
++ * Notification function, increments a counter.
++ *
++ * @event	notified event
++ * @context	pointer to the counter
++ */
++static void EFIAPI notify(struct efi_event *event, void *context)
++{
++	if (!context)
++		return;
++	++*(unsigned int *)context;
++}
++
++/*
++ * Setup unit test.
++ *
++ * Create an EVT_SIGNAL_EXIT_BOOT_SERVICES event.
++ *
++ * @handle:	handle of the loaded image
++ * @systable:	system table
++ */
++static int setup(const efi_handle_t handle,
++		 const struct efi_system_table *systable)
++{
++	efi_status_t ret;
++
++	boottime = systable->boottime;
++
++	counter = 0;
++	ret = boottime->create_event(EVT_SIGNAL_EXIT_BOOT_SERVICES,
++				     TPL_CALLBACK, notify, (void *)&counter,
++				     &event_notify);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("could not create event\n");
++		return 1;
++	}
++	return 0;
++}
++
++/*
++ * Tear down unit test.
++ *
++ * Close the event created in setup.
++ */
++static int teardown(void)
++{
++	efi_status_t ret;
++
++	if (event_notify) {
++		ret = boottime->close_event(event_notify);
++		event_notify = NULL;
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("could not close event\n");
++			return 1;
++		}
++	}
++	return 0;
++}
++
++/*
++ * Execute unit test.
++ *
++ * Check that the notification function of the EVT_SIGNAL_EXIT_BOOT_SERVICES
++ * event has been called.
++ *
++ * Call ExitBootServices again and check that the notification function is
++ * not called again.
++ */
++static int execute(void)
++{
++
++	if (counter != 1) {
++		efi_st_error("ExitBootServices was not notified");
++		return 1;
++	}
++	efi_st_exit_boot_services();
++	if (counter != 1) {
++		efi_st_error("ExitBootServices was notified twice");
++		return 1;
++	}
++	return 0;
++}
++
++EFI_UNIT_TEST(exitbootservices) = {
++	.name = "ExitBootServices",
++	.phase = EFI_SETUP_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++	.teardown = teardown,
++};
+-- 
+2.11.0
+

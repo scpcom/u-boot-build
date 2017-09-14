@@ -1,4 +1,4 @@
-From 613a71034798f3cc71c681031a0e9c16112c02df Mon Sep 17 00:00:00 2001
+From 6e375cb77f23329879eba40c1af536101e1ce8e2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 1 Aug 2017 08:00:01 +0200
 Subject: [PATCH 1/1] efi_loader: implement ConnectController
@@ -7,11 +7,11 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_api.h             |  22 ++++++++
  include/efi_loader.h          |   1 +
- lib/efi_loader/efi_boottime.c | 120 +++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 142 insertions(+), 1 deletion(-)
+ lib/efi_loader/efi_boottime.c | 119 +++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 141 insertions(+), 1 deletion(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index 1b853ff4c5..35569572a8 100644
+index 8efc8dfab8..b2838125d7 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
 @@ -609,4 +609,26 @@ struct efi_pxe {
@@ -42,10 +42,10 @@ index 1b853ff4c5..35569572a8 100644
 +
  #endif
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 91421f84c5..18d4285c58 100644
+index acce19fe8a..830efddafd 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -74,6 +74,7 @@ extern const struct efi_device_path_to_text_protocol efi_device_path_to_text;
+@@ -82,6 +82,7 @@ extern const struct efi_device_path_to_text_protocol efi_device_path_to_text;
  
  extern const efi_guid_t efi_guid_console_control;
  extern const efi_guid_t efi_guid_device_path;
@@ -54,7 +54,7 @@ index 91421f84c5..18d4285c58 100644
  extern const efi_guid_t efi_guid_device_path_to_text_protocol;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 21c2d04377..8ed3c017f9 100644
+index 9de4f00f47..258af179c9 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -18,6 +18,14 @@
@@ -69,10 +69,10 @@ index 21c2d04377..8ed3c017f9 100644
 +			const efi_guid_t *protocol, void *search_key,
 +			unsigned long *no_handles, efi_handle_t **buffer);
 +
- /* This list contains all the EFI objects our payload has access to */
- LIST_HEAD(efi_obj_list);
+ /* Task priority level */
+ static UINTN efi_tpl = TPL_APPLICATION;
  
-@@ -49,6 +57,9 @@ static struct efi_configuration_table __efi_runtime_data efi_conf_table[2];
+@@ -52,6 +60,9 @@ static struct efi_configuration_table __efi_runtime_data efi_conf_table[2];
  static volatile void *efi_gd, *app_gd;
  #endif
  
@@ -82,7 +82,7 @@ index 21c2d04377..8ed3c017f9 100644
  static int entry_count;
  static int nesting_level;
  
-@@ -917,15 +928,121 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -979,15 +990,121 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  	return efi_unsupported(__func__);
  }
  
@@ -206,5 +206,5 @@ index 21c2d04377..8ed3c017f9 100644
  
  static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
 -- 
-2.14.1
+2.11.0
 
