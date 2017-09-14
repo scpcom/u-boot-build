@@ -136,7 +136,7 @@ index 0000000000..db96a16c36
 + *
 + * Run a 100 ms single shot timer and check that it is called once
 + * while waiting for 100 ms periodic timer for two periods.
-+ */ 
++ */
 +static int execute(void)
 +{
 +	unsigned long index;
@@ -165,7 +165,7 @@ index 0000000000..db96a16c36
 +	ret = boottime->check_event(event_wait);
 +	if (ret != EFI_NOT_READY) {
 +		efi_st_error("Signaled state was not cleared.\n");
-+		efi_st_printf("ret = %u\n", (unsigned int) ret);
++		efi_st_printf("ret = %u\n", (unsigned int)ret);
 +		return 1;
 +	}
 +	if (index != 0) {

@@ -145,7 +145,7 @@ index 0000000000..f688a1860c
 + *
 + * Lower the TPL level and check that the queued notification
 + * function is called.
-+ */ 
++ */
 +static int execute(void)
 +{
 +	unsigned long index;
@@ -174,7 +174,7 @@ index 0000000000..f688a1860c
 +	ret = boottime->check_event(event_wait);
 +	if (ret != EFI_NOT_READY) {
 +		efi_st_error("Signaled state was not cleared.\n");
-+		efi_st_printf("ret = %u\n", (unsigned int) ret);
++		efi_st_printf("ret = %u\n", (unsigned int)ret);
 +		return 1;
 +	}
 +	if (index != 0) {

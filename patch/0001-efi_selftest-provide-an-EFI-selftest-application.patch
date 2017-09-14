@@ -1,4 +1,4 @@
-From d965b83d71104326f10d67608f8c147d8bb9ee6e Mon Sep 17 00:00:00 2001
+From da88759b380e672d895b01f8804a207f1aa60b38 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Sep 2017 08:27:33 +0200
 Subject: [PATCH 1/1] efi_selftest: provide an EFI selftest application
@@ -21,23 +21,23 @@ After executing all tests the system is reset.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- MAINTAINERS                             |   4 +-
+ MAINTAINERS                             |   5 +-
  cmd/Kconfig                             |   2 +
  cmd/bootefi.c                           |  25 +++-
  include/efi_loader.h                    |   9 ++
  lib/Makefile                            |   1 +
- lib/efi_selftest/Kconfig                |   7 ++
+ lib/efi_selftest/Kconfig                |   7 +
  lib/efi_selftest/Makefile               |  17 +++
- lib/efi_selftest/efi_selftest.c         | 212 ++++++++++++++++++++++++++++++++
- lib/efi_selftest/efi_selftest_console.c | 184 +++++++++++++++++++++++++++
- 9 files changed, 456 insertions(+), 5 deletions(-)
+ lib/efi_selftest/efi_selftest.c         | 219 ++++++++++++++++++++++++++++++++
+ lib/efi_selftest/efi_selftest_console.c | 187 +++++++++++++++++++++++++++
+ 9 files changed, 467 insertions(+), 5 deletions(-)
  create mode 100644 lib/efi_selftest/Kconfig
  create mode 100644 lib/efi_selftest/Makefile
  create mode 100644 lib/efi_selftest/efi_selftest.c
  create mode 100644 lib/efi_selftest/efi_selftest_console.c
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 04acf2b89d..bb6c0a6bd1 100644
+index 04acf2b89d..0b7b2bbeb2 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
 @@ -259,8 +259,9 @@ EFI PAYLOAD
@@ -116,10 +116,10 @@ index ffd50ba159..b5368a12b8 100644
  	;
  #endif
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index ac7d23008a..25398ba40c 100644
+index f27192555e..f74b33d589 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -256,6 +256,15 @@ efi_status_t __efi_runtime EFIAPI efi_get_time(
+@@ -254,6 +254,15 @@ efi_status_t __efi_runtime EFIAPI efi_get_time(
  			struct efi_time_cap *capabilities);
  void efi_get_time_init(void);
  
@@ -162,7 +162,7 @@ index 0000000000..3b5f3a1230
 +	  the EFI API implementation.
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
 new file mode 100644
-index 0000000000..17afb03e38
+index 0000000000..34f5ff1838
 --- /dev/null
 +++ b/lib/efi_selftest/Makefile
 @@ -0,0 +1,17 @@
@@ -185,10 +185,10 @@ index 0000000000..17afb03e38
 +efi_selftest_console.o
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
 new file mode 100644
-index 0000000000..71d9fb2817
+index 0000000000..447e7d4464
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest.c
-@@ -0,0 +1,212 @@
+@@ -0,0 +1,219 @@
 +/*
 + * EFI efi_selftest
 + *
@@ -219,30 +219,37 @@ index 0000000000..71d9fb2817
 +	unsigned long  map_size = 0;
 +	unsigned long  map_key;
 +	unsigned long desc_size;
-+	uint32_t desc_version;
++	u32 desc_version;
 +	efi_status_t ret;
 +	struct efi_mem_desc *memory_map;
 +
-+	ret = boottime->get_memory_map(&map_size, NULL, &map_key, &desc_size, &desc_version);
++	ret = boottime->get_memory_map(&map_size, NULL, &map_key, &desc_size,
++				       &desc_version);
 +	if (ret != EFI_BUFFER_TOO_SMALL) {
-+		efi_st_printf("ERROR: GetMemoryMap did not return EFI_BUFFER_TOO_SMALL\n");
++		efi_st_printf("ERROR: GetMemoryMap did not return "
++			      "EFI_BUFFER_TOO_SMALL\n");
 +		return;
 +	}
 +	/* Allocate extra space for newly allocated memory */
 +	map_size += sizeof(struct efi_mem_desc);
-+	ret = boottime->allocate_pool(EFI_BOOT_SERVICES_DATA, map_size, (void**)&memory_map);
++	ret = boottime->allocate_pool(EFI_BOOT_SERVICES_DATA, map_size,
++				      (void **)&memory_map);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_printf("ERROR: AllocatePool did not return EFI_SUCCESS\n");
++		efi_st_printf("ERROR: AllocatePool did not return "
++			      "EFI_SUCCESS\n");
 +		return;
 +	}
-+	ret = boottime->get_memory_map(&map_size, memory_map, &map_key, &desc_size, &desc_version);
++	ret = boottime->get_memory_map(&map_size, memory_map, &map_key,
++				       &desc_size, &desc_version);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_printf("ERROR: GetMemoryMap did not return EFI_SUCCESS\n");
++		efi_st_printf("ERROR: GetMemoryMap did not return "
++			      "EFI_SUCCESS\n");
 +		return;
 +	}
 +	ret = boottime->exit_boot_services(handle, map_key);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_printf("ERROR: ExitBootServices did not return EFI_SUCCESS\n");
++		efi_st_printf("ERROR: ExitBootServices did not return "
++			      "EFI_SUCCESS\n");
 +		return;
 +	}
 +	efi_st_printf("\nBoot services terminated\n");
@@ -254,7 +261,7 @@ index 0000000000..71d9fb2817
 + * @test	the test to be executed
 + * @failures	counter that will be incremented if a failure occurs
 + */
-+static int setup(struct efi_unit_test *test, unsigned *failures)
++static int setup(struct efi_unit_test *test, unsigned int *failures)
 +{
 +	int ret;
 +
@@ -277,7 +284,7 @@ index 0000000000..71d9fb2817
 + * @test	the test to be executed
 + * @failures	counter that will be incremented if a failure occurs
 + */
-+static int execute(struct efi_unit_test *test, unsigned *failures)
++static int execute(struct efi_unit_test *test, unsigned int *failures)
 +{
 +	int ret;
 +
@@ -300,7 +307,7 @@ index 0000000000..71d9fb2817
 + * @test	the test to be torn down
 + * @failures	counter that will be incremented if a failure occurs
 + */
-+static int teardown(struct efi_unit_test *test, unsigned *failures)
++static int teardown(struct efi_unit_test *test, unsigned int *failures)
 +{
 +	int ret;
 +
@@ -338,7 +345,7 @@ index 0000000000..71d9fb2817
 +				 struct efi_system_table *systab)
 +{
 +	struct efi_unit_test *test;
-+	unsigned failures = 0;
++	unsigned int failures = 0;
 +
 +	systable = systab;
 +	boottime = systable->boottime;
@@ -350,7 +357,7 @@ index 0000000000..71d9fb2817
 +	efi_st_printf("\nTesting EFI API implementation\n");
 +
 +	efi_st_printf("\nNumber of tests to execute: %u\n",
-+		 ll_entry_count(struct efi_unit_test, efi_unit_test));
++		      ll_entry_count(struct efi_unit_test, efi_unit_test));
 +
 +	/* Execute boottime tests */
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
@@ -403,10 +410,10 @@ index 0000000000..71d9fb2817
 +}
 diff --git a/lib/efi_selftest/efi_selftest_console.c b/lib/efi_selftest/efi_selftest_console.c
 new file mode 100644
-index 0000000000..a2c576ec8d
+index 0000000000..7b5b724a61
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_console.c
-@@ -0,0 +1,184 @@
+@@ -0,0 +1,187 @@
 +/*
 + * EFI efi_selftest
 + *
@@ -432,7 +439,7 @@ index 0000000000..a2c576ec8d
 +{
 +	int i;
 +	u16 c;
-+	uintptr_t p = (uintptr_t) pointer;
++	uintptr_t p = (uintptr_t)pointer;
 +	u16 *pos = *buf;
 +
 +	for (i = 8 * sizeof(p) - 4; i >= 0; i -= 4) {
@@ -458,12 +465,14 @@ index 0000000000..a2c576ec8d
 +	u16 *pos = *buf;
 +	int i;
 +	u16 c;
++	u64 f;
++
 +	/*
 +	 * Increment by .5 and multiply with
 +	 * (2 << 60) / 1,000,000,000 = 0x44B82FA0.9B5A52CC
 +	 * to move the first digit to bit 60-63.
 +	 */
-+	u64 f = 0x225C17D0;
++	f = 0x225C17D0;
 +	f += (0x9B5A52DULL * value) >> 28;
 +	f += 0x44B82FA0ULL * value;
 +
@@ -504,6 +513,7 @@ index 0000000000..a2c576ec8d
 +	uint2dec(u, &pos);
 +	*buf = pos;
 +}
++
 +/*
 + * Print a formatted string to the EFI console
 + *
@@ -580,7 +590,7 @@ index 0000000000..a2c576ec8d
 + *
 + * @return: Unicode character
 + */
-+u16 efi_st_get_key()
++u16 efi_st_get_key(void)
 +{
 +	struct efi_input_key input_key;
 +	efi_status_t ret;

@@ -38,7 +38,7 @@ index 2b0dc53a8f..1bca2b1208 100644
  		EFI_CALL_VOID(event->notify_function(event,
  						     event->notify_context));
  	}
-@@ -176,14 +181,32 @@ static efi_status_t efi_unsupported(const char *funcname)
+@@ -176,14 +181,31 @@ static efi_status_t efi_unsupported(const char *funcname)
  
  static unsigned long EFIAPI efi_raise_tpl(UINTN new_tpl)
  {
@@ -61,7 +61,6 @@ index 2b0dc53a8f..1bca2b1208 100644
  {
  	EFI_ENTRY("0x%zx", old_tpl);
 -	efi_unsupported(__func__);
-+
 +
 +	if (old_tpl > efi_tpl)
 +		debug("WARNING: old_tpl > current_tpl in %s\n", __func__);

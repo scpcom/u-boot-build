@@ -95,7 +95,7 @@ index 2c9379a8ae..c57350a605 100644
  		    now < efi_events[i].trigger_next)
  			continue;
 -		if (efi_events[i].trigger_type == EFI_TIMER_PERIODIC) {
-+		switch(efi_events[i].trigger_type) {
++		switch (efi_events[i].trigger_type) {
 +		case EFI_TIMER_RELATIVE:
 +			efi_events[i].trigger_type = EFI_TIMER_STOP;
 +			break;
@@ -119,17 +119,16 @@ index 2c9379a8ae..c57350a605 100644
  	for (i = 0; i < num_events; ++i) {
  		for (j = 0; j < ARRAY_SIZE(efi_events); ++j) {
  			if (event[i] == &efi_events[j])
-@@ -386,6 +397,9 @@ static efi_status_t EFIAPI efi_wait_for_event(unsigned long num_events,
+@@ -386,6 +397,8 @@ static efi_status_t EFIAPI efi_wait_for_event(unsigned long num_events,
  known_event:
  		if (!event[i]->type || event[i]->type & EVT_NOTIFY_SIGNAL)
  			return EFI_EXIT(EFI_INVALID_PARAMETER);
-+		if (!event[i]->signaled) {
++		if (!event[i]->signaled)
 +			efi_signal_event(event[i]);
-+		}
  	}
  
  	/* Wait for signal */
-@@ -418,7 +432,12 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
+@@ -418,7 +432,11 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
  	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
  		if (event != &efi_events[i])
  			continue;
@@ -137,9 +136,8 @@ index 2c9379a8ae..c57350a605 100644
 +		if (event->signaled)
 +			break;
 +		event->signaled = 1;
-+		if (event->type & EVT_NOTIFY_SIGNAL) {
++		if (event->type & EVT_NOTIFY_SIGNAL)
 +			efi_signal_event(event);
-+		}
  		break;
  	}
  	return EFI_EXIT(EFI_SUCCESS);
