@@ -1,31 +1,33 @@
 #!/bin/sh
 
+# EFI event services
+git am ../patch/0001-efi_selftest-provide-an-EFI-selftest-application.patch
+git am ../patch/0001-efi_loader-implement-queueing-of-the-notification-fu.patch
+git am ../patch/0001-efi_loader-implement-task-priority-level-TPL.patch
+git am ../patch/0001-efi_loader-efi_set_timer-reset-signaled-state.patch
+git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
+
+#Diverse
+git am ../patch/0001-checkpatch-update-from-Linux-v4.13-rc6.patch
+exit
 # Fix building u-boot.rom for qemu-x86_64_defconfig
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
 # Diverse
 git am ../patch/0001-efi_loader-move-efi_guid_t-typedef-to-efi.h.patch
 git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
-git am ../patch/0001-checkpatch-update-from-Linux-v4.13-rc6.patch
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 
 git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
-# EFI event services
-git am ../patch/0001-efi_loader-implement-queueing-of-the-notification-fu.patch
-git am ../patch/0001-efi_loader-implement-task-priority-level-TPL.patch
-git am ../patch/0001-efi_loader-efi_set_timer-reset-signaled-state.patch
-git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
-
 # Prepare EFI selftest
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
-git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch
-git am ../patch/0001-elf2efi.c-ignore-R_ARM_V4BX.patch
-git am ../patch/0001-efi_loader-allow-multiple-source-files-for-EFI-apps.patch
-git am ../patch/0001-efi_selftest-provide-an-EFI-selftest-application.patch
+# git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch
+# git am ../patch/0001-elf2efi.c-ignore-R_ARM_V4BX.patch
+# git am ../patch/0001-efi_loader-allow-multiple-source-files-for-EFI-apps.patch
+# git am ../patch/0001-efi_selftest-provide-an-EFI-selftest-application.patch
 
-exit
 # EFI protocol services
 git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
