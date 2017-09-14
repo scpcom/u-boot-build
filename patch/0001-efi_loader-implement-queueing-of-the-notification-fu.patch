@@ -1,4 +1,4 @@
-From 0c7d137f205d470d4bf995ad37aec43f59ac1872 Mon Sep 17 00:00:00 2001
+From da71f5f2c2f45e3b7120a1fe892bdb8eed3e3847 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 13 Sep 2017 08:37:24 +0200
 Subject: [PATCH 1/1] efi_loader: implement queueing of the notification
@@ -22,14 +22,18 @@ In efi_timer_check call the efi_notify_event
 if the status queued is set.
 For all timer events set status signaled.
 
+In efi_console_timer_notify set the signaled state of the
+WaitForKey event.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |  4 +++-
- lib/efi_loader/efi_boottime.c | 42 ++++++++++++++++++++++++++++++++----------
- 2 files changed, 35 insertions(+), 11 deletions(-)
+ lib/efi_loader/efi_boottime.c | 40 ++++++++++++++++++++++++++++++----------
+ lib/efi_loader/efi_console.c  |  4 +++-
+ 3 files changed, 36 insertions(+), 12 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index f27192555e..ac7d23008a 100644
+index f74b33d589..25398ba40c 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -131,7 +131,8 @@ struct efi_object {
@@ -51,7 +55,7 @@ index f27192555e..ac7d23008a 100644
  };
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 2c9379a8ae..c57350a605 100644
+index 2c9379a8ae..408b4a9097 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -159,13 +159,13 @@ static u64 efi_div10(u64 a)
@@ -128,7 +132,7 @@ index 2c9379a8ae..c57350a605 100644
  	}
  
  	/* Wait for signal */
-@@ -418,7 +432,11 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
+@@ -418,7 +431,11 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
  	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
  		if (event != &efi_events[i])
  			continue;
@@ -141,7 +145,7 @@ index 2c9379a8ae..c57350a605 100644
  		break;
  	}
  	return EFI_EXIT(EFI_SUCCESS);
-@@ -433,6 +452,7 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
+@@ -433,6 +450,7 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
  		if (event == &efi_events[i]) {
  			event->type = 0;
  			event->trigger_next = -1ULL;
@@ -149,7 +153,7 @@ index 2c9379a8ae..c57350a605 100644
  			event->signaled = 0;
  			return EFI_EXIT(EFI_SUCCESS);
  		}
-@@ -451,6 +471,8 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+@@ -451,6 +469,8 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  			continue;
  		if (!event->type || event->type & EVT_NOTIFY_SIGNAL)
  			break;
@@ -158,6 +162,22 @@ index 2c9379a8ae..c57350a605 100644
  		if (event->signaled)
  			return EFI_EXIT(EFI_SUCCESS);
  		return EFI_EXIT(EFI_NOT_READY);
+diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
+index 3fc82b8726..65c07fdf37 100644
+--- a/lib/efi_loader/efi_console.c
++++ b/lib/efi_loader/efi_console.c
+@@ -426,8 +426,10 @@ static void EFIAPI efi_console_timer_notify(struct efi_event *event,
+ 					    void *context)
+ {
+ 	EFI_ENTRY("%p, %p", event, context);
+-	if (tstc())
++	if (tstc()) {
++		efi_con_in.wait_for_key->signaled = 1;
+ 		efi_signal_event(efi_con_in.wait_for_key);
++		}
+ 	EFI_EXIT(EFI_SUCCESS);
+ }
+ 
 -- 
 2.11.0
 
