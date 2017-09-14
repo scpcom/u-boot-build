@@ -26,6 +26,7 @@ git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # Prepare EFI selftest
+git am ../patch/0001-x86-qemu-enable-EFI-selftest.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
 # git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch

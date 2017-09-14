@@ -8,20 +8,10 @@ if CONFIG_CMD_EFI_SELFTEST=y.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- configs/qemu-x86_defconfig         |  1 +
  test/py/tests/test_efi_selftest.py | 24 ++++++++++++++++++++++++
  2 files changed, 25 insertions(+)
  create mode 100644 test/py/tests/test_efi_selftest.py
 
-diff --git a/configs/qemu-x86_defconfig b/configs/qemu-x86_defconfig
-index 7ce97ff091..d84e1d7dc9 100644
---- a/configs/qemu-x86_defconfig
-+++ b/configs/qemu-x86_defconfig
-@@ -44,3 +44,4 @@ CONFIG_USB_KEYBOARD=y
- CONFIG_FRAMEBUFFER_SET_VESA_MODE=y
- CONFIG_FRAMEBUFFER_VESA_MODE_111=y
- CONFIG_CONSOLE_SCROLL_LINES=5
-+CONFIG_CMD_BOOTEFI_SELFTEST=y
 diff --git a/test/py/tests/test_efi_selftest.py b/test/py/tests/test_efi_selftest.py
 new file mode 100644
 index 0000000000..d819e84bc0
