@@ -113,7 +113,7 @@ index ffd50ba159..b5368a12b8 100644
 +#endif
 +#ifdef CONFIG_CMD_BOOTEFI_SELFTEST
 +	"bootefi selftest\n"
-+	"  - boot an EFI efi_selftest application stored within U-Boot\n"
++	"  - boot an EFI selftest application stored within U-Boot\n"
  #endif
  	;
  #endif
