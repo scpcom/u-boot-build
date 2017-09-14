@@ -3,11 +3,12 @@
 # EFI event services
 git am ../patch/0001-efi_loader-allow-return-value-in-EFI_CALL.patch
 git am ../patch/0001-efi_selftest-provide-an-EFI-selftest-application.patch
+git am ../patch/0001-test-py-add-a-test-calling-the-EFI-selftest.patch
 git am ../patch/0001-efi_loader-implement-queueing-of-the-notification-fu.patch
 git am ../patch/0001-efi_loader-efi_set_timer-reset-signaled-state.patch
 git am ../patch/0001-efi_selftest-provide-unit-test-for-event-services.patch
-exit
 git am ../patch/0001-efi_loader-implement-task-priority-level-TPL.patch
+exit
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 
 #Diverse

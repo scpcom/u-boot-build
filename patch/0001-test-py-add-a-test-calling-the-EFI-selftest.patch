@@ -1,0 +1,57 @@
+From 6f3255d4a4e6482f59402c8024782bfae1ec1450 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 14 Sep 2017 16:01:54 +0200
+Subject: [PATCH 1/1] test/py: add a test calling the EFI selftest
+
+A Python test script is provided that runs the EFI selftest
+if CONFIG_CMD_EFI_SELFTEST=y.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ configs/qemu-x86_defconfig         |  1 +
+ test/py/tests/test_efi_selftest.py | 24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
+ create mode 100644 test/py/tests/test_efi_selftest.py
+
+diff --git a/configs/qemu-x86_defconfig b/configs/qemu-x86_defconfig
+index 7ce97ff091..d84e1d7dc9 100644
+--- a/configs/qemu-x86_defconfig
++++ b/configs/qemu-x86_defconfig
+@@ -44,3 +44,4 @@ CONFIG_USB_KEYBOARD=y
+ CONFIG_FRAMEBUFFER_SET_VESA_MODE=y
+ CONFIG_FRAMEBUFFER_VESA_MODE_111=y
+ CONFIG_CONSOLE_SCROLL_LINES=5
++CONFIG_CMD_BOOTEFI_SELFTEST=y
+diff --git a/test/py/tests/test_efi_selftest.py b/test/py/tests/test_efi_selftest.py
+new file mode 100644
+index 0000000000..d819e84bc0
+--- /dev/null
++++ b/test/py/tests/test_efi_selftest.py
+@@ -0,0 +1,24 @@
++# Copyright (c) 2016, NVIDIA CORPORATION. All rights reserved.
++# Copyright (c) 2017, Heinrich Schuchardt <xypron.glpk@gmx.de>
++#
++# SPDX-License-Identifier: GPL-2.0
++
++# Test efi API implementation
++
++import pytest
++import u_boot_utils
++
++@pytest.mark.buildconfigspec('cmd_bootefi_selftest')
++def test_efi_selftest(u_boot_console):
++	"""
++	Run bootefi selftest
++	"""
++
++	u_boot_console.run_command(cmd='bootefi selftest', wait_for_prompt=False)
++	m = u_boot_console.p.expect(['Summary: 0 failures', 'Press any key'])
++	if m != 0:
++		raise Exception('Failures occured during the EFI selftest')
++	u_boot_console.run_command(cmd='', wait_for_echo=False, wait_for_prompt=False);
++	m = u_boot_console.p.expect(['resetting', 'U-Boot'])
++	if m != 0:
++		raise Exception('Reset failed during the EFI selftest')
+-- 
+2.11.0
+

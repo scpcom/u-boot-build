@@ -40,7 +40,7 @@ diff --git a/MAINTAINERS b/MAINTAINERS
 index 04acf2b89d..bb6c0a6bd1 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -259,8 +259,8 @@ EFI PAYLOAD
+@@ -259,8 +259,9 @@ EFI PAYLOAD
  M:	Alexander Graf <agraf@suse.de>
  S:	Maintained
  T:	git git://github.com/agraf/u-boot.git
@@ -48,6 +48,7 @@ index 04acf2b89d..bb6c0a6bd1 100644
 -F:	lib/efi_loader/
 +F:	include/efi*
 +F:	lib/efi*
++F:	test/py/tests/test_efi*
  F:	cmd/bootefi.c
  
  FLATTENED DEVICE TREE
