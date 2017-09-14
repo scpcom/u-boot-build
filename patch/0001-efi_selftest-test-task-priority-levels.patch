@@ -1,41 +1,47 @@
-From 32c4f3e87b7312e87337fad9421fc6cded813a28 Mon Sep 17 00:00:00 2001
+From c8e9325399dd569912332c0c9e20a9da43c912c0 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Thu, 14 Sep 2017 09:09:26 +0200
-Subject: [PATCH 1/1] efi_selftest: provide unit test for event services
+Date: Thu, 14 Sep 2017 17:18:18 +0200
+Subject: [PATCH 1/1] efi_selftest: test task priority levels
 
-This unit test uses timer events to check the implementation
-of the following boottime services:
-CreateEvent, CloseEvent, WaitForEvent, CheckEvent, SetTimer
+Run a 10 ms periodic timer and check that it is called 10 times
+while waiting for 100 ms single shot timer.
+
+Raise the TPL level to the level of the 10 ms timer and observe
+that the notification function is not called again.
+
+Lower the TPL level and check that the queued notification
+function is called.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_selftest/Makefile              |   5 +-
- lib/efi_selftest/efi_selftest_events.c | 195 +++++++++++++++++++++++++++++++++
- 2 files changed, 199 insertions(+), 1 deletion(-)
- create mode 100644 lib/efi_selftest/efi_selftest_events.c
+ lib/efi_selftest/Makefile           |   5 +-
+ lib/efi_selftest/efi_selftest_tpl.c | 214 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 218 insertions(+), 1 deletion(-)
+ create mode 100644 lib/efi_selftest/efi_selftest_tpl.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 34f5ff1838..a71c8bf937 100644
+index a71c8bf937..ddf304e1fa 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
-@@ -11,7 +11,10 @@ CFLAGS_efi_selftest.o := $(CFLAGS_EFI)
- CFLAGS_REMOVE_efi_selftest.o := $(CFLAGS_NON_EFI)
- CFLAGS_efi_selftest_console.o := $(CFLAGS_EFI)
+@@ -13,8 +13,11 @@ CFLAGS_efi_selftest_console.o := $(CFLAGS_EFI)
  CFLAGS_REMOVE_efi_selftest_console.o := $(CFLAGS_NON_EFI)
-+CFLAGS_efi_selftest_events.o := $(CFLAGS_EFI)
-+CFLAGS_REMOVE_efi_selftest_events.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_events.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_events.o := $(CFLAGS_NON_EFI)
++CFLAGS_efi_selftest_tpl.o := $(CFLAGS_EFI)
++CFLAGS_REMOVE_efi_selftest_tpl.o := $(CFLAGS_NON_EFI)
  
  obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
  efi_selftest.o \
--efi_selftest_console.o
-+efi_selftest_console.o \
-+efi_selftest_events.o
-diff --git a/lib/efi_selftest/efi_selftest_events.c b/lib/efi_selftest/efi_selftest_events.c
+ efi_selftest_console.o \
+-efi_selftest_events.o
++efi_selftest_events.o \
++efi_selftest_tpl.o
+diff --git a/lib/efi_selftest/efi_selftest_tpl.c b/lib/efi_selftest/efi_selftest_tpl.c
 new file mode 100644
-index 0000000000..db96a16c36
+index 0000000000..f688a1860c
 --- /dev/null
-+++ b/lib/efi_selftest/efi_selftest_events.c
-@@ -0,0 +1,195 @@
++++ b/lib/efi_selftest/efi_selftest_tpl.c
+@@ -0,0 +1,214 @@
 +/*
 + * efi_selftest_events
 + *
@@ -43,9 +49,8 @@ index 0000000000..db96a16c36
 + *
 + * SPDX-License-Identifier:     GPL-2.0+
 + *
-+ * This unit test uses timer events to check the implementation
-+ * of the following boottime services:
-+ * CreateEvent, CloseEvent, WaitForEvent, CheckEvent, SetTimer.
++ * This unit test uses timer events to check the handling of
++ * task priority levels.
 + */
 +
 +#include <efi_selftest.h>
@@ -92,7 +97,7 @@ index 0000000000..db96a16c36
 +		return 1;
 +	}
 +	ret = boottime->create_event(EVT_TIMER | EVT_NOTIFY_WAIT,
-+				     TPL_CALLBACK, notify, NULL, &event_wait);
++				     TPL_HIGH_LEVEL, notify, NULL, &event_wait);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("could not create event\n");
 +		return 1;
@@ -125,6 +130,7 @@ index 0000000000..db96a16c36
 +			return 1;
 +		}
 +	}
++	boottime->restore_tpl(TPL_APPLICATION);
 +	return 0;
 +}
 +
@@ -134,13 +140,17 @@ index 0000000000..db96a16c36
 + * Run a 10 ms periodic timer and check that it is called 10 times
 + * while waiting for 100 ms single shot timer.
 + *
-+ * Run a 100 ms single shot timer and check that it is called once
-+ * while waiting for 100 ms periodic timer for two periods.
++ * Raise the TPL level to the level of the 10 ms timer and observe
++ * that the notification function is not called again.
++ *
++ * Lower the TPL level and check that the queued notification
++ * function is called.
 + */ 
 +static int execute(void)
 +{
 +	unsigned long index;
 +	efi_status_t ret;
++	UINTN old_tpl;
 +
 +	/* Set 10 ms timer */
 +	counter = 0;
@@ -155,7 +165,6 @@ index 0000000000..db96a16c36
 +		efi_st_error("Could not set timer\n");
 +		return 1;
 +	}
-+
 +	index = 5;
 +	ret = boottime->wait_for_event(1, &event_wait, &index);
 +	if (ret != EFI_SUCCESS) {
@@ -172,7 +181,7 @@ index 0000000000..db96a16c36
 +		efi_st_error("WaitForEvent returned wrong index\n");
 +		return 1;
 +	}
-+	efi_st_printf("Counter periodic: %u\n", counter);
++	efi_st_printf("Counter with TPL level TPL_APPLICATION: %u\n", counter);
 +	if (counter < 8 || counter > 12) {
 +		efi_st_error("Incorrect timing of events\n");
 +		return 1;
@@ -182,37 +191,53 @@ index 0000000000..db96a16c36
 +		efi_st_error("Could not cancel timer\n");
 +		return 1;
 +	}
++	/* Raise TPL level */
++	old_tpl = boottime->raise_tpl(TPL_CALLBACK);
++	if (old_tpl != TPL_APPLICATION) {
++		efi_st_error("Initial TPL level was not TPL_APPLICATION");
++		return 1;
++	}
 +	/* Set 10 ms timer */
 +	counter = 0;
-+	ret = boottime->set_timer(event_notify, EFI_TIMER_RELATIVE, 100000);
++	ret = boottime->set_timer(event_notify, EFI_TIMER_PERIODIC, 100000);
 +	if (index != 0) {
 +		efi_st_error("Could not set timer\n");
 +		return 1;
 +	}
 +	/* Set 100 ms timer */
-+	ret = boottime->set_timer(event_wait, EFI_TIMER_PERIODIC, 1000000);
-+	if (index != 0) {
++	ret = boottime->set_timer(event_wait, EFI_TIMER_RELATIVE, 1000000);
++	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Could not set timer\n");
 +		return 1;
 +	}
++	do {
++		ret = boottime->check_event(event_wait);
++	} while (ret == EFI_NOT_READY);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Could not check event\n");
++		return 1;
++	}
++	efi_st_printf("Counter with TPL level TPL_CALLBACK: %u\n", counter);
++	if (counter != 0) {
++		efi_st_error("Suppressed timer fired\n");
++		return 1;
++	}
++	/* Set 1 ms timer */
++	ret = boottime->set_timer(event_wait, EFI_TIMER_RELATIVE, 1000);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Could not set timer\n");
++		return 1;
++	}
++	/* Restore the old TPL level */
++	boottime->restore_tpl(TPL_APPLICATION);
 +	ret = boottime->wait_for_event(1, &event_wait, &index);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Could not wait for event\n");
 +		return 1;
 +	}
-+	efi_st_printf("Counter single shot: %u\n", counter);
-+	if (counter != 1) {
-+		efi_st_error("Single shot timer failed\n");
-+		return 1;
-+	}
-+	ret = boottime->wait_for_event(1, &event_wait, &index);
-+	if (ret != EFI_SUCCESS) {
-+		efi_st_error("Could not wait for event\n");
-+		return 1;
-+	}
-+	efi_st_printf("Stopped counter: %u\n", counter);
-+	if (counter != 1) {
-+		efi_st_error("Stopped timer fired\n");
++	efi_st_printf("Counter with TPL level TPL_APPLICATION: %u\n", counter);
++	if (counter < 1) {
++		efi_st_error("Queued timer event did not fire\n");
 +		return 1;
 +	}
 +	ret = boottime->set_timer(event_wait, EFI_TIMER_STOP, 0);
@@ -224,8 +249,8 @@ index 0000000000..db96a16c36
 +	return 0;
 +}
 +
-+EFI_UNIT_TEST(events) = {
-+	.name = "event services",
++EFI_UNIT_TEST(tpl) = {
++	.name = "task priority levels",
 +	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
 +	.setup = setup,
 +	.execute = execute,

@@ -8,6 +8,8 @@ git am ../patch/0001-efi_loader-implement-queueing-of-the-notification-fu.patch
 git am ../patch/0001-efi_loader-efi_set_timer-reset-signaled-state.patch
 git am ../patch/0001-efi_selftest-provide-unit-test-for-event-services.patch
 git am ../patch/0001-efi_loader-implement-task-priority-level-TPL.patch
+git am ../patch/0001-efi_selftest-test-task-priority-levels.patch
+
 exit
 git am ../patch/0001-efi_loader-notify-when-ExitBootServices-is-invoked.patch
 
