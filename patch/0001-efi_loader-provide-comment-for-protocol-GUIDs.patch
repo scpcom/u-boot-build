@@ -1,0 +1,29 @@
+From 07c717e94c8496ff3903b2d47582869e06e683ce Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 15 Sep 2017 09:17:19 +0200
+Subject: [PATCH 1/1] efi_loader: provide comment for protocol GUIDs
+
+Add a missing comment.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 46d684f6df..bc48bf4e11 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -67,6 +67,9 @@ extern struct efi_simple_input_interface efi_con_in;
+ extern const struct efi_console_control_protocol efi_console_control;
+ extern const struct efi_device_path_to_text_protocol efi_device_path_to_text;
+ 
++/*
++ * GUIDs of UEFI protocols
++ */
+ extern const efi_guid_t efi_guid_console_control;
+ extern const efi_guid_t efi_guid_device_path;
+ extern const efi_guid_t efi_guid_loaded_image;
+-- 
+2.11.0
+
