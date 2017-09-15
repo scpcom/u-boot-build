@@ -1,4 +1,4 @@
-From 26e903914add34e8365613efed1cd8a8336fb5d4 Mon Sep 17 00:00:00 2001
+From 28fc370ae1c3333f25221108cec1c9d7c5768092 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 20 Aug 2017 15:32:33 +0200
 Subject: [PATCH 1/1] efi_loader: rework efi_locate_handle
@@ -9,14 +9,14 @@ Use list_for_each_entry instead of list_for_each.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 42 +++++++++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 11 deletions(-)
+ lib/efi_loader/efi_boottime.c | 44 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 32 insertions(+), 12 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 43f32385fa..e691d1bf83 100644
+index 0d234146d7..77c441eeb7 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -598,6 +598,7 @@ static int efi_search(enum efi_locate_search_type search_type,
+@@ -649,6 +649,7 @@ static int efi_search(enum efi_locate_search_type search_type,
  	case all_handles:
  		return 0;
  	case by_register_notify:
@@ -24,7 +24,7 @@ index 43f32385fa..e691d1bf83 100644
  		return -1;
  	case by_protocol:
  		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
-@@ -616,16 +617,38 @@ static efi_status_t efi_locate_handle(
+@@ -667,16 +668,38 @@ static efi_status_t efi_locate_handle(
  			efi_guid_t *protocol, void *search_key,
  			unsigned long *buffer_size, efi_handle_t *buffer)
  {
@@ -69,7 +69,7 @@ index 43f32385fa..e691d1bf83 100644
  	}
  
  	if (*buffer_size < size) {
-@@ -638,12 +661,9 @@ static efi_status_t efi_locate_handle(
+@@ -689,12 +712,9 @@ static efi_status_t efi_locate_handle(
  		return EFI_NOT_FOUND;
  
  	/* Then fill the array */
@@ -77,13 +77,14 @@ index 43f32385fa..e691d1bf83 100644
 -		struct efi_object *efiobj;
 -		efiobj = list_entry(lhandle, struct efi_object, link);
 -		if (!efi_search(search_type, protocol, search_key, efiobj)) {
+-			*(buffer++) = efiobj->handle;
+-		}
 +	list_for_each_entry(efiobj, &efi_obj_list, link) {
 +		if (!efi_search(search_type, protocol, search_key, efiobj))
- 			*buffer++ = efiobj->handle;
--		}
++			*buffer++ = efiobj->handle;
  	}
  
  	return EFI_SUCCESS;
 -- 
-2.14.1
+2.11.0
 
