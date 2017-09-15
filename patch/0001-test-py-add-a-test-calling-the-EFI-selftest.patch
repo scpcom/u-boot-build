@@ -1,4 +1,4 @@
-From 6f3255d4a4e6482f59402c8024782bfae1ec1450 Mon Sep 17 00:00:00 2001
+From e6ec1ac7f759a69297d2330a051e8613f2e0c3d3 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Sep 2017 16:01:54 +0200
 Subject: [PATCH 1/1] test/py: add a test calling the EFI selftest
@@ -8,16 +8,16 @@ if CONFIG_CMD_EFI_SELFTEST=y.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- test/py/tests/test_efi_selftest.py | 24 ++++++++++++++++++++++++
- 2 files changed, 25 insertions(+)
+ test/py/tests/test_efi_selftest.py | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
  create mode 100644 test/py/tests/test_efi_selftest.py
 
 diff --git a/test/py/tests/test_efi_selftest.py b/test/py/tests/test_efi_selftest.py
 new file mode 100644
-index 0000000000..d819e84bc0
+index 0000000000..76e282a6c7
 --- /dev/null
 +++ b/test/py/tests/test_efi_selftest.py
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,25 @@
 +# Copyright (c) 2016, NVIDIA CORPORATION. All rights reserved.
 +# Copyright (c) 2017, Heinrich Schuchardt <xypron.glpk@gmx.de>
 +#
@@ -42,6 +42,7 @@ index 0000000000..d819e84bc0
 +	m = u_boot_console.p.expect(['resetting', 'U-Boot'])
 +	if m != 0:
 +		raise Exception('Reset failed during the EFI selftest')
++	u_boot_console.restart_uboot();
 -- 
 2.11.0
 

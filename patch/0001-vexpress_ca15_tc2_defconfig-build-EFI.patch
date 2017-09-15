@@ -12,14 +12,10 @@ diff --git a/configs/vexpress_ca15_tc2_defconfig b/configs/vexpress_ca15_tc2_def
 index bcf31317ae..35da399e29 100644
 --- a/configs/vexpress_ca15_tc2_defconfig
 +++ b/configs/vexpress_ca15_tc2_defconfig
-@@ -22,3 +22,8 @@ CONFIG_ENV_IS_IN_FLASH=y
+@@ -22,3 +22,4 @@ CONFIG_ENV_IS_IN_FLASH=y
  CONFIG_MTD_NOR_FLASH=y
  CONFIG_BAUDRATE=38400
  CONFIG_OF_LIBFDT=y
-+CONFIG_CMD_BOOTEFI=y
-+CONFIG_CMD_BOOTEFI_HELLO_COMPILE=y
-+CONFIG_CMD_BOOTEFI_HELLO=y
-+CONFIG_CMD_BOOTEFI_SELFTEST_COMPILE=y
 +CONFIG_CMD_BOOTEFI_SELFTEST=y
 -- 
 2.11.0

@@ -3,9 +3,10 @@ From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 15 Aug 2017 20:58:13 +0200
 Subject: [PATCH v3 1/1] efi_loader: allow return value in EFI_CALL
 
-Macro EFI_CALL was introduced to call an UEFI function.
+Macro EFI_CALL was introduced to call an EFI API function from
+inside U-Boot.
 Unfortunately it does not support return values.
-Most UEFI functions have a return value.
+Most EFI API functions have a return value.
 
 So let's rename EFI_CALL to EFI_CALL_VOID and introduce a
 new EFI_CALL macro that supports return values.
