@@ -79,7 +79,7 @@ index 43f32385fa..e691d1bf83 100644
 -		if (!efi_search(search_type, protocol, search_key, efiobj)) {
 +	list_for_each_entry(efiobj, &efi_obj_list, link) {
 +		if (!efi_search(search_type, protocol, search_key, efiobj))
- 			*(buffer++) = efiobj->handle;
+ 			*buffer++ = efiobj->handle;
 -		}
  	}
  
