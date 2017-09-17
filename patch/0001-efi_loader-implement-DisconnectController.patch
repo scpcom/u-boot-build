@@ -18,10 +18,10 @@ index c24c57dd78..916f91923e 100644
  {
 +	struct efi_driver_binding_protocol *binding_protocol;
 +	efi_handle_t child_handle_buffer;
-+	unsigned long driver_count;
++	size_t driver_count;
 +	efi_handle_t *driver_handle_buffer;
 +	size_t i;
-+	UINTN number_of_children;
++	size_t number_of_children;
 +	efi_status_t r;
 +	size_t stop_count = 0;
 +
@@ -45,7 +45,7 @@ index c24c57dd78..916f91923e 100644
 +	} else {
 +		/* Get buffer with all handles with driver binding protocol */
 +		r = EFI_CALL(efi_locate_handle_buffer(
-+			     by_protocol, &efi_guid_driver_binding_protocol,
++			     BY_PROTOCOL, &efi_guid_driver_binding_protocol,
 +			     NULL, &driver_count, &driver_handle_buffer));
 +	}
 +	if (r != EFI_SUCCESS)

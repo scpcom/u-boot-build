@@ -33,7 +33,7 @@ index 8efc8dfab8..b2838125d7 100644
 +	efi_status_t (EFIAPI * stop)(
 +			struct efi_driver_binding_protocol *this,
 +			efi_handle_t controller_handle,
-+			UINTN number_of_children,
++			size_t number_of_children,
 +			efi_handle_t child_handle_buffer);
 +	u32 version;
 +	efi_handle_t image_handle;
@@ -67,10 +67,10 @@ index 914ec3bad7..1d463753bf 100644
 +static efi_status_t EFIAPI efi_locate_handle_buffer(
 +			enum efi_locate_search_type search_type,
 +			const efi_guid_t *protocol, void *search_key,
-+			unsigned long *no_handles, efi_handle_t **buffer);
++			size_t *no_handles, efi_handle_t **buffer);
 +
  /* Task priority level */
- static UINTN efi_tpl = TPL_APPLICATION;
+ static size_t efi_tpl = TPL_APPLICATION;
  
 @@ -52,6 +60,9 @@ static struct efi_configuration_table __efi_runtime_data efi_conf_table[2];
  static volatile void *efi_gd, *app_gd;
@@ -120,13 +120,13 @@ index 914ec3bad7..1d463753bf 100644
 +			struct efi_device_path *remain_device_path)
 +{
 +	efi_handle_t *buffer;
-+	unsigned long count;
++	size_t count;
 +	size_t i;
 +	efi_status_t r;
 +	size_t connected = 0;
 +
 +	/* Get buffer with all handles with driver binding protocol */
-+	r = EFI_CALL(efi_locate_handle_buffer(by_protocol,
++	r = EFI_CALL(efi_locate_handle_buffer(BY_PROTOCOL,
 +					      &efi_guid_driver_binding_protocol,
 +					      NULL, &count, &buffer));
 +	if (r != EFI_SUCCESS)
