@@ -1,4 +1,6 @@
 #!/bin/sh
+git am ../patch/0001-part-move-efi_guid_t.patch
+
 git  am ../patch/0001-efi_loader-provide-comment-for-protocol-GUIDs.patch
 
 # EFI event services
@@ -18,8 +20,7 @@ git am ../patch/0001-x86-qemu-enable-EFI-selftest.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
 # exit
-# Enable selftest
-git am ../patch/0001-efi_loader-move-efi_guid_t-typedef-to-efi.h.patch
+# git am ../patch/0001-efi_loader-move-efi_guid_t-typedef-to-efi.h.patch
 git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 
 # Fix building u-boot.rom for qemu-x86_64_defconfig
