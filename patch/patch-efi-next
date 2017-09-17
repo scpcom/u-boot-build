@@ -37,15 +37,16 @@ git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # EFI protocol services
 git am ../patch/0001-efi_loader-get-rid-of-upper-case-type-UINTN.patch
+git am ../patch/0001-efi_loader-ProtocolsPerHandle-argument-ProtocolBuffe.patch
 git am ../patch/0001-efi_loader-arguments-of-efi_locate_handle-_buffer.patch
 git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
-git am ../patch/0001-efi_selftest-test-protocol-handler-services.patch
-exit
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
 git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
+git am ../patch/0001-efi_selftest-test-protocol-handler-services.patch
+exit
 git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
