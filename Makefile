@@ -61,8 +61,7 @@ build:
 	# cd denx && git checkout $(TAGPREFIX)$(TAG)
 	cd denx && git checkout master
 	cd denx && ( git branch -D pre-build || true )
-	# cd denx && git checkout agraf/efi-next -b pre-build
-	cd denx && git checkout 5249045ede4910ef0bd07a1d8252838679fb5430 -b pre-build
+	cd denx && git checkout agraf/efi-next -b pre-build
 	cd denx && git rebase origin/master
 	# cd denx && git checkout efi-next
 	# cd denx && git checkout master
