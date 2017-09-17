@@ -173,9 +173,9 @@ index 0000000000..0b6ac7ea2b
 +	struct interface *interface;
 +	efi_status_t ret;
 +	efi_handle_t *buffer;
-+	UNINTN count;
++	UINTN count;
 +
-+	ret = boottime->locate_handle_buffer(ALL_HANDLES, NULL, NULL, count, buffer);
++	ret = boottime->locate_handle_buffer(ALL_HANDLES, NULL, NULL, &count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to locate all handles\n");
 +		return 1;

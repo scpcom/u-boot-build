@@ -17,12 +17,12 @@ index 0d234146d7..77c441eeb7 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -649,6 +649,7 @@ static int efi_search(enum efi_locate_search_type search_type,
- 	case all_handles:
+ 	case ALL_HANDLES:
  		return 0;
- 	case by_register_notify:
+ 	case BY_REGISTER_NOTIFY:
 +		/* RegisterProtocolNotify is not implemented yet */
  		return -1;
- 	case by_protocol:
+ 	case BY_PROTOCOL:
  		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
 @@ -667,16 +668,38 @@ static efi_status_t efi_locate_handle(
  			efi_guid_t *protocol, void *search_key,
@@ -34,14 +34,14 @@ index 0d234146d7..77c441eeb7 100644
  
 +	/* Check parameters */
 +	switch (search_type) {
-+	case all_handles:
++	case ALL_HANDLES:
 +		break;
-+	case by_register_notify:
++	case BY_REGISTER_NOTIFY:
 +		if (!search_key)
 +			return EFI_INVALID_PARAMETER;
 +		/* RegisterProtocolNotify is not implemented yet */
 +		return EFI_UNSUPPORTED;
-+	case by_protocol:
++	case BY_PROTOCOL:
 +		if (!protocol)
 +			return EFI_INVALID_PARAMETER;
 +		break;
