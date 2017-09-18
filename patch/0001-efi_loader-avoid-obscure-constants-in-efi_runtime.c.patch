@@ -1,0 +1,39 @@
+From f6ac81b43bcc92f92a5a79ae13dc99f087253a2b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 18 Sep 2017 20:38:25 +0200
+Subject: [PATCH 1/1] efi_loader: avoid obscure constants in efi_runtime.c
+
+We should use predefined on constants EFI_PAGE_SHIFT
+and EFI_PAGE_MASK where applicable.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_runtime.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/efi_loader/efi_runtime.c b/lib/efi_loader/efi_runtime.c
+index f52d8d71db..83ea3902f1 100644
+--- a/lib/efi_loader/efi_runtime.c
++++ b/lib/efi_loader/efi_runtime.c
+@@ -250,7 +250,8 @@ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map)
+ 
+ 		/* Check if the relocation is inside bounds */
+ 		if (map && ((newaddr < map->virtual_start) ||
+-		    newaddr > (map->virtual_start + (map->num_pages << 12)))) {
++		    newaddr > (map->virtual_start +
++			      (map->num_pages << EFI_PAGE_SHIFT)))) {
+ 			if (!efi_runtime_tobedetached(p))
+ 				printf("U-Boot EFI: Relocation at %p is out of "
+ 				       "range (%lx)\n", p, newaddr);
+@@ -276,7 +277,7 @@ static efi_status_t EFIAPI efi_set_virtual_address_map(
+ 			uint32_t descriptor_version,
+ 			struct efi_mem_desc *virtmap)
+ {
+-	ulong runtime_start = (ulong)&__efi_runtime_start & ~0xfffULL;
++	ulong runtime_start = (ulong)&__efi_runtime_start & ~(ulong)EFI_PAGE_MASK;
+ 	int n = memory_map_size / descriptor_size;
+ 	int i;
+ 
+-- 
+2.11.0
+
