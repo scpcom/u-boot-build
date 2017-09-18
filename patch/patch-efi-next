@@ -43,6 +43,7 @@ git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
 git am ../patch/0001-efi_loader-implement-ConnectController.patch
 git am ../patch/0001-efi_loader-implement-DisconnectController.patch
 git am ../patch/0001-efi_selftest-test-protocol-handler-services.patch
+exit
 
 # EFI Network
 git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
