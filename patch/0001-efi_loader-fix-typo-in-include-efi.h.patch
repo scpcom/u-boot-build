@@ -1,0 +1,28 @@
+From 76e9e8ccf509ec8af8d39d764cd485a4e012c536 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 18 Sep 2017 07:51:05 +0200
+Subject: [PATCH 1/1] efi_loader: fix typo in include/efi.h
+
+Fix typo in teh EFI_BOOT_SERVICES_CODE description.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/efi.h b/include/efi.h
+index 87b0b43f20..63cbdb61ec 100644
+--- a/include/efi.h
++++ b/include/efi.h
+@@ -120,7 +120,7 @@ enum efi_mem_type {
+ 	/* The code portions of a loaded Boot Services Driver */
+ 	EFI_BOOT_SERVICES_CODE,
+ 	/*
+-	 * The data portions of a loaded Boot Serves Driver and
++	 * The data portions of a loaded Boot Services Driver and
+ 	 * the default data allocation type used by a Boot Services
+ 	 * Driver to allocate pool memory.
+ 	 */
+-- 
+2.11.0
+
