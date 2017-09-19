@@ -127,12 +127,12 @@ index 0000000000..06eb846fbb
 +static int execute(void)
 +{
 +	if (counter != 1) {
-+		efi_st_error("ExitBootServices was not notified");
++		efi_st_error("ExitBootServices was not notified\n");
 +		return 1;
 +	}
 +	efi_st_exit_boot_services();
 +	if (counter != 1) {
-+		efi_st_error("ExitBootServices was notified twice");
++		efi_st_error("ExitBootServices was notified twice\n");
 +		return 1;
 +	}
 +	return 0;
