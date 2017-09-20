@@ -1,5 +1,5 @@
 #!/bin/sh
-exit
+git am ../patch/0001-efi_loader-reenable-selftest.patch
 git am ../patch/0001-x86-provide-CONFIG_BUILD_ROM.patch
 git am ../patch/0001-efi_loader-fix-bug-in-efi_add_known_memory.patch
 # git  am ../patch/0001-efi_loader-provide-comment-for-protocol-GUIDs.patch
