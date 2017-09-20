@@ -27,7 +27,7 @@ index 0733c6eba9..b13c1e0ad9 100644
 +	struct efi_open_protocol_info_entry *open_info;
 +	efi_status_t r;
 +
- 	EFI_ENTRY("%p, %p, %p, %p", handle, protocol, agent_handle,
+ 	EFI_ENTRY("%p, %pUl, %p, %p", handle, protocol, agent_handle,
  		  controller_handle);
 -	return EFI_EXIT(EFI_NOT_FOUND);
 +

@@ -33,7 +33,7 @@ index a59db68a80..194a40d424 100644
 +	size_t i;
 +	efi_status_t r;
 +
- 	EFI_ENTRY("%p, %p, %p, %p", handle, protocol, entry_buffer,
+ 	EFI_ENTRY("%p, %pUl, %p, %p", handle, protocol, entry_buffer,
  		  entry_count);
 -	return EFI_EXIT(EFI_NOT_FOUND);
 +

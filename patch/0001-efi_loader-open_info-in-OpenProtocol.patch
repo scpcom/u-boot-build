@@ -140,7 +140,7 @@ index 3dba1532de..3d18e1cdf3 100644
 +	struct efi_handler *handler;
  	efi_status_t r = EFI_INVALID_PARAMETER;
  
- 	EFI_ENTRY("%p, %p, %p, %p, %p, 0x%x", handle, protocol,
+ 	EFI_ENTRY("%p, %pUl, %p, %p, %p, 0x%x", handle, protocol,
  		  protocol_interface, agent_handle, controller_handle,
  		  attributes);
  

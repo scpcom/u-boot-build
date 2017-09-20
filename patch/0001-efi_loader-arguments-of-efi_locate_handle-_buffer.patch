@@ -56,7 +56,7 @@ index a2b92f0e7d..efde26d866 100644
 -			unsigned long *buffer_size, efi_handle_t *buffer)
 +			size_t *buffer_size, efi_handle_t *buffer)
  {
- 	EFI_ENTRY("%d, %p, %p, %p, %p", search_type, protocol, search_key,
+ 	EFI_ENTRY("%d, %pUl, %p, %p, %p", search_type, protocol, search_key,
  		  buffer_size, buffer);
 @@ -1048,10 +1048,10 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
  static efi_status_t EFIAPI efi_locate_handle_buffer(
@@ -69,7 +69,7 @@ index a2b92f0e7d..efde26d866 100644
 -	unsigned long buffer_size = 0;
 +	size_t buffer_size = 0;
  
- 	EFI_ENTRY("%d, %p, %p, %p, %p", search_type, protocol, search_key,
+ 	EFI_ENTRY("%d, %pUl, %p, %p, %p", search_type, protocol, search_key,
  		  no_handles, buffer);
 -- 
 2.11.0

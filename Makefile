@@ -23,7 +23,7 @@ all:
 prepare:
 	test -d denx || git clone -v \
 	http://git.denx.de/u-boot.git denx
-	# cd denx && (git fetch origin || true)
+	cd denx && (git fetch origin || true)
 	gpg --list-keys 87F9F635D31D7652 || \
 	gpg --keyserver keys.gnupg.net --recv-key 87F9F635D31D7652
 	test -d ipxe || git clone -v \
@@ -52,8 +52,8 @@ build-ipxe:
 
 build:
 	test -f tftp/snp.efi || make build-ipxe
-	# cd denx && (git fetch origin || true)
-	# cd denx && (git fetch agraf || true)
+	cd denx && (git fetch origin || true)
+	cd denx && (git fetch agraf || true)
 	# cd denx && git verify-tag $(TAGPREFIX)$(TAG) 2>&1 | \
 	# grep 'E872 DB40 9C1A 687E FBE8  6336 87F9 F635 D31D 7652'
 	cd denx && (git am --abort || true)

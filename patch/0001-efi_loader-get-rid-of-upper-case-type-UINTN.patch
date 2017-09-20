@@ -1,4 +1,4 @@
-From 53e317f68a30d4686519303ef74979798cf4ebdb Mon Sep 17 00:00:00 2001
+From 7731d58622473ebafe2b6a63272966e134738dce Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Sep 2017 18:09:21 +0200
 Subject: [PATCH 1/1] efi_loader: get rid of upper case type UINTN
@@ -16,6 +16,8 @@ authors made them UINTN anyway.
 
 Let's simply use size_t when referring to the tpl level.
 
+Further remove unused typedef INTN.
+
 Reported by Simon in
 Re: [PATCH 16/23] efi_loader: implement DisconnectController
 https://lists.denx.de/pipermail/u-boot/2017-August/304378.html
@@ -31,7 +33,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  4 files changed, 12 insertions(+), 14 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index ec1b321e8e..1b46ad384a 100644
+index c3b9032a48..27fa3c0ed5 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
 @@ -28,8 +28,6 @@ enum efi_timer_delay {
@@ -39,11 +41,11 @@ index ec1b321e8e..1b46ad384a 100644
  };
  
 -#define UINTN size_t
--
+-typedef long INTN;
+ typedef uint16_t *efi_string_t;
+ 
  #define EVT_TIMER				0x80000000
- #define EVT_RUNTIME				0x40000000
- #define EVT_NOTIFY_WAIT				0x00000100
-@@ -47,8 +45,8 @@ struct efi_event;
+@@ -49,8 +47,8 @@ struct efi_event;
  /* EFI Boot Services table */
  struct efi_boot_services {
  	struct efi_table_hdr hdr;
@@ -54,7 +56,7 @@ index ec1b321e8e..1b46ad384a 100644
  
  	efi_status_t (EFIAPI *allocate_pages)(int, int, unsigned long,
  					      efi_physical_addr_t *);
-@@ -60,7 +58,7 @@ struct efi_boot_services {
+@@ -62,7 +60,7 @@ struct efi_boot_services {
  	efi_status_t (EFIAPI *free_pool)(void *);
  
  	efi_status_t (EFIAPI *create_event)(uint32_t type,
@@ -64,10 +66,10 @@ index ec1b321e8e..1b46ad384a 100644
  					struct efi_event *event,
  					void *context),
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 253824a138..ac108d0d44 100644
+index 2f081f8996..bd18b94199 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -139,7 +139,7 @@ struct efi_object {
+@@ -141,7 +141,7 @@ struct efi_object {
   */
  struct efi_event {
  	uint32_t type;
@@ -76,7 +78,7 @@ index 253824a138..ac108d0d44 100644
  	void (EFIAPI *notify_function)(struct efi_event *event, void *context);
  	void *notify_context;
  	u64 trigger_next;
-@@ -181,7 +181,7 @@ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map);
+@@ -186,7 +186,7 @@ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map);
  /* Call this to set the current device name */
  void efi_set_bootdev(const char *dev, const char *devnr, const char *path);
  /* Call this to create an event */
@@ -86,10 +88,10 @@ index 253824a138..ac108d0d44 100644
  					struct efi_event *event,
  					void *context),
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 0d234146d7..c42a79f684 100644
+index 9e741c3cf3..8dac5c1648 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -19,7 +19,7 @@
+@@ -20,7 +20,7 @@
  DECLARE_GLOBAL_DATA_PTR;
  
  /* Task priority level */
@@ -98,7 +100,7 @@ index 0d234146d7..c42a79f684 100644
  
  /* This list contains all the EFI objects our payload has access to */
  LIST_HEAD(efi_obj_list);
-@@ -179,9 +179,9 @@ static efi_status_t efi_unsupported(const char *funcname)
+@@ -180,9 +180,9 @@ static efi_status_t efi_unsupported(const char *funcname)
  	return EFI_EXIT(EFI_UNSUPPORTED);
  }
  
@@ -110,7 +112,7 @@ index 0d234146d7..c42a79f684 100644
  
  	EFI_ENTRY("0x%zx", new_tpl);
  
-@@ -195,7 +195,7 @@ static unsigned long EFIAPI efi_raise_tpl(UINTN new_tpl)
+@@ -196,7 +196,7 @@ static unsigned long EFIAPI efi_raise_tpl(UINTN new_tpl)
  	return old_tpl;
  }
  
@@ -119,7 +121,7 @@ index 0d234146d7..c42a79f684 100644
  {
  	EFI_ENTRY("0x%zx", old_tpl);
  
-@@ -271,7 +271,7 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
+@@ -272,7 +272,7 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
   */
  static struct efi_event efi_events[16];
  
@@ -128,7 +130,7 @@ index 0d234146d7..c42a79f684 100644
  			      void (EFIAPI *notify_function) (
  					struct efi_event *event,
  					void *context),
-@@ -307,7 +307,7 @@ efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
+@@ -308,7 +308,7 @@ efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
  }
  
  static efi_status_t EFIAPI efi_create_event_ext(
@@ -138,7 +140,7 @@ index 0d234146d7..c42a79f684 100644
  					struct efi_event *event,
  					void *context),
 diff --git a/lib/efi_selftest/efi_selftest_tpl.c b/lib/efi_selftest/efi_selftest_tpl.c
-index 90ace0f51e..5a83bd162d 100644
+index 90ace0f51e..2c660241c7 100644
 --- a/lib/efi_selftest/efi_selftest_tpl.c
 +++ b/lib/efi_selftest/efi_selftest_tpl.c
 @@ -106,7 +106,7 @@ static int execute(void)
@@ -151,5 +153,5 @@ index 90ace0f51e..5a83bd162d 100644
  	/* Set 10 ms timer */
  	counter = 0;
 -- 
-2.11.0
+2.14.1
 
