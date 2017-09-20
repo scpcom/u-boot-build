@@ -1,4 +1,4 @@
-From cda842ec153d7937e471b955a795561c652c5b02 Mon Sep 17 00:00:00 2001
+From f82c4b7ec48b25c2948c542cda51771519f57ef8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 20 Sep 2017 22:46:18 +0200
 Subject: [PATCH 1/1] efi_loader: provide function comments for boot services
@@ -11,7 +11,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 565 insertions(+), 1 deletion(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 9e741c3cf3..e3c88d3df3 100644
+index 9e741c3cf3..1a3705210b 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -161,6 +161,19 @@ static u64 efi_div10(u64 a)
@@ -22,7 +22,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 + * Signal an EFI event
 + *
 + * This function queues the notification function of the event for future
-+ * exectution.
++ * execution.
 + *
 + * The notification function is called if the task priority level of the
 + * event is higher than the current task priority level.
@@ -212,7 +212,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  
  
  /*
-+ * Check if a timer event has occured or a queued notification function should
++ * Check if a timer event has occurred or a queued notification function should
 + * be called.
 + *
   * Our timers have to work without interrupts, so we check whenever keyboard
@@ -269,7 +269,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 + * See Unified Extensible Firmware Interface (UEFI) specification for details.
 + *
 + * This functions sets the signaled state of the event an queues the
-+ * notification function for exectution.
++ * notification function for execution.
 + *
 + * @event	event to signal
 + */
@@ -359,7 +359,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 + * See Unified Extensible Firmware Interface (UEFI) specification for details.
 + *
 + * @handle			handle on which the protocol shall be
-+ 				reinstalled
++ *				reinstalled
 + * @protocol			GUID of the protocol to be installed
 + * @old_interface		interface to be removed
 + * @new_interface		interface to be installed
@@ -448,7 +448,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 +/*
 + * Locate handles implementing a protocol.
 + *
-+ * This function is meant for U-Boot internal calls. For the implemenation of
++ * This function is meant for U-Boot internal calls. For the implementation of
 + * the LocateHandle service see efi_locate_handle_ext.
 + *
 + * @search_type		selection criterion
@@ -468,7 +468,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 +/*
 + * Locate handles implementing a protocol.
 + *
-+ * This function implments the LocateHandle service.
++ * This function implements the LocateHandle service.
 + * See Unified Extensible Firmware Interface (UEFI) specification for details.
 + *
 + * @search_type		selection criterion
@@ -506,7 +506,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 +/*
 + * Adds, updates, or removes a configuration table.
 + *
-+ * This function is used for internal calls. For the implemenation of the
++ * This function is used for internal calls. For the implementation of the
 + * InstallConfigurationTable service see efi_install_configuration_table_ext.
 + *
 + * @guid		GUID of the installed table
@@ -533,7 +533,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_install_configuration_table_ext(efi_guid_t *guid,
  							       void *table)
  {
-@@ -855,6 +1169,20 @@ error:
+@@ -855,6 +1169,21 @@ error:
  	return ret;
  }
  
@@ -547,14 +547,15 @@ index 9e741c3cf3..e3c88d3df3 100644
 + * @parent_image	the calles's image handle
 + * @file_path		the path of the image to load
 + * @source_buffer	memory location from which the image is installed
-+ * @source_size		size of the memory area from which the image is installed
++ * @source_size		size of the memory area from which the image is
++ *			installed
 + * @image_handle	handle for the newly installed image
 + * @return		status code
 + */
  static efi_status_t EFIAPI efi_load_image(bool boot_policy,
  					  efi_handle_t parent_image,
  					  struct efi_device_path *file_path,
-@@ -908,6 +1236,16 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
+@@ -908,6 +1237,16 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
@@ -563,7 +564,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 + *
 + * This function implements the StartImage service.
 + * See Unified Extensible Firmware Interface (UEFI) specification for details.
-+ * 
++ *
 + * @image_handle	handle of the image
 + * @exit_data_size	size of the buffer
 + * @exit_data		buffer to receive the exit data of the called image
@@ -571,7 +572,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
  					   unsigned long *exit_data_size,
  					   s16 **exit_data)
-@@ -936,6 +1274,17 @@ static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
+@@ -936,6 +1275,17 @@ static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
@@ -589,7 +590,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
  			efi_status_t exit_status, unsigned long exit_data_size,
  			int16_t *exit_data)
-@@ -960,6 +1309,12 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
+@@ -960,6 +1310,12 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
  	panic("EFI application exited");
  }
  
@@ -602,7 +603,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static struct efi_object *efi_search_obj(void *handle)
  {
  	struct list_head *lhandle;
-@@ -974,6 +1329,15 @@ static struct efi_object *efi_search_obj(void *handle)
+@@ -974,6 +1330,15 @@ static struct efi_object *efi_search_obj(void *handle)
  	return NULL;
  }
  
@@ -618,7 +619,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_unload_image(void *image_handle)
  {
  	struct efi_object *efiobj;
-@@ -986,6 +1350,9 @@ static efi_status_t EFIAPI efi_unload_image(void *image_handle)
+@@ -986,6 +1351,9 @@ static efi_status_t EFIAPI efi_unload_image(void *image_handle)
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
@@ -628,7 +629,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static void efi_exit_caches(void)
  {
  #if defined(CONFIG_ARM) && !defined(CONFIG_ARM64)
-@@ -998,6 +1365,16 @@ static void efi_exit_caches(void)
+@@ -998,6 +1366,16 @@ static void efi_exit_caches(void)
  #endif
  }
  
@@ -645,7 +646,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
  						  unsigned long map_key)
  {
-@@ -1033,6 +1410,15 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
+@@ -1033,6 +1411,15 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
@@ -661,7 +662,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_get_next_monotonic_count(uint64_t *count)
  {
  	static uint64_t mono = 0;
-@@ -1041,6 +1427,15 @@ static efi_status_t EFIAPI efi_get_next_monotonic_count(uint64_t *count)
+@@ -1041,6 +1428,15 @@ static efi_status_t EFIAPI efi_get_next_monotonic_count(uint64_t *count)
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
@@ -677,7 +678,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
  {
  	EFI_ENTRY("%ld", microseconds);
-@@ -1048,6 +1443,17 @@ static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
+@@ -1048,6 +1444,17 @@ static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
@@ -695,7 +696,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  						  uint64_t watchdog_code,
  						  unsigned long data_size,
-@@ -1058,6 +1464,17 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1058,6 +1465,17 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  	return efi_unsupported(__func__);
  }
  
@@ -713,7 +714,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_connect_controller(
  			efi_handle_t controller_handle,
  			efi_handle_t *driver_image_handle,
-@@ -1069,6 +1486,17 @@ static efi_status_t EFIAPI efi_connect_controller(
+@@ -1069,6 +1487,17 @@ static efi_status_t EFIAPI efi_connect_controller(
  	return EFI_EXIT(EFI_NOT_FOUND);
  }
  
@@ -731,7 +732,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
  						     void *driver_image_handle,
  						     void *child_handle)
-@@ -1078,6 +1506,18 @@ static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
+@@ -1078,6 +1507,18 @@ static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
  	return EFI_EXIT(EFI_INVALID_PARAMETER);
  }
  
@@ -750,7 +751,7 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_close_protocol(void *handle,
  					      efi_guid_t *protocol,
  					      void *agent_handle,
-@@ -1088,6 +1528,18 @@ static efi_status_t EFIAPI efi_close_protocol(void *handle,
+@@ -1088,6 +1529,18 @@ static efi_status_t EFIAPI efi_close_protocol(void *handle,
  	return EFI_EXIT(EFI_NOT_FOUND);
  }
  
@@ -769,11 +770,10 @@ index 9e741c3cf3..e3c88d3df3 100644
  static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
  			efi_guid_t *protocol,
  			struct efi_open_protocol_info_entry **entry_buffer,
-@@ -1098,6 +1550,17 @@ static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
+@@ -1098,6 +1551,16 @@ static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
  	return EFI_EXIT(EFI_NOT_FOUND);
  }
  
-+
 +/*
 + * Get protocols installed on a handle.
 + *
@@ -814,7 +814,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 +/*
 + * Find an interface implementing a protocol.
 + *
-+ * This function implemements the LocateProtocol service.
++ * This function implements the LocateProtocol service.
 + * See Unified Extensible Firmware Interface (UEFI) specification for details.
 + *
 + * @protocol		GUID of the protocol
@@ -923,7 +923,7 @@ index 9e741c3cf3..e3c88d3df3 100644
 + *
 + * @handle		handle on which the protocol shall be opened
 + * @protocol		GUID of the protocol
-+ * @protocol_interface	interface implementing the protcol
++ * @protocol_interface	interface implementing the protocol
 + * @agent_handle	handle of the driver
 + * @controller_handle	handle of the controller
 + * @attributes		attributes of the protocol opening
