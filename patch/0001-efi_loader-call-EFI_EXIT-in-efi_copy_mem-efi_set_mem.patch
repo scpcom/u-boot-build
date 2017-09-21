@@ -1,0 +1,35 @@
+From d98212d61dddad5139adbeaeb322d5256917f579 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 21 Sep 2017 18:39:05 +0200
+Subject: [PATCH 1/1] efi_loader: call EFI_EXIT in efi_copy_mem, efi_set_mem
+
+EFI_ENTRY and EFI_EXIT calls must match.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index cbc4007f7b..2c2620a46d 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1882,6 +1882,7 @@ static void EFIAPI efi_copy_mem(void *destination, void *source,
+ {
+ 	EFI_ENTRY("%p, %p, %ld", destination, source, length);
+ 	memcpy(destination, source, length);
++	EFI_EXIT(EFI_SUCCESS);
+ }
+ 
+ /*
+@@ -1899,6 +1900,7 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
+ {
+ 	EFI_ENTRY("%p, %ld, 0x%x", buffer, size, value);
+ 	memset(buffer, value, size);
++	EFI_EXIT(EFI_SUCCESS);
+ }
+ 
+ /*
+-- 
+2.11.0
+

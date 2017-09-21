@@ -1,4 +1,4 @@
-From 7731d58622473ebafe2b6a63272966e134738dce Mon Sep 17 00:00:00 2001
+From 67411292624b46bcb8247cec76f477e9fdaae6e1 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Sep 2017 18:09:21 +0200
 Subject: [PATCH 1/1] efi_loader: get rid of upper case type UINTN
@@ -24,6 +24,8 @@ https://lists.denx.de/pipermail/u-boot/2017-August/304378.html
 
 Reported by: Simon Glass <sjg@chromium.org>
 Fixes: 503f26955489 (efi_loader: correct size for tpl level)
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_api.h                   |  8 +++-----
@@ -88,7 +90,7 @@ index 2f081f8996..bd18b94199 100644
  					struct efi_event *event,
  					void *context),
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 9e741c3cf3..8dac5c1648 100644
+index d5c77fe317..b0066ee348 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -20,7 +20,7 @@
@@ -100,10 +102,10 @@ index 9e741c3cf3..8dac5c1648 100644
  
  /* This list contains all the EFI objects our payload has access to */
  LIST_HEAD(efi_obj_list);
-@@ -180,9 +180,9 @@ static efi_status_t efi_unsupported(const char *funcname)
- 	return EFI_EXIT(EFI_UNSUPPORTED);
- }
- 
+@@ -208,9 +208,9 @@ static efi_status_t efi_unsupported(const char *funcname)
+  * @new_tpl	new value of the task priority level
+  * @return	old value of the task priority level
+  */
 -static unsigned long EFIAPI efi_raise_tpl(UINTN new_tpl)
 +static unsigned long EFIAPI efi_raise_tpl(size_t new_tpl)
  {
@@ -112,27 +114,27 @@ index 9e741c3cf3..8dac5c1648 100644
  
  	EFI_ENTRY("0x%zx", new_tpl);
  
-@@ -196,7 +196,7 @@ static unsigned long EFIAPI efi_raise_tpl(UINTN new_tpl)
- 	return old_tpl;
- }
- 
+@@ -232,7 +232,7 @@ static unsigned long EFIAPI efi_raise_tpl(UINTN new_tpl)
+  *
+  * @old_tpl	value of the task priority level to be restored
+  */
 -static void EFIAPI efi_restore_tpl(UINTN old_tpl)
 +static void EFIAPI efi_restore_tpl(size_t old_tpl)
  {
  	EFI_ENTRY("0x%zx", old_tpl);
  
-@@ -272,7 +272,7 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
+@@ -378,7 +378,7 @@ static struct efi_event efi_events[16];
+  * @event		created event
+  * @return		status code
   */
- static struct efi_event efi_events[16];
- 
 -efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
 +efi_status_t efi_create_event(uint32_t type, size_t notify_tpl,
  			      void (EFIAPI *notify_function) (
  					struct efi_event *event,
  					void *context),
-@@ -308,7 +308,7 @@ efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
- }
- 
+@@ -426,7 +426,7 @@ efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
+  * @return		status code
+  */
  static efi_status_t EFIAPI efi_create_event_ext(
 -			uint32_t type, UINTN notify_tpl,
 +			uint32_t type, size_t notify_tpl,
@@ -153,5 +155,5 @@ index 90ace0f51e..2c660241c7 100644
  	/* Set 10 ms timer */
  	counter = 0;
 -- 
-2.14.1
+2.11.0
 
