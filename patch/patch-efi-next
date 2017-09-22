@@ -21,7 +21,7 @@ git am ../patch/0001-efi_net-return-EFI_UNSUPPORTED-where-appropriate.patch
 git am ../patch/0001-efi_loader-correct-bits-of-receive_filters-bit-mask.patch
 git am ../patch/0001-efi_loader-use-events-for-efi_net_receive.patch
 git am ../patch/0001-efi_loader-fix-efi_net_get_status.patch
-
+git am ../patch/0001-efi_loader-supply-EFI-SNP-test.patch
 exit
 
 # git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch
