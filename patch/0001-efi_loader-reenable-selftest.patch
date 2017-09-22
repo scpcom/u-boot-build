@@ -1,7 +1,7 @@
-From a6a819fc043621945f88102abbb55d3f7408efb9 Mon Sep 17 00:00:00 2001
+From d2694d8f36cca60df9c6e194f02153e04e6d847d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 20 Sep 2017 21:32:20 +0200
-Subject: [PATCH 1/1] efi_loader: reenable selftest
+Subject: [PATCH v2 1/1] efi_loader: reenable selftest
 
 ad503ffe9c6 efi_loader: refactor boot device and loaded_image handling
 leads to an error when building with CONFIG_CMD_BOOTEFI_SELFTEST=y
@@ -10,22 +10,38 @@ This patch fixes the problem.
 Fixes: ad503ffe9c6 efi_loader: refactor boot device and loaded_image handling
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c | 2 ++
- 1 file changed, 2 insertions(+)
+v2
+	completely initialize loaded_image_info
+---
+ cmd/bootefi.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 1e2dbcc4a4..9460747f96 100644
+index 1e2dbcc4a4..e0a657323f 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
-@@ -273,6 +273,8 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+@@ -273,6 +273,12 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  #endif
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
  	if (!strcmp(argv[1], "selftest")) {
 +		struct efi_loaded_image loaded_image_info = {};
++		struct efi_object loaded_image_info_obj = {};
 +
++		efi_setup_loaded_image(&loaded_image_info,
++				       &loaded_image_info_obj,
++				       bootefi_device_path, bootefi_image_path);
  		/*
  		 * gd lives in a fixed register which may get clobbered while we
  		 * execute the payload. So save it here and restore it on every
+@@ -282,8 +288,6 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ 		/* Initialize and populate EFI object list */
+ 		if (!efi_obj_list_initalized)
+ 			efi_init_obj_list();
+-		loaded_image_info.device_handle = bootefi_device_path;
+-		loaded_image_info.file_path = bootefi_image_path;
+ 		return efi_selftest(&loaded_image_info, &systab);
+ 	} else
+ #endif
 -- 
 2.14.1
 
