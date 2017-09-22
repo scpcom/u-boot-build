@@ -1,4 +1,4 @@
-From 157f78d808654418946e48ba728b90c8b92abd86 Mon Sep 17 00:00:00 2001
+From 01070fabc3ca5c55726caa3455c3855c3e2567cc Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 22 Sep 2017 12:57:08 +0200
 Subject: [PATCH 1/1] efi_loader: supply EFI network test
@@ -10,12 +10,12 @@ It sends a DHCP request and analyzes the DHCP offer.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/Kconfig                       | 20 ++++++++
- cmd/bootefi.c                     | 17 +++++++
- include/asm-generic/sections.h    |  2 +
- lib/efi_loader/Makefile           |  7 +++
- lib/efi_loader/efi_network_test.c | 99 +++++++++++++++++++++++++++++++++++++++
- 5 files changed, 145 insertions(+)
+ cmd/Kconfig                       |  20 +++++
+ cmd/bootefi.c                     |  17 ++++
+ include/asm-generic/sections.h    |   2 +
+ lib/efi_loader/Makefile           |   7 ++
+ lib/efi_loader/efi_network_test.c | 174 ++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 220 insertions(+)
  create mode 100644 lib/efi_loader/efi_network_test.c
 
 diff --git a/cmd/Kconfig b/cmd/Kconfig
@@ -123,10 +123,10 @@ index ddb978f650..00ebf1cb8d 100644
  obj-y += efi_file.o efi_variable.o efi_bootmgr.o
 diff --git a/lib/efi_loader/efi_network_test.c b/lib/efi_loader/efi_network_test.c
 new file mode 100644
-index 0000000000..de596813aa
+index 0000000000..b5d182bc4e
 --- /dev/null
 +++ b/lib/efi_loader/efi_network_test.c
-@@ -0,0 +1,99 @@
+@@ -0,0 +1,174 @@
 +/*
 + * EFI hello world
 + *
@@ -203,8 +203,9 @@ index 0000000000..de596813aa
 +efi_status_t EFIAPI efi_main(efi_handle_t handle,
 +			     struct efi_system_table *systable)
 +{
-+	struct efi_simple_network *net;
-+	efi_status_t ret;
++	efi_status_t exit_status, ret;
++	struct efi_simple_network *net = NULL;
++	struct efi_event *timer = NULL;
 +
 +	boottime = systable->boottime;
 +	con_out = systable->con_out;
@@ -212,17 +213,91 @@ index 0000000000..de596813aa
 +
 +	efi_st_printf("Network test\n");
 +
++	exit_status = EFI_SUCCESS; 
 +	/*
-+	 * Find an interface implementing the SNP protocol
++	 * Create a timer event.
++	 */
++	ret = boottime->create_event(EVT_TIMER, TPL_CALLBACK, NULL, NULL,
++				     &timer);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to create event\n");
++		goto out;
++	}
++	/*
++	 * Set timer period to 1s.
++	 */
++	ret = boottime->set_timer(timer, EFI_TIMER_PERIODIC, 10000000);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to locate simple network protocol\n");
++		goto out;
++	}
++	/*
++	 * Find an interface implementing the SNP protocol.
 +	 */
 +	ret = boottime->locate_protocol(&efi_net_guid, NULL, (void **) &net);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to locate simple network protocol\n");
 +		goto out;
 +	}
-+
++	/*
++	 * Initialize network adapter.
++	 */
++	ret = net->initialize(net, 0, 0);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to initialize network adapter\n");
++		goto out;
++	}
++	/*
++	 * Start network adapter.
++	 */
++	ret = net->start(net);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to start network adapter\n");
++		goto out;
++	}
++	/*
++	 * Stop network adapter.
++	 */
++	ret = net->stop(net);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to stop network adapter\n");
++		goto out;
++	}
 +out:
-+	boottime->exit(handle, 0, 0, NULL);
++	exit_status = ret;
++	if (timer) {
++		/*
++		 * Stop timer.
++		 */
++		ret = boottime->set_timer(timer, EFI_TIMER_STOP, 0);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Failed to stop timer");
++			exit_status = ret;
++		}
++		/*
++		 * Close timer event.
++		 */
++		ret = boottime->close_event(timer);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Failed to close event");
++			exit_status = ret;
++		}
++	}
++	if (net) {
++		/*
++		 * Shut down network adapter.
++		 */
++		ret = net->shutdown(net);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Failed to shut down network adapter\n");
++			exit_status = ret;
++		}
++	}
++
++	if (exit_status == EFI_SUCCESS)
++		efi_st_printf("The test ran successfully\n");
++
++	boottime->exit(handle, exit_status, 0, NULL);
 +
 +	return EFI_SUCCESS;
 +}
