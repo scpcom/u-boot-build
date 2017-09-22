@@ -16,12 +16,14 @@ git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # EFI Network
+git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
+git am ../patch/0001-efi_loader-correct-bits-of-receive_filters-bit-mask.patch
+git am ../patch/0001-efi_loader-fill-simple-network-protocol-revision.patch
 git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
 git am ../patch/0001-efi_net-return-EFI_UNSUPPORTED-where-appropriate.patch
-git am ../patch/0001-efi_loader-correct-bits-of-receive_filters-bit-mask.patch
 git am ../patch/0001-efi_loader-use-events-for-efi_net_receive.patch
 git am ../patch/0001-efi_loader-fix-efi_net_get_status.patch
-git am ../patch/0001-efi_loader-supply-EFI-SNP-test.patch
+git am ../patch/0001-efi_loader-supply-EFI-network-test.patch
 exit
 
 # git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch
@@ -45,7 +47,6 @@ git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
 git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
 git am ../patch/0001-efi_loader-non-static-efi_open_protocol-efi_close_pr.patch
-git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
 git am ../patch/0001-efi_loader-implement-ConnectController.patch
 git am ../patch/0001-efi_loader-implement-DisconnectController.patch
 git am ../patch/0001-efi_selftest-test-protocol-handler-services.patch
