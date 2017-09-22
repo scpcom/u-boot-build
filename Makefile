@@ -91,6 +91,7 @@ lav:
 	-drive file=img,if=pci,bus=0,unit=6
 
 luv:
+	cp denx/lib/efi_loader/*.efi tftp
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
 	-netdev \
 	user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
