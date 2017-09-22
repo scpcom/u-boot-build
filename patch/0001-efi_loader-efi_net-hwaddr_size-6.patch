@@ -1,4 +1,4 @@
-From 82db2ad1718067ba650d446c12354800fc306624 Mon Sep 17 00:00:00 2001
+From 88dd884a26cdfc86b29a2d67e1043c2393018d06 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 21 Aug 2017 00:05:15 +0200
 Subject: [PATCH 1/1] efi_loader: efi_net: hwaddr_size = 6
@@ -17,17 +17,17 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 1 insertion(+)
 
 diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
-index 0b949d86e8..c5b105c173 100644
+index 91f1e4a69e..788c10bf4a 100644
 --- a/lib/efi_loader/efi_net.c
 +++ b/lib/efi_loader/efi_net.c
-@@ -259,6 +259,7 @@ int efi_net_register(void **handle)
- 	netobj->dp_end = dp_end;
- 	memcpy(netobj->dp_mac.mac.addr, eth_get_ethaddr(), 6);
+@@ -244,6 +244,7 @@ int efi_net_register(void)
+ 	netobj->net.mode = &netobj->net_mode;
+ 	netobj->net_mode.state = EFI_NETWORK_STARTED;
  	memcpy(netobj->net_mode.current_address.mac_addr, eth_get_ethaddr(), 6);
 +	netobj->net_mode.hwaddr_size = ARP_HLEN;
  	netobj->net_mode.max_packet_size = PKTSIZE;
  
  	netobj->pxe.mode = &netobj->pxe_mode;
 -- 
-2.11.0
+2.14.1
 
