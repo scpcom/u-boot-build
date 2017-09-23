@@ -86,7 +86,7 @@ unit-tests:
 lav:
 	cp denx/lib/efi_loader/*.efi tftp
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
-	-net nic,vlan=0,macaddr=12:A1:00:12:34:02,model=virtio -net tap,vlan=0,ifname=tap0,script=no,downscript=no \
+	-net nic,vlan=0,macaddr=12:A1:00:12:34:02 -net tap,vlan=0,ifname=tap0,script=no,downscript=no \
 	-machine pc-i440fx-2.8 -hda img
 
 luv:
