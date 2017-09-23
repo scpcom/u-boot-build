@@ -94,7 +94,7 @@ luv:
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
 	-netdev \
 	user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
-	-device e1000,netdev=eth0 -machine pc-i440fx-2.8 -hda img
+	-device e1000,netdev=eth0,mac=12:A1:00:12:34:13 -machine pc-i440fx-2.8 -hda img
 
 check:
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \

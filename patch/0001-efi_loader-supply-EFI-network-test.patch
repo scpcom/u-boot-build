@@ -1,4 +1,4 @@
-From d3a662b8e842357ae394fd550ad0f050d16a8273 Mon Sep 17 00:00:00 2001
+From a2bfb3b611ac0b5c024fbefd6972d6c59f1c5af5 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 22 Sep 2017 12:57:08 +0200
 Subject: [PATCH 1/1] efi_loader: supply EFI network test
@@ -11,11 +11,11 @@ It sends a DHCP request and analyzes the DHCP offer.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  cmd/Kconfig                       |  20 +++
- cmd/bootefi.c                     |  17 +++
+ cmd/bootefi.c                     |  17 ++
  include/asm-generic/sections.h    |   2 +
  lib/efi_loader/Makefile           |   7 +
- lib/efi_loader/efi_network_test.c | 271 ++++++++++++++++++++++++++++++++++++++
- 5 files changed, 317 insertions(+)
+ lib/efi_loader/efi_network_test.c | 319 ++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 365 insertions(+)
  create mode 100644 lib/efi_loader/efi_network_test.c
 
 diff --git a/cmd/Kconfig b/cmd/Kconfig
@@ -123,10 +123,10 @@ index ddb978f650..00ebf1cb8d 100644
  obj-y += efi_file.o efi_variable.o efi_bootmgr.o
 diff --git a/lib/efi_loader/efi_network_test.c b/lib/efi_loader/efi_network_test.c
 new file mode 100644
-index 0000000000..cd2e28f156
+index 0000000000..6ada9f9887
 --- /dev/null
 +++ b/lib/efi_loader/efi_network_test.c
-@@ -0,0 +1,271 @@
+@@ -0,0 +1,319 @@
 +/*
 + * EFI hello world
 + *
@@ -192,6 +192,19 @@ index 0000000000..cd2e28f156
 +		*pos++ = c;
 +	}
 +	return s;
++}
++
++int memcmp(const void *s1, const void *s2, size_t n) {
++	const u8 *pos1 = s1;
++	const u8 *pos2 = s2;
++
++	for (; n; --n) {
++		if (*pos1 != *pos2)
++			return pos1 - pos2;
++		++pos1;
++		++pos2;
++	}
++	return 0;
 +}
 +
 +void *memcpy(void *d, const void *s, size_t n) {
@@ -265,6 +278,13 @@ index 0000000000..cd2e28f156
 +	struct efi_event *events[2];
 +	unsigned int timeout = 10;
 +	size_t index;
++	union {
++		struct dhcp p;
++		u8 b[PKTSIZE];
++	} buffer = { .b = {} };
++	struct efi_mac_address srcaddr;
++	struct efi_mac_address destaddr;
++	size_t buffer_size;
 +
 +	boottime = systable->boottime;
 +	con_out = systable->con_out;
@@ -305,7 +325,7 @@ index 0000000000..cd2e28f156
 +		efi_st_error("Mode not provided\n");
 +		goto out;
 +	}
-+	if (net->mode->hwaddr_size != ARP_HLEN + 1) {
++	if (net->mode->hwaddr_size != ARP_HLEN) {
 +		efi_st_error("HwAddressSize = %u, expected %u\n",
 +			     net->mode->hwaddr_size, ARP_HLEN);
 +		goto out;
@@ -336,7 +356,7 @@ index 0000000000..cd2e28f156
 +		efi_st_error("Sending an DHCP request failed\n");
 +		goto out;
 +	}
-+
++	efi_st_printf("DHCP Discover\n");
 +
 +	events[0] = timer;
 +	events[1] = net->wait_for_packet;
@@ -346,10 +366,38 @@ index 0000000000..cd2e28f156
 +			--timeout;
 +			if (!timeout) {
 +				efi_st_error("Timeout occurred\n");
++				ret = EFI_NOT_FOUND;
 +				goto out;
 +			}
++			ret = send_dhcp_request();
++			if (ret != EFI_SUCCESS) {
++				efi_st_error("Sending an DHCP request "
++					     "failed\n");
++				goto out;
++			}
++			efi_st_printf("DHCP Discover\n");
 +			continue;
 +		}
++		buffer_size = sizeof(buffer);
++		net->receive(net, NULL, &buffer_size, &buffer,
++			     &srcaddr, &destaddr, NULL);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Failed to receive packet");
++			goto out;
++		}
++		/* Check the packet is meant for this system */
++		if (memcmp(&destaddr, &net->mode->current_address, ARP_HLEN))
++			continue;
++		/* Check this is a DHCP reply */
++		if (buffer.p.eth_hdr.et_protlen != ntohs(PROT_IP) ||
++		    buffer.p.ip_udp.ip_hl_v != 0x45 ||
++		    buffer.p.ip_udp.ip_p != IPPROTO_UDP ||
++		    buffer.p.ip_udp.udp_src != ntohs(67) ||
++		    buffer.p.ip_udp.udp_dst != ntohs(68) ||
++		    buffer.p.dhcp_hdr.op != BOOTREPLY)
++			continue;
++		efi_st_printf("DHCP reply received\n");
++		break;
 +	}
 +
 +	/*

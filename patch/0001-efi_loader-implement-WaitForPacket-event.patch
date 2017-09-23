@@ -1,0 +1,60 @@
+From b60e71b622bae496b2ffbea663bfe6bb2841b1fc Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 23 Sep 2017 12:54:53 +0200
+Subject: [PATCH 1/1] efi_loader: implement WaitForPacket event
+
+The WaitForPacket event informs tha a network package has been
+received by the SimpleNetworkProtocol.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_net.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index baab12c9a6..8a7605e7ef 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -24,6 +24,10 @@ static void *new_tx_packet;
+  * to check if a new network packet has been received.
+  */
+ static struct efi_event *network_timer_event;
++/*
++ * This event is signaled when a packet has been received.
++ */
++static struct efi_event *wait_for_packet;
+ 
+ struct efi_net_obj {
+ 	/* Generic EFI object parent class data */
+@@ -231,6 +235,10 @@ static void EFIAPI efi_network_timer_notify(struct efi_event *event,
+ 		push_packet = efi_net_push;
+ 		eth_rx();
+ 		push_packet = NULL;
++
++	}
++	if (!new_rx_packet) {
++		wait_for_packet->signaled = 1;
+ 	}
+ 	EFI_EXIT(EFI_SUCCESS);
+ }
+@@ -286,6 +294,17 @@ int efi_net_register(void)
+ 	list_add_tail(&netobj->parent.link, &efi_obj_list);
+ 
+ 	/*
++	 * Create WaitForPacket event.
++	 */
++	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK,
++			     efi_network_timer_notify, NULL,
++			     &wait_for_packet);
++	if (r != EFI_SUCCESS) {
++		printf("ERROR: Failed to register network event\n");
++		return r;
++	}
++	netobj->net.wait_for_packet = wait_for_packet;
++	/*
+ 	 * Create a timer event.
+ 	 *
+ 	 * The notification function is used to check if an new networkd packet
+-- 
+2.11.0
+

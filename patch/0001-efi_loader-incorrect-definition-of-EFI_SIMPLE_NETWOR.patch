@@ -20,7 +20,7 @@ index a83d94621e..0978d9ace7 100644
  			struct efi_mac_address *src_addr,
  			struct efi_mac_address *dest_addr, u16 *protocol);
 -	void (EFIAPI *waitforpacket)(void);
-+	struct event *wait_for_packet;
++	struct efi_event *wait_for_packet;
  	struct efi_simple_network_mode *mode;
  };
  

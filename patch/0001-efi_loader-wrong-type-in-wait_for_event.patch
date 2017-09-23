@@ -1,4 +1,4 @@
-From 18ec6bec0214c899132c59f49cc38c5128c2be19 Mon Sep 17 00:00:00 2001
+From 7eed5acfbd0c9055db5abc738d3476583a9b187f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 23 Sep 2017 10:52:56 +0200
 Subject: [PATCH 1/1] efi_loader: wrong type in wait_for_event
@@ -15,10 +15,11 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_api.h                      | 2 +-
  lib/efi_loader/efi_boottime.c          | 2 +-
  lib/efi_selftest/efi_selftest_events.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ lib/efi_selftest/efi_selftest_tpl.c    | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index fcf4dbcafd..a83d94621e 100644
+index ab9494a076..1b2759b4a0 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
 @@ -71,7 +71,7 @@ struct efi_boot_services {
@@ -56,6 +57,19 @@ index c4f66952b9..5cd182723d 100644
  	efi_status_t ret;
  
  	/* Set 10 ms timer */
+diff --git a/lib/efi_selftest/efi_selftest_tpl.c b/lib/efi_selftest/efi_selftest_tpl.c
+index 90ace0f51e..6880463eda 100644
+--- a/lib/efi_selftest/efi_selftest_tpl.c
++++ b/lib/efi_selftest/efi_selftest_tpl.c
+@@ -104,7 +104,7 @@ static int teardown(void)
+  */
+ static int execute(void)
+ {
+-	unsigned long index;
++	size_t index;
+ 	efi_status_t ret;
+ 	UINTN old_tpl;
+ 
 -- 
 2.11.0
 

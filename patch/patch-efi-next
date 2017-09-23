@@ -16,6 +16,7 @@ git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # EFI Network
+git am ../patch/0001-test-py-fix-typo-in-test_efi_loader.py.patch
 git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
 git am ../patch/0001-efi_loader-wrong-type-in-wait_for_event.patch
 git am ../patch/0001-efi_loader-incorrect-definition-of-EFI_SIMPLE_NETWOR.patch
@@ -24,8 +25,13 @@ git am ../patch/0001-efi_loader-fill-simple-network-protocol-revision.patch
 git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
 git am ../patch/0001-efi_net-return-EFI_UNSUPPORTED-where-appropriate.patch
 git am ../patch/0001-efi_loader-use-events-for-efi_net_receive.patch
+git am ../patch/0001-efi_loader-implement-WaitForPacket-event.patch
 git am ../patch/0001-efi_loader-fix-efi_net_get_status.patch
+git am ../patch/0001-efi_loader-size-fields-in-SimpleNetworkProtocol.patch
+git am ../patch/0001-efi_loader-fill-return-values-in-SimpleNetworkProtocol.patch
+git am ../patch/0001-efi_selftest-allow-printing-MAC-addresses.patch
 git am ../patch/0001-efi_loader-supply-EFI-network-test.patch
+git am ../patch/0001-efi_loader-enable-network-test-for-qemu_x86.patch
 exit
 
 # git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch
