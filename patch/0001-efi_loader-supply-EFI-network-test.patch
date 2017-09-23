@@ -310,7 +310,7 @@ index 0000000000..cd2e28f156
 +			     net->mode->hwaddr_size, ARP_HLEN);
 +		goto out;
 +	}
-+	if (!net->waitforpacket) {
++	if (!net->wait_for_packet) {
 +		efi_st_error("WaitForPacket event missing\n");
 +		goto out;
 +	}
@@ -339,7 +339,7 @@ index 0000000000..cd2e28f156
 +
 +
 +	events[0] = timer;
-+	events[1] = net->waitforpacket;
++	events[1] = net->wait_for_packet;
 +	for (;;) {
 +		boottime->wait_for_event(2, events, &index);
 +		if (index == 0) {

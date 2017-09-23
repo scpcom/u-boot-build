@@ -17,6 +17,8 @@ git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # EFI Network
 git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
+git am ../patch/0001-efi_loader-wrong-type-in-wait_for_event.patch
+git am ../patch/0001-efi_loader-incorrect-definition-of-EFI_SIMPLE_NETWOR.patch
 git am ../patch/0001-efi_loader-correct-bits-of-receive_filters-bit-mask.patch
 git am ../patch/0001-efi_loader-fill-simple-network-protocol-revision.patch
 git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
