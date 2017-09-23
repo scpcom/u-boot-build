@@ -27,7 +27,7 @@ index e31e646cc0..a31525fbc6 100644
  	efi_status_t r;
 +	struct efi_object *efiobj;
 +
-+	EFI_ENTRY("%p, %p, %d, %p", handle, protocol, protocol_interface_type,
++	EFI_ENTRY("%p, %pUl, %d, %p", handle, protocol, protocol_interface_type,
 +		  protocol_interface);
  
  	if (!handle || !protocol ||
@@ -103,7 +103,7 @@ index e31e646cc0..a31525fbc6 100644
 -			efi_guid_t *protocol, int protocol_interface_type,
 -			void *protocol_interface)
 -{
--	EFI_ENTRY("%p, %p, %d, %p", handle, protocol, protocol_interface_type,
+-	EFI_ENTRY("%p, %pUl, %d, %p", handle, protocol, protocol_interface_type,
 -		  protocol_interface);
 -
 -	return EFI_EXIT(efi_install_protocol_interface(handle, protocol,

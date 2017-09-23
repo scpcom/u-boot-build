@@ -1,0 +1,57 @@
+From 5f1d9857a4bd7b629b58ac745001ceda04c85b8d Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 11 Sep 2017 06:58:44 +0200
+Subject: [PATCH 1/1] spl: u-boot-spl-nodtb.bin: remove .got and .got.plt
+ sections
+
+For qemu-x86_64_defconfig on Debian Stretch
+ld 2.28 creates a .got and a .got.plt section in
+u-boot-spl.
+
+If we do not ignore these sections objcopy generates an
+u-boot-spl-nodtb.bin file of 4 GiB which leads to
+subsequent failure of the build process.
+
+According to
+https://sourceware.org/bugzilla/show_bug.cgi?id=22120#c2
+objcopy can not generate files with holes.
+
+With the patch we can run qemu with the generated u-boot.rom.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+I ran the Travis CI tests with no error reported:
+https://travis-ci.org/xypron2/u-boot/builds/274042004
+
+It is unclear to me why on Debian Stretch the .got and .got.plt sections
+are generated. The problem does not exist on Debian Jessie which uses
+binutils 2.25.
+
+I found this comment in the BFD code which describes under which
+circumstances the .got.plt section is not generated:
+
+https://sourceware.org/viewvc/src/bfd/elf64-x86-64.c?view=markup#l2921
+
+Don't allocate .got.plt section if there are no GOT nor PLT
+entries and there is no reference to _GLOBAL_OFFSET_TABLE_.
+---
+ scripts/Makefile.spl | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/Makefile.spl b/scripts/Makefile.spl
+index dd8065d87d..3b2d79d562 100644
+--- a/scripts/Makefile.spl
++++ b/scripts/Makefile.spl
+@@ -286,7 +286,8 @@ quiet_cmd_objcopy = OBJCOPY $@
+ cmd_objcopy = $(OBJCOPY) $(OBJCOPYFLAGS) $(OBJCOPYFLAGS_$(@F)) $< $@
+ 
+ OBJCOPYFLAGS_$(SPL_BIN)-nodtb.bin = $(SPL_OBJCFLAGS) -O binary \
+-		$(if $(CONFIG_SPL_X86_16BIT_INIT),-R .start16 -R .resetvec)
++		$(if $(CONFIG_SPL_X86_16BIT_INIT), \
++		-R .start16 -R .resetvec -R .got -R .got.plt)
+ 
+ $(obj)/$(SPL_BIN)-nodtb.bin: $(obj)/$(SPL_BIN) FORCE
+ 	$(call if_changed,objcopy)
+-- 
+2.11.0
+

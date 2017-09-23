@@ -25,7 +25,7 @@ index 45ddea321a..9edd7dd312 100644
 +/* Call this to validate a handle and find the EFI object for it */
 +struct efi_object *efi_search_obj(void *handle);
  /* Call this to create an event */
- efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
+ efi_status_t efi_create_event(uint32_t type, size_t notify_tpl,
  			      void (EFIAPI *notify_function) (
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 6a8c26d672..7f24390ac6 100644

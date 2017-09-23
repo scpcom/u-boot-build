@@ -1,4 +1,4 @@
-From 926b0d5ad715b1c162e2a13bcb7ab5b791ddbc07 Mon Sep 17 00:00:00 2001
+From e435705354c95ea172ff3b9566e5623035bbe248 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 22 Jul 2017 09:22:54 +0200
 Subject: [PATCH 1/1] efi_loader: open_info in OpenProtocol
@@ -8,20 +8,23 @@ opened protocols.
 
 So we add an array open_info to each protocol of each handle.
 
-OpenProtocol has enter the agent and controller handle
+OpenProtocol enters the agent and controller handle
 information into this array.
+
+If attributes takes the value TEST_PROTOCOL we shall neither
+update the open protocol information nor the parameter interface.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |   1 +
- lib/efi_loader/efi_boottime.c | 130 +++++++++++++++++++++++++++++++-----------
- 2 files changed, 99 insertions(+), 32 deletions(-)
+ lib/efi_loader/efi_boottime.c | 136 ++++++++++++++++++++++++++++++++----------
+ 2 files changed, 105 insertions(+), 32 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 21ffbd0788..b159300e28 100644
+index 6d87efdd33..5abdc02661 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -87,6 +87,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
+@@ -98,6 +98,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
  struct efi_handler {
  	const efi_guid_t *guid;
  	void *protocol_interface;
@@ -30,10 +33,10 @@ index 21ffbd0788..b159300e28 100644
  
  /*
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 2e5e1db55c..4806de945e 100644
+index 3dba1532de..3d18e1cdf3 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1149,24 +1149,111 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
+@@ -1213,24 +1213,111 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
  	memset(buffer, value, size);
  }
  
@@ -137,7 +140,7 @@ index 2e5e1db55c..4806de945e 100644
 +	struct efi_handler *handler;
  	efi_status_t r = EFI_INVALID_PARAMETER;
  
- 	EFI_ENTRY("%p, %p, %p, %p, %p, 0x%x", handle, protocol,
+ 	EFI_ENTRY("%p, %pUl, %p, %p, %p, 0x%x", handle, protocol,
  		  protocol_interface, agent_handle, controller_handle,
  		  attributes);
  
@@ -149,9 +152,9 @@ index 2e5e1db55c..4806de945e 100644
  		goto out;
 -	}
  
- 	switch (attributes) {
- 	case EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL:
-@@ -1188,33 +1275,12 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 	EFI_PRINT_GUID("protocol", protocol);
+ 
+@@ -1254,33 +1341,18 @@ static efi_status_t EFIAPI efi_open_protocol(
  		goto out;
  	}
  
@@ -181,6 +184,12 @@ index 2e5e1db55c..4806de945e 100644
 -	}
 +	r = efi_search_protocol(handle, protocol, &handler);
 +	if (r != EFI_SUCCESS)
++		goto out;
++	/*
++	 * For TEST_PROTOCOL we shall neither update protocol_interface nor
++	 * the open protocol information.
++	 */
++	if (attributes == EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
 +		goto out;
  
 -unsupported:
