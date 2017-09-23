@@ -1,0 +1,44 @@
+From 575e69b1ce675f1f503333b50ff24010891ea13a Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 22 Sep 2017 20:36:12 +0200
+Subject: [PATCH 2/2] efi_loader: fill simple network protocol revision
+
+Provide the simple network protocol revision.
+This revision number could be used to identify backwards compatible
+enhancements of the protocol.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h        | 3 +++
+ lib/efi_loader/efi_net.c | 1 +
+ 2 files changed, 4 insertions(+)
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index 76bf800c6f..6058c74984 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -606,6 +606,9 @@ struct efi_simple_network_mode {
+ #define EFI_SIMPLE_NETWORK_RECEIVE_PROMISCUOUS           0x08
+ #define EFI_SIMPLE_NETWORK_RECEIVE_PROMISCUOUS_MULTICAST 0x10
+ 
++/* revision of the simple network protocol */
++#define EFI_SIMPLE_NETWORK_PROTOCOL_REVISION	0x00010000
++
+ struct efi_simple_network
+ {
+ 	u64 revision;
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index 5aa3f49a83..baab12c9a6 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -258,6 +258,7 @@ int efi_net_register(void)
+ 	netobj->parent.protocols[2].guid = &efi_pxe_guid;
+ 	netobj->parent.protocols[2].protocol_interface = &netobj->pxe;
+ 	netobj->parent.handle = &netobj->net;
++	netobj->net.revision = EFI_SIMPLE_NETWORK_PROTOCOL_REVISION;
+ 	netobj->net.start = efi_net_start;
+ 	netobj->net.stop = efi_net_stop;
+ 	netobj->net.initialize = efi_net_initialize;
+-- 
+2.11.0
+
