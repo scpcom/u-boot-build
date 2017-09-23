@@ -8,6 +8,22 @@ of the Simple Network Protocol implementation.
 
 It sends a DHCP request and analyzes the DHCP offer.
 
+Different error conditions including a 10s timeout are checked.
+
+A successful execution will look like this:
+
+=> bootefi nettest
+## Starting EFI application at 01000000 ...
+Scanning disk ide.blk#0...
+Found 1 disks
+WARNING: Invalid device tree, expect boot to fail
+Network test
+DHCP Discover
+DHCP reply received from 192.168.76.2 (52:55:c0:a8:4c:02)
+as broadcast message.
+OK. The test was completed successfully.
+## Application terminated, r = 0
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  cmd/Kconfig                       |  20 +++
