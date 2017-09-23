@@ -1,4 +1,4 @@
-From 01070fabc3ca5c55726caa3455c3855c3e2567cc Mon Sep 17 00:00:00 2001
+From 20aa90e7492a625705dda3aaa298934e72a7df78 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 22 Sep 2017 12:57:08 +0200
 Subject: [PATCH 1/1] efi_loader: supply EFI network test
@@ -10,12 +10,12 @@ It sends a DHCP request and analyzes the DHCP offer.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/Kconfig                       |  20 +++++
- cmd/bootefi.c                     |  17 ++++
+ cmd/Kconfig                       |  20 +++
+ cmd/bootefi.c                     |  17 +++
  include/asm-generic/sections.h    |   2 +
- lib/efi_loader/Makefile           |   7 ++
- lib/efi_loader/efi_network_test.c | 174 ++++++++++++++++++++++++++++++++++++++
- 5 files changed, 220 insertions(+)
+ lib/efi_loader/Makefile           |   7 +
+ lib/efi_loader/efi_network_test.c | 276 ++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 322 insertions(+)
  create mode 100644 lib/efi_loader/efi_network_test.c
 
 diff --git a/cmd/Kconfig b/cmd/Kconfig
@@ -123,14 +123,14 @@ index ddb978f650..00ebf1cb8d 100644
  obj-y += efi_file.o efi_variable.o efi_bootmgr.o
 diff --git a/lib/efi_loader/efi_network_test.c b/lib/efi_loader/efi_network_test.c
 new file mode 100644
-index 0000000000..b5d182bc4e
+index 0000000000..d4019f6af4
 --- /dev/null
 +++ b/lib/efi_loader/efi_network_test.c
-@@ -0,0 +1,174 @@
+@@ -0,0 +1,276 @@
 +/*
 + * EFI hello world
 + *
-+ * Copyright (c) 2016 Google, Inc
++ * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
 + * Written by Simon Glass <sjg@chromium.org>
 + *
 + * SPDX-License-Identifier:     GPL-2.0+
@@ -139,10 +139,51 @@ index 0000000000..b5d182bc4e
 +#include <efi_selftest.h>
 +#include <vsprintf.h>
 +
-+struct efi_boot_services *boottime;
++struct dhcp_hdr {
++	u8 op;
++#define BOOTREQUEST 1
++#define BOOTREPLY 2
++	u8 htype;
++# define HWT_ETHER 1
++	u8 hlen;
++# define HWL_ETHER 6
++	u8 hops;
++	u32 xid;
++	u16 secs;
++	u16 flags;
++	u32 ciaddr;
++	u32 yiaddr;
++	u32 siaddr;
++	u32 giaddr;
++	u8 chaddr[16];
++	u8 sname[64];
++	u8 file[128];
++};
++
++#define DHCP_MESSAGE_TYPE 0x35
++#define DHCPDISCOVER	1
++#define DHCPOFFER	2
++#define DHCPREQUEST	3
++#define DHCPDECLINE	4
++#define DHCPACK		5
++#define DHCPNAK		6
++#define DHCPRELEASE	7
++
++struct dhcp {
++	struct ethernet_hdr eth_hdr;
++	struct ip_udp_hdr ip_udp;
++	struct dhcp_hdr dhcp_hdr;
++	u8 opt[128];
++} __packed;
++
++static struct efi_boot_services *boottime;
 +struct efi_simple_text_output_protocol *con_out;
 +struct efi_simple_input_interface *con_in;
++static struct efi_simple_network *net = NULL;
++static struct efi_event *timer = NULL;
 +static const efi_guid_t efi_net_guid = EFI_SIMPLE_NETWORK_GUID;
++/* IP packet ID */
++static unsigned net_ip_id;
 +
 +/*
 + * Print a formatted string to the EFI console
@@ -200,12 +241,65 @@ index 0000000000..b5d182bc4e
 +	con_out->output_string(con_out, buf);
 +}
 +
++efi_status_t send_dhcp_request(void)
++{
++	struct dhcp p = {};
++
++	/*
++	 * Fill ethernet header
++         */
++	memset(p.eth_hdr.et_dest, 0xff, ARP_HLEN);
++	memcpy(p.eth_hdr.et_dest, &net->mode->current_address, ARP_HLEN);
++	p.eth_hdr.et_protlen = htons(PROT_IP);
++	/*
++	 * Fill IP header
++	 */
++	p.ip_udp.ip_hl_v	= 0x45;
++	p.ip_udp.ip_tos		= 0;
++	p.ip_udp.ip_len		= htons(sizeof(struct dhcp) -
++					sizeof(struct ethernet_hdr));
++	p.ip_udp.ip_id		= htons(net_ip_id++);
++	p.ip_udp.ip_off		= htons(IP_FLAGS_DFRAG);
++	p.ip_udp.ip_ttl		= 0x80; /* time to live */
++	p.ip_udp.ip_p		= IPPROTO_UDP;
++	p.ip_udp.ip_sum		= 0;
++	/*
++         * Fill UDP header
++	 */
++	memset(&p.ip_udp.ip_dst, 0xff, 4);
++	p.ip_udp.udp_src	= 68;
++	p.ip_udp.udp_dst	= 67;
++	p.ip_udp.udp_len	= htons(sizeof(struct dhcp) -
++					sizeof(struct ethernet_hdr) -
++					sizeof(struct ip_hdr));
++	/*
++         * Fill DHCP header
++	 */
++	p.dhcp_hdr.op = BOOTREQUEST;
++	p.dhcp_hdr.htype = HWT_ETHER;
++	p.dhcp_hdr.hlen = HWL_ETHER;	
++	p.dhcp_hdr.flags = htons(0x0080);
++	memcpy(&p.dhcp_hdr.chaddr, &net->mode->current_address, ARP_HLEN);
++	/*
++	 * Fill options
++	 */
++	p.opt[0] = 0x63; /* Magic cookie */
++	p.opt[1] = 0x82;
++	p.opt[2] = 0x53;
++	p.opt[3] = 0x63;
++	p.opt[4] = DHCP_MESSAGE_TYPE;
++	p.opt[5] = 0x01; /* length */
++	p.opt[6] = DHCPDISCOVER;
++	p.opt[7] = 0xff;
++
++
++	return EFI_SUCCESS;
++}
++
 +efi_status_t EFIAPI efi_main(efi_handle_t handle,
 +			     struct efi_system_table *systable)
 +{
 +	efi_status_t exit_status, ret;
-+	struct efi_simple_network *net = NULL;
-+	struct efi_event *timer = NULL;
 +
 +	boottime = systable->boottime;
 +	con_out = systable->con_out;
@@ -255,6 +349,14 @@ index 0000000000..b5d182bc4e
 +		efi_st_error("Failed to start network adapter\n");
 +		goto out;
 +	}
++
++	ret = send_dhcp_request();
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Sending an DHCP request failed\n");
++		goto out;
++	}
++
++
 +	/*
 +	 * Stop network adapter.
 +	 */
