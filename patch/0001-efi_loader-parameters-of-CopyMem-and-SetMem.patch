@@ -58,7 +58,7 @@ index 2c2620a46d..ba73d09cad 100644
 +static void EFIAPI efi_set_mem(void *buffer, size_t size, uint8_t value)
  {
 -	EFI_ENTRY("%p, %ld, 0x%x", buffer, size, value);
-+	EFI_ENTRY("%p, %ld, 0x%x", buffer, (unsigned long) size, value);
++	EFI_ENTRY("%p, %ld, 0x%x", buffer, (unsigned long)size, value);
  	memset(buffer, value, size);
  	EFI_EXIT(EFI_SUCCESS);
  }

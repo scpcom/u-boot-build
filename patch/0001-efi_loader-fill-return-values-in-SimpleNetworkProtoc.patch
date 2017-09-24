@@ -14,14 +14,13 @@ diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
 index 5344210fff..4af4262afe 100644
 --- a/lib/efi_loader/efi_net.c
 +++ b/lib/efi_loader/efi_net.c
-@@ -203,6 +203,11 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
+@@ -203,6 +203,10 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
  		struct efi_mac_address *src_addr,
  		struct efi_mac_address *dest_addr, u16 *protocol)
  {
 +	struct ethernet_hdr *eth_hdr;
 +	size_t hdr_size = sizeof(struct ethernet_hdr);
 +	u16 protlen;
-+
 +
  	EFI_ENTRY("%p, %p, %p, %p, %p, %p, %p", this, header_size,
  		  buffer_size, buffer, src_addr, dest_addr, protocol);
