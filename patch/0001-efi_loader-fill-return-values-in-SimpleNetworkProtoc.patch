@@ -1,4 +1,4 @@
-From 0cbff8e310e3d1c9af3e94b732757d8533b7100f Mon Sep 17 00:00:00 2001
+From 3d193c7ed858b617b721e897e7b0538a68c054a9 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 23 Sep 2017 14:02:10 +0200
 Subject: [PATCH 1/1] efi_loader: fill return values in SimpleNetworkProtocol
@@ -11,10 +11,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 26 insertions(+), 2 deletions(-)
 
 diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
-index 95385db503..e64c666dd5 100644
+index 5344210fff..4af4262afe 100644
 --- a/lib/efi_loader/efi_net.c
 +++ b/lib/efi_loader/efi_net.c
-@@ -199,6 +199,11 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
+@@ -203,6 +203,11 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
  		struct efi_mac_address *src_addr,
  		struct efi_mac_address *dest_addr, u16 *protocol)
  {
@@ -26,7 +26,7 @@ index 95385db503..e64c666dd5 100644
  	EFI_ENTRY("%p, %p, %p, %p, %p, %p, %p", this, header_size,
  		  buffer_size, buffer, src_addr, dest_addr, protocol);
  
-@@ -206,13 +211,32 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
+@@ -210,13 +215,32 @@ static efi_status_t EFIAPI efi_net_receive(struct efi_simple_network *this,
  
  	if (!new_rx_packet)
  		return EFI_EXIT(EFI_NOT_READY);
@@ -41,7 +41,7 @@ index 95385db503..e64c666dd5 100644
 +	protlen = ntohs(eth_hdr->et_protlen);
 +	if (protlen == 0x8100) {
 +		hdr_size += 4;
-+		protlen = ntohs(*(u16*)&net_rx_packet[hdr_size - 2]);
++		protlen = ntohs(*(u16 *)&net_rx_packet[hdr_size - 2]);
 +	}
 +	if (header_size)
 +		*header_size = hdr_size;
@@ -62,5 +62,5 @@ index 95385db503..e64c666dd5 100644
  	*buffer_size = net_rx_packet_len;
  	new_rx_packet = false;
 -- 
-2.11.0
+2.14.1
 
