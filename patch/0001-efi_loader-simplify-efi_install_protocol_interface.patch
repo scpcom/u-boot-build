@@ -1,6 +1,6 @@
-From ddb7ff1ea5c7cc6b5704ff8854df0c6714673cd0 Mon Sep 17 00:00:00 2001
+From 8dcbeeae27bebceff58382c37b43529945c1a1e3 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Sun, 20 Aug 2017 12:49:01 +0200
+Date: Sun, 24 Sep 2017 13:38:27 +0200
 Subject: [PATCH 1/1] efi_loader: simplify efi_install_protocol_interface
 
 Use function efi_search_obj and efi_search_protocol
@@ -11,15 +11,28 @@ We can use EFI_CALL for internal usage.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 78 ++++++++++++++++++-------------------------
- 1 file changed, 32 insertions(+), 46 deletions(-)
+ lib/efi_loader/efi_boottime.c | 96 +++++++++++++++----------------------------
+ 1 file changed, 34 insertions(+), 62 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index e31e646cc0..a31525fbc6 100644
+index ff1ef89470..a828c6969a 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -482,9 +482,12 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
- 			efi_guid_t *protocol, int protocol_interface_type,
+@@ -732,9 +732,9 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+ /*
+  * Install protocol interface.
+  *
+- * This is the function for internal calls. For the API implementation of the
+- * InstallProtocolInterface service see function
+- * efi_install_protocol_interface_ext.
++ * This function implements the InstallProtocolInterface service.
++ * See the Unified Extensible Firmware Interface (UEFI) specification
++ * for details.
+  *
+  * @handle			handle on which the protocol shall be installed
+  * @protocol			GUID of the protocol to be installed
+@@ -747,9 +747,12 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+ 			const efi_guid_t *protocol, int protocol_interface_type,
  			void *protocol_interface)
  {
 -	struct list_head *lhandle;
@@ -32,12 +45,8 @@ index e31e646cc0..a31525fbc6 100644
  
  	if (!handle || !protocol ||
  	    protocol_interface_type != EFI_NATIVE_INTERFACE) {
-@@ -494,57 +497,39 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
- 
- 	/* Create new handle if requested. */
- 	if (!*handle) {
--		r = EFI_OUT_OF_RESOURCES;
-+		r = EFI_OUT_OF_RESOURCES;
+@@ -762,68 +765,36 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+ 		r = EFI_OUT_OF_RESOURCES;
  		goto out;
  	}
 +
@@ -99,8 +108,22 @@ index e31e646cc0..a31525fbc6 100644
 -	return r;
 -}
 -
+-/*
+- * Install protocol interface.
+- *
+- * This function implements the InstallProtocolInterface service.
+- * See the Unified Extensible Firmware Interface (UEFI) specification
+- * for details.
+- *
+- * @handle			handle on which the protocol shall be installed
+- * @protocol			GUID of the protocol to be installed
+- * @protocol_interface_type	type of the interface to be installed,
+- *				always EFI_NATIVE_INTERFACE
+- * @protocol_interface		interface of the protocol implementation
+- * @return			status code
+- */
 -static efi_status_t EFIAPI efi_install_protocol_interface_ext(void **handle,
--			efi_guid_t *protocol, int protocol_interface_type,
+-			const efi_guid_t *protocol, int protocol_interface_type,
 -			void *protocol_interface)
 -{
 -	EFI_ENTRY("%p, %pUl, %d, %p", handle, protocol, protocol_interface_type,
@@ -112,8 +135,8 @@ index e31e646cc0..a31525fbc6 100644
 +	return EFI_EXIT(r);
  }
  
- static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
-@@ -1113,9 +1098,10 @@ static efi_status_t EFIAPI efi_install_multiple_protocol_interfaces(
+ /*
+@@ -1847,9 +1818,10 @@ static efi_status_t EFIAPI efi_install_multiple_protocol_interfaces(
  		if (!protocol)
  			break;
  		protocol_interface = va_arg(argptr, void*);
@@ -127,7 +150,7 @@ index e31e646cc0..a31525fbc6 100644
  		if (r != EFI_SUCCESS)
  			break;
  		i++;
-@@ -1261,7 +1247,7 @@ static const struct efi_boot_services efi_boot_services = {
+@@ -2072,7 +2044,7 @@ static const struct efi_boot_services efi_boot_services = {
  	.signal_event = efi_signal_event_ext,
  	.close_event = efi_close_event,
  	.check_event = efi_check_event,
@@ -137,5 +160,5 @@ index e31e646cc0..a31525fbc6 100644
  	.uninstall_protocol_interface = efi_uninstall_protocol_interface_ext,
  	.handle_protocol = efi_handle_protocol,
 -- 
-2.14.1
+2.11.0
 
