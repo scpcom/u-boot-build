@@ -1,4 +1,4 @@
-From dfbd3452fb2eaeb9fe06c45e5a6805782068acad Mon Sep 17 00:00:00 2001
+From db87c52ff82fb4b33377ba1cc9768d68a7adbb9d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 22 Sep 2017 12:57:08 +0200
 Subject: [PATCH 1/1] efi_loader: supply EFI network test
@@ -13,7 +13,6 @@ Different error conditions including a 10s timeout are checked.
 A successful execution will look like this:
 
 => bootefi nettest
-## Starting EFI application at 01000000 ...
 Scanning disk ide.blk#0...
 Found 1 disks
 WARNING: Invalid device tree, expect boot to fail
@@ -22,7 +21,6 @@ DHCP Discover
 DHCP reply received from 192.168.76.2 (52:55:c0:a8:4c:02)
 as broadcast message.
 OK. The test was completed successfully.
-## Application terminated, r = 0
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
@@ -52,7 +50,7 @@ index 30f1960933..9bfecf357b 100644
  efi_selftest_tpl.o
 diff --git a/lib/efi_selftest/efi_selftest_snp.c b/lib/efi_selftest/efi_selftest_snp.c
 new file mode 100644
-index 0000000000..17ce720a63
+index 0000000000..7bb81208ad
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_snp.c
 @@ -0,0 +1,442 @@
@@ -61,7 +59,7 @@ index 0000000000..17ce720a63
 + *
 + * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
 + *
-+ * SPDX-License-Identifier:     GPL-2.0+
++ * SPDX-License-Identifier:	GPL-2.0+
 + *
 + * This unit test covers the Simple Network Protocol as well as
 + * the CopyMem and SetMem boottime services.
@@ -123,11 +121,11 @@ index 0000000000..17ce720a63
 +} __packed;
 +
 +static struct efi_boot_services *boottime;
-+static struct efi_simple_network *net = NULL;
-+static struct efi_event *timer = NULL;
++static struct efi_simple_network *net;
++static struct efi_event *timer;
 +static const efi_guid_t efi_net_guid = EFI_SIMPLE_NETWORK_GUID;
 +/* IP packet ID */
-+static unsigned net_ip_id;
++static unsigned int net_ip_id;
 +
 +/*
 + * Compare memory.
@@ -160,7 +158,7 @@ index 0000000000..17ce720a63
 + * @buf IP header
 + * @len	length of header in bytes
 + */
-+static unsigned efi_ip_checksum(const void *buf, size_t len)
++static unsigned int efi_ip_checksum(const void *buf, size_t len)
 +{
 +	size_t i;
 +	u32 sum = 0;
@@ -196,7 +194,7 @@ index 0000000000..17ce720a63
 +	 */
 +	p.ip_udp.ip_hl_v	= 0x45;
 +	p.ip_udp.ip_len		= htons(sizeof(struct dhcp) -
-+	                                sizeof(struct ethernet_hdr));
++					sizeof(struct ethernet_hdr));
 +	p.ip_udp.ip_id		= htons(++net_ip_id);
 +	p.ip_udp.ip_off		= htons(IP_FLAGS_DFRAG);
 +	p.ip_udp.ip_ttl		= 0xff; /* time to live */
@@ -210,8 +208,8 @@ index 0000000000..17ce720a63
 +	p.ip_udp.udp_src	= htons(68);
 +	p.ip_udp.udp_dst	= htons(67);
 +	p.ip_udp.udp_len	= htons(sizeof(struct dhcp) -
-+	                                sizeof(struct ethernet_hdr) -
-+	                                sizeof(struct ip_hdr));
++					sizeof(struct ethernet_hdr) -
++					sizeof(struct ip_hdr));
 +	/*
 +	 * Fill DHCP header
 +	 */
@@ -224,28 +222,27 @@ index 0000000000..17ce720a63
 +	/*
 +	 * Fill options
 +	 */
-+	p.opt[0] 	= 0x63; /* DHCP magic cookie */
-+	p.opt[1] 	= 0x82;
-+	p.opt[2] 	= 0x53;
-+	p.opt[3] 	= 0x63;
-+	p.opt[4] 	= DHCP_MESSAGE_TYPE;
-+	p.opt[5] 	= 0x01; /* length */
-+	p.opt[6] 	= DHCPDISCOVER;
-+	p.opt[7] 	= 0x39; /* maximum message size */
-+	p.opt[8] 	= 0x02; /* length */
-+	p.opt[9] 	= 0x02; /* 576 bytes */
-+	p.opt[10] 	= 0x40;
-+	p.opt[11] 	= 0xff; /* end of options */
++	p.opt[0]	= 0x63; /* DHCP magic cookie */
++	p.opt[1]	= 0x82;
++	p.opt[2]	= 0x53;
++	p.opt[3]	= 0x63;
++	p.opt[4]	= DHCP_MESSAGE_TYPE;
++	p.opt[5]	= 0x01; /* length */
++	p.opt[6]	= DHCPDISCOVER;
++	p.opt[7]	= 0x39; /* maximum message size */
++	p.opt[8]	= 0x02; /* length */
++	p.opt[9]	= 0x02; /* 576 bytes */
++	p.opt[10]	= 0x40;
++	p.opt[11]	= 0xff; /* end of options */
 +
 +	/*
 +	 * Transmit DHCPDISCOVER message.
 +	 */
 +	ret = net->transmit(net, 0, sizeof(struct dhcp), &p, NULL, NULL, 0);
-+	if (ret != EFI_SUCCESS) {
++	if (ret != EFI_SUCCESS)
 +		efi_st_error("Sending a DHCP request failed\n");
-+	} else {
++	else
 +		efi_st_printf("DHCP Discover\n");
-+	}
 +	return ret;
 +}
 +
@@ -269,7 +266,7 @@ index 0000000000..17ce720a63
 +	 * Create a timer event.
 +	 */
 +	ret = boottime->create_event(EVT_TIMER, TPL_CALLBACK, NULL, NULL,
-+	                             &timer);
++				     &timer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to create event\n");
 +		return 1;
@@ -285,7 +282,7 @@ index 0000000000..17ce720a63
 +	/*
 +	 * Find an interface implementing the SNP protocol.
 +	 */
-+	ret = boottime->locate_protocol(&efi_net_guid, NULL, (void **) &net);
++	ret = boottime->locate_protocol(&efi_net_guid, NULL, (void **)&net);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to locate simple network protocol\n");
 +		return 1;
@@ -299,7 +296,7 @@ index 0000000000..17ce720a63
 +	}
 +	if (net->mode->hwaddr_size != ARP_HLEN) {
 +		efi_st_error("HwAddressSize = %u, expected %u\n",
-+		             net->mode->hwaddr_size, ARP_HLEN);
++			     net->mode->hwaddr_size, ARP_HLEN);
 +		return 1;
 +	}
 +	/*
@@ -377,7 +374,7 @@ index 0000000000..17ce720a63
 +		boottime->wait_for_event(2, events, &index);
 +		if (index == 0) {
 +			/*
-+			 * The timer event occured. Check for timeout.
++			 * The timer event occurred. Check for timeout.
 +			 */
 +			--timeout;
 +			if (!timeout) {
@@ -397,7 +394,7 @@ index 0000000000..17ce720a63
 +		 */
 +		buffer_size = sizeof(buffer);
 +		net->receive(net, NULL, &buffer_size, &buffer,
-+		             &srcaddr, &destaddr, NULL);
++			     &srcaddr, &destaddr, NULL);
 +		if (ret != EFI_SUCCESS) {
 +			efi_st_error("Failed to receive packet");
 +			return 1;
@@ -407,7 +404,8 @@ index 0000000000..17ce720a63
 +		 * Unfortunately QEMU ignores the broadcast flag.
 +		 * So we have to check for broadcasts too.
 +		 */
-+		if (efi_st_memcmp(&destaddr, &net->mode->current_address, ARP_HLEN) &&
++		if (efi_st_memcmp(&destaddr, &net->mode->current_address,
++				  ARP_HLEN) &&
 +		    efi_st_memcmp(&destaddr, BROADCAST_MAC, ARP_HLEN))
 +			continue;
 +		/*
@@ -431,7 +429,7 @@ index 0000000000..17ce720a63
 +	 */
 +	addr = (u8 *)&buffer.p.ip_udp.ip_src;
 +	efi_st_printf("DHCP reply received from %u.%u.%u.%u (%pm) ",
-+	              addr[0], addr[1], addr[2], addr[3], &srcaddr);
++		      addr[0], addr[1], addr[2], addr[3], &srcaddr);
 +	if (!efi_st_memcmp(&destaddr, BROADCAST_MAC, ARP_HLEN))
 +		efi_st_printf("as broadcast message.\n");
 +	else
@@ -499,5 +497,5 @@ index 0000000000..17ce720a63
 +	.teardown = teardown,
 +};
 -- 
-2.11.0
+2.14.1
 

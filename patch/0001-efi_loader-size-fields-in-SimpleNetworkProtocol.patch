@@ -48,7 +48,7 @@ index baab12c9a6..95385db503 100644
 -	EFI_ENTRY("%p, %lx, %lx, %p, %p, %p, %p", this, header_size,
 -		  buffer_size, buffer, src_addr, dest_addr, protocol);
 +	EFI_ENTRY("%p, %lu, %lu, %p, %p, %p, %p", this,
-+		  (unsigned long) header_size, (unsigned long) buffer_size,
++		  (unsigned long)header_size, (unsigned long)buffer_size,
 +		  buffer, src_addr, dest_addr, protocol);
  
  	efi_timer_check();

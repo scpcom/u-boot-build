@@ -1,4 +1,4 @@
-From b60e71b622bae496b2ffbea663bfe6bb2841b1fc Mon Sep 17 00:00:00 2001
+From 33903974781cb089fa4240a0806220655f8319ef Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 23 Sep 2017 12:54:53 +0200
 Subject: [PATCH 1/1] efi_loader: implement WaitForPacket event
@@ -8,11 +8,11 @@ received by the SimpleNetworkProtocol.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_net.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ lib/efi_loader/efi_net.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
-index baab12c9a6..8a7605e7ef 100644
+index 3498b96f7a..72a023803d 100644
 --- a/lib/efi_loader/efi_net.c
 +++ b/lib/efi_loader/efi_net.c
 @@ -24,6 +24,10 @@ static void *new_tx_packet;
@@ -26,21 +26,20 @@ index baab12c9a6..8a7605e7ef 100644
  
  struct efi_net_obj {
  	/* Generic EFI object parent class data */
-@@ -231,6 +235,10 @@ static void EFIAPI efi_network_timer_notify(struct efi_event *event,
- 		push_packet = efi_net_push;
+@@ -227,6 +231,8 @@ static void EFIAPI efi_network_timer_notify(struct efi_event *event,
  		eth_rx();
  		push_packet = NULL;
-+
-+	}
-+	if (!new_rx_packet) {
-+		wait_for_packet->signaled = 1;
  	}
++	if (!new_rx_packet)
++		wait_for_packet->signaled = 1;
  	EFI_EXIT(EFI_SUCCESS);
  }
-@@ -286,6 +294,17 @@ int efi_net_register(void)
+ 
+@@ -280,6 +286,17 @@ int efi_net_register(void)
+ 	/* Hook net up to the device list */
  	list_add_tail(&netobj->parent.link, &efi_obj_list);
  
- 	/*
++	/*
 +	 * Create WaitForPacket event.
 +	 */
 +	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK,
@@ -51,10 +50,9 @@ index baab12c9a6..8a7605e7ef 100644
 +		return r;
 +	}
 +	netobj->net.wait_for_packet = wait_for_packet;
-+	/*
+ 	/*
  	 * Create a timer event.
  	 *
- 	 * The notification function is used to check if an new networkd packet
 -- 
-2.11.0
+2.14.1
 
