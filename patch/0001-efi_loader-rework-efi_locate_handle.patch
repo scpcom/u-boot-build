@@ -25,7 +25,7 @@ index efde26d866..88461aeb05 100644
  	case BY_PROTOCOL:
  		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
 @@ -667,16 +668,38 @@ static efi_status_t efi_locate_handle(
- 			efi_guid_t *protocol, void *search_key,
+ 			const efi_guid_t *protocol, void *search_key,
  			size_t *buffer_size, efi_handle_t *buffer)
  {
 -	struct list_head *lhandle;
