@@ -1,4 +1,4 @@
-From a2bfb3b611ac0b5c024fbefd6972d6c59f1c5af5 Mon Sep 17 00:00:00 2001
+From dfbd3452fb2eaeb9fe06c45e5a6805782068acad Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 22 Sep 2017 12:57:08 +0200
 Subject: [PATCH 1/1] efi_loader: supply EFI network test
@@ -26,133 +26,59 @@ OK. The test was completed successfully.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/Kconfig                       |  20 +++
- cmd/bootefi.c                     |  17 ++
- include/asm-generic/sections.h    |   2 +
- lib/efi_loader/Makefile           |   7 +
- lib/efi_loader/efi_network_test.c | 319 ++++++++++++++++++++++++++++++++++++++
- 5 files changed, 365 insertions(+)
- create mode 100644 lib/efi_loader/efi_network_test.c
+ lib/efi_selftest/Makefile           |   3 +
+ lib/efi_selftest/efi_selftest_snp.c | 442 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 445 insertions(+)
+ create mode 100644 lib/efi_selftest/efi_selftest_snp.c
 
-diff --git a/cmd/Kconfig b/cmd/Kconfig
-index 3ef9b16b08..e0a925700f 100644
---- a/cmd/Kconfig
-+++ b/cmd/Kconfig
-@@ -222,6 +222,26 @@ config CMD_BOOTEFI_HELLO
- 	  for testing that EFI is working at a basic level, and for bringing
- 	  up EFI support on a new architecture.
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index 30f1960933..9bfecf357b 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -15,6 +15,8 @@ CFLAGS_efi_selftest_events.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_events.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_exitbootservices.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_exitbootservices.o := $(CFLAGS_NON_EFI)
++CFLAGS_efi_selftest_snp.o := $(CFLAGS_EFI)
++CFLAGS_REMOVE_efi_selftest_snp.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_tpl.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_tpl.o := $(CFLAGS_NON_EFI)
  
-+config CMD_BOOTEFI_NETWORK_TEST_COMPILE
-+	bool "Compile an EFI application for network testing"
-+	depends on CMD_BOOTEFI && (ARM || X86)
-+	default y
-+	help
-+	  This compiles an EFI application that tests the implemenation of the
-+	  Simple Network Protocol (SNP) by sending a DHCP request and reading
-+	  the DHCP offer.
-+
-+	  No additional space will be required in the resulting U-Boot binary
-+	  when this option is enabled.
-+
-+config CMD_BOOTEFI_NETWORK_TEST
-+	bool "Allow booting an EFI application for network testing"
-+	depends on CMD_BOOTEFI_NETWORK_TEST_COMPILE
-+	help
-+	  This adds an EFI application that tests the implemenation of the
-+	  Simple Network Protocol (SNP) so that it can be used with the
-+	  'bootefi nettest' command.
-+
- source lib/efi_selftest/Kconfig
- 
- config CMD_BOOTMENU
-diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index b7087e3da8..05e072e768 100644
---- a/cmd/bootefi.c
-+++ b/cmd/bootefi.c
-@@ -270,6 +270,19 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
- 		memcpy((char *)addr, __efi_helloworld_begin, size);
- 	} else
- #endif
-+#ifdef CONFIG_CMD_BOOTEFI_NETWORK_TEST
-+	if (!strcmp(argv[1], "nettest")) {
-+		ulong size = __efi_efi_network_test_end -
-+			     __efi_efi_network_test_begin;
-+
-+		saddr = env_get("loadaddr");
-+		if (saddr)
-+			addr = simple_strtoul(saddr, NULL, 16);
-+		else
-+			addr = CONFIG_SYS_LOAD_ADDR;
-+		memcpy((char *)addr, __efi_efi_network_test_begin, size);
-+	} else
-+#endif
- #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
- 	if (!strcmp(argv[1], "selftest")) {
- 		struct efi_loaded_image loaded_image_info = {};
-@@ -330,6 +343,10 @@ static char bootefi_help_text[] =
- 	"bootefi hello\n"
- 	"  - boot a sample Hello World application stored within U-Boot\n"
- #endif
-+#ifdef CONFIG_CMD_BOOTEFI_NETWORK_TEST
-+	"bootefi nettest\n"
-+	"  - boot an EFI network test application stored within U-Boot\n"
-+#endif
- #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
- 	"bootefi selftest\n"
- 	"  - boot an EFI selftest application stored within U-Boot\n"
-diff --git a/include/asm-generic/sections.h b/include/asm-generic/sections.h
-index b6535705a5..1ee56c52f5 100644
---- a/include/asm-generic/sections.h
-+++ b/include/asm-generic/sections.h
-@@ -24,6 +24,8 @@ extern char __initdata_begin[], __initdata_end[];
- extern char __start_rodata[], __end_rodata[];
- extern char __efi_helloworld_begin[];
- extern char __efi_helloworld_end[];
-+extern char __efi_efi_network_test_begin[];
-+extern char __efi_efi_network_test_end[];
- 
- /* Start and end of .ctors section - used for constructor calls. */
- extern char __ctors_start[], __ctors_end[];
-diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
-index ddb978f650..00ebf1cb8d 100644
---- a/lib/efi_loader/Makefile
-+++ b/lib/efi_loader/Makefile
-@@ -9,12 +9,19 @@
- 
- CFLAGS_helloworld.o := $(CFLAGS_EFI)
- CFLAGS_REMOVE_helloworld.o := $(CFLAGS_NON_EFI)
-+CFLAGS_efi_network_test.o := $(CFLAGS_EFI)
-+CFLAGS_efi_network_test.o := $(CFLAGS_NON_EFI)
- 
- ifneq ($(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
- always += helloworld.efi
- endif
- 
-+ifneq ($(CONFIG_CMD_BOOTEFI_NETWORK_TEST_COMPILE),)
-+always += efi_network_test.efi
-+endif
-+
- obj-$(CONFIG_CMD_BOOTEFI_HELLO) += helloworld_efi.o
-+obj-$(CONFIG_CMD_BOOTEFI_NETWORK_TEST) += efi_network_test_efi.o
- obj-y += efi_image_loader.o efi_boottime.o efi_runtime.o efi_console.o
- obj-y += efi_memory.o efi_device_path_to_text.o efi_device_path.o
- obj-y += efi_file.o efi_variable.o efi_bootmgr.o
-diff --git a/lib/efi_loader/efi_network_test.c b/lib/efi_loader/efi_network_test.c
+@@ -23,4 +25,5 @@ efi_selftest.o \
+ efi_selftest_console.o \
+ efi_selftest_events.o \
+ efi_selftest_exitbootservices.o \
++efi_selftest_snp.o \
+ efi_selftest_tpl.o
+diff --git a/lib/efi_selftest/efi_selftest_snp.c b/lib/efi_selftest/efi_selftest_snp.c
 new file mode 100644
-index 0000000000..6ada9f9887
+index 0000000000..17ce720a63
 --- /dev/null
-+++ b/lib/efi_loader/efi_network_test.c
-@@ -0,0 +1,319 @@
++++ b/lib/efi_selftest/efi_selftest_snp.c
+@@ -0,0 +1,442 @@
 +/*
-+ * EFI hello world
++ * efi_selftest_snp
 + *
 + * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
-+ * Written by Simon Glass <sjg@chromium.org>
 + *
 + * SPDX-License-Identifier:     GPL-2.0+
++ *
++ * This unit test covers the Simple Network Protocol as well as
++ * the CopyMem and SetMem boottime services.
++ *
++ * A DHCP discover message is sent. The test is successful if a
++ * DHCP reply is received.
++ *
++ * TODO: Once ConnectController and DisconnectController are implemented
++ *	 we should connect our code as controller.
 + */
 +
 +#include <efi_selftest.h>
++
++/*
++ * MAC address for broadcasts
++ */
++static const u8 BROADCAST_MAC[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 +
 +struct dhcp_hdr {
 +	u8 op;
@@ -166,6 +92,8 @@ index 0000000000..6ada9f9887
 +	u32 xid;
 +	u16 secs;
 +	u16 flags;
++#define DHCP_FLAGS_UNICAST	0x0000
++#define DHCP_FLAGS_BROADCAST	0x0080
 +	u32 ciaddr;
 +	u32 yiaddr;
 +	u32 siaddr;
@@ -175,14 +103,17 @@ index 0000000000..6ada9f9887
 +	u8 file[128];
 +};
 +
-+#define DHCP_MESSAGE_TYPE 0x35
-+#define DHCPDISCOVER	1
-+#define DHCPOFFER	2
-+#define DHCPREQUEST	3
-+#define DHCPDECLINE	4
-+#define DHCPACK		5
-+#define DHCPNAK		6
-+#define DHCPRELEASE	7
++/*
++ * Message type option.
++ */
++#define DHCP_MESSAGE_TYPE	0x35
++#define DHCPDISCOVER		1
++#define DHCPOFFER		2
++#define DHCPREQUEST		3
++#define DHCPDECLINE		4
++#define DHCPACK			5
++#define DHCPNAK			6
++#define DHCPRELEASE		7
 +
 +struct dhcp {
 +	struct ethernet_hdr eth_hdr;
@@ -198,23 +129,22 @@ index 0000000000..6ada9f9887
 +/* IP packet ID */
 +static unsigned net_ip_id;
 +
-+#include "../../lib/efi_selftest/efi_selftest_console.c"
-+
-+void *memset(void *s, int c, size_t n)
++/*
++ * Compare memory.
++ * We cannot use lib/string.c due to different CFLAGS values.
++ *
++ * Returns 0 if both buffers contain the same bytes.
++ *
++ * @buf1	first buffer
++ * @buf2	second buffer
++ * @length	number of bytes to compare
++ */
++static int efi_st_memcmp(const void *buf1, const void *buf2, size_t length)
 +{
-+	char *pos = s;
++	const u8 *pos1 = buf1;
++	const u8 *pos2 = buf2;
 +
-+	for (; n; --n) {
-+		*pos++ = c;
-+	}
-+	return s;
-+}
-+
-+int memcmp(const void *s1, const void *s2, size_t n) {
-+	const u8 *pos1 = s1;
-+	const u8 *pos2 = s2;
-+
-+	for (; n; --n) {
++	for (; length; --length) {
 +		if (*pos1 != *pos2)
 +			return pos1 - pos2;
 +		++pos1;
@@ -223,42 +153,60 @@ index 0000000000..6ada9f9887
 +	return 0;
 +}
 +
-+void *memcpy(void *d, const void *s, size_t n) {
-+	const char *poss = s;
-+	char *posd = d;
++/*
++ * Compute the checksum of the IP header. We cover even values of length only.
++ * We cannot use net/checksum.c due to different CFLAGS values.
++ *
++ * @buf IP header
++ * @len	length of header in bytes
++ */
++static unsigned efi_ip_checksum(const void *buf, size_t len)
++{
++	size_t i;
++	u32 sum = 0;
++	const u16 *pos = buf;
 +
-+	for (; n; --n) {
-+		*posd++ = *poss++;
-+	}
-+	return d;
++	for (i = 0; i < len; i += 2)
++		sum += *pos++;
++
++	sum = (sum >> 16) + (sum & 0xffff);
++	sum += sum >> 16;
++	sum = ~sum & 0xffff;
++
++	return sum;
 +}
 +
-+efi_status_t send_dhcp_request(void)
++/*
++ * Transmit a DHCPDISCOVER message.
++ */
++static efi_status_t send_dhcp_discover(void)
 +{
++	efi_status_t ret;
 +	struct dhcp p = {};
 +
 +	/*
 +	 * Fill ethernet header
 +	 */
-+	memset(p.eth_hdr.et_dest, 0xff, ARP_HLEN);
-+	memcpy(p.eth_hdr.et_src, &net->mode->current_address, ARP_HLEN);
++	boottime->copy_mem(p.eth_hdr.et_dest, (void *)BROADCAST_MAC, ARP_HLEN);
++	boottime->copy_mem(p.eth_hdr.et_src, &net->mode->current_address,
++			   ARP_HLEN);
 +	p.eth_hdr.et_protlen = htons(PROT_IP);
 +	/*
 +	 * Fill IP header
 +	 */
 +	p.ip_udp.ip_hl_v	= 0x45;
-+	p.ip_udp.ip_tos		= 0;
 +	p.ip_udp.ip_len		= htons(sizeof(struct dhcp) -
 +	                                sizeof(struct ethernet_hdr));
 +	p.ip_udp.ip_id		= htons(++net_ip_id);
 +	p.ip_udp.ip_off		= htons(IP_FLAGS_DFRAG);
 +	p.ip_udp.ip_ttl		= 0xff; /* time to live */
 +	p.ip_udp.ip_p		= IPPROTO_UDP;
-+	p.ip_udp.ip_sum		= 0;
++	boottime->set_mem(&p.ip_udp.ip_dst, 4, 0xff);
++	p.ip_udp.ip_sum		= efi_ip_checksum(&p.ip_udp, IP_HDR_SIZE);
++
 +	/*
 +	 * Fill UDP header
 +	 */
-+	memset(&p.ip_udp.ip_dst, 0xff, 4);
 +	p.ip_udp.udp_src	= htons(68);
 +	p.ip_udp.udp_dst	= htons(67);
 +	p.ip_udp.udp_len	= htons(sizeof(struct dhcp) -
@@ -267,48 +215,56 @@ index 0000000000..6ada9f9887
 +	/*
 +	 * Fill DHCP header
 +	 */
-+	p.dhcp_hdr.op = BOOTREQUEST;
-+	p.dhcp_hdr.htype = HWT_ETHER;
-+	p.dhcp_hdr.hlen = HWL_ETHER;
-+	p.dhcp_hdr.flags = htons(0x0080);
-+	memcpy(&p.dhcp_hdr.chaddr, &net->mode->current_address, ARP_HLEN);
++	p.dhcp_hdr.op		= BOOTREQUEST;
++	p.dhcp_hdr.htype	= HWT_ETHER;
++	p.dhcp_hdr.hlen		= HWL_ETHER;
++	p.dhcp_hdr.flags	= htons(DHCP_FLAGS_UNICAST);
++	boottime->copy_mem(&p.dhcp_hdr.chaddr,
++			   &net->mode->current_address, ARP_HLEN);
 +	/*
 +	 * Fill options
 +	 */
-+	p.opt[0] = 0x63; /* Magic cookie */
-+	p.opt[1] = 0x82;
-+	p.opt[2] = 0x53;
-+	p.opt[3] = 0x63;
-+	p.opt[4] = DHCP_MESSAGE_TYPE;
-+	p.opt[5] = 0x01; /* length */
-+	p.opt[6] = DHCPDISCOVER;
-+	p.opt[7] = 0xff;
++	p.opt[0] 	= 0x63; /* DHCP magic cookie */
++	p.opt[1] 	= 0x82;
++	p.opt[2] 	= 0x53;
++	p.opt[3] 	= 0x63;
++	p.opt[4] 	= DHCP_MESSAGE_TYPE;
++	p.opt[5] 	= 0x01; /* length */
++	p.opt[6] 	= DHCPDISCOVER;
++	p.opt[7] 	= 0x39; /* maximum message size */
++	p.opt[8] 	= 0x02; /* length */
++	p.opt[9] 	= 0x02; /* 576 bytes */
++	p.opt[10] 	= 0x40;
++	p.opt[11] 	= 0xff; /* end of options */
 +
-+	return net->transmit(net, 0, sizeof(struct dhcp), &p, NULL, NULL, 0);
++	/*
++	 * Transmit DHCPDISCOVER message.
++	 */
++	ret = net->transmit(net, 0, sizeof(struct dhcp), &p, NULL, NULL, 0);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Sending a DHCP request failed\n");
++	} else {
++		efi_st_printf("DHCP Discover\n");
++	}
++	return ret;
 +}
 +
-+efi_status_t EFIAPI efi_main(efi_handle_t handle,
-+                             struct efi_system_table *systable)
++/*
++ * Setup unit test.
++ *
++ * Create a 1 s periodic timer.
++ * Start the network driver.
++ *
++ * @handle:	handle of the loaded image
++ * @systable:	system table
++ */
++static int setup(const efi_handle_t handle,
++		 const struct efi_system_table *systable)
 +{
-+	efi_status_t exit_status, ret;
-+	struct efi_event *events[2];
-+	unsigned int timeout = 10;
-+	size_t index;
-+	union {
-+		struct dhcp p;
-+		u8 b[PKTSIZE];
-+	} buffer = { .b = {} };
-+	struct efi_mac_address srcaddr;
-+	struct efi_mac_address destaddr;
-+	size_t buffer_size;
++	efi_status_t ret;
 +
 +	boottime = systable->boottime;
-+	con_out = systable->con_out;
-+	con_in = systable->con_in;
 +
-+	efi_st_printf("Network test\n");
-+
-+	exit_status = EFI_SUCCESS;
 +	/*
 +	 * Create a timer event.
 +	 */
@@ -316,7 +272,7 @@ index 0000000000..6ada9f9887
 +	                             &timer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to create event\n");
-+		goto out;
++		return 1;
 +	}
 +	/*
 +	 * Set timer period to 1s.
@@ -324,7 +280,7 @@ index 0000000000..6ada9f9887
 +	ret = boottime->set_timer(timer, EFI_TIMER_PERIODIC, 10000000);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to locate simple network protocol\n");
-+		goto out;
++		return 1;
 +	}
 +	/*
 +	 * Find an interface implementing the SNP protocol.
@@ -332,23 +288,26 @@ index 0000000000..6ada9f9887
 +	ret = boottime->locate_protocol(&efi_net_guid, NULL, (void **) &net);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to locate simple network protocol\n");
-+		goto out;
++		return 1;
 +	}
 +	/*
 +	 * Check hardware address size.
 +	 */
 +	if (!net->mode) {
 +		efi_st_error("Mode not provided\n");
-+		goto out;
++		return 1;
 +	}
 +	if (net->mode->hwaddr_size != ARP_HLEN) {
 +		efi_st_error("HwAddressSize = %u, expected %u\n",
-+			     net->mode->hwaddr_size, ARP_HLEN);
-+		goto out;
++		             net->mode->hwaddr_size, ARP_HLEN);
++		return 1;
 +	}
++	/*
++	 * Check that WaitForPacket event exists.
++	 */
 +	if (!net->wait_for_packet) {
 +		efi_st_error("WaitForPacket event missing\n");
-+		goto out;
++		return 1;
 +	}
 +	/*
 +	 * Initialize network adapter.
@@ -356,7 +315,7 @@ index 0000000000..6ada9f9887
 +	ret = net->initialize(net, 0, 0);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to initialize network adapter\n");
-+		goto out;
++		return 1;
 +	}
 +	/*
 +	 * Start network adapter.
@@ -364,47 +323,96 @@ index 0000000000..6ada9f9887
 +	ret = net->start(net);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to start network adapter\n");
-+		goto out;
++		return 1;
 +	}
++	return 0;
++}
 +
-+	ret = send_dhcp_request();
-+	if (ret != EFI_SUCCESS) {
-+		efi_st_error("Sending an DHCP request failed\n");
-+		goto out;
-+	}
-+	efi_st_printf("DHCP Discover\n");
++/*
++ * Execute unit test.
++ *
++ * A DHCP discover message is sent. The test is successful if a
++ * DHCP reply is received within 10 seconds.
++ */
++static int execute(void)
++{
++	efi_status_t ret;
++	struct efi_event *events[2];
++	size_t index;
++	union {
++		struct dhcp p;
++		u8 b[PKTSIZE];
++	} buffer;
++	struct efi_mac_address srcaddr;
++	struct efi_mac_address destaddr;
++	size_t buffer_size;
++	u8 *addr;
++	/*
++	 * The timeout is to occur after 10 s.
++	 */
++	unsigned int timeout = 10;
 +
++	/*
++	 * Send DHCP discover message
++	 */
++	ret = send_dhcp_discover();
++	if (ret != EFI_SUCCESS)
++		return 1;
++
++	/*
++	 * If we would call WaitForEvent only with the WaitForPacket event,
++	 * our code would block until a packet is received which might never
++	 * occur. By calling WaitFor event with both a timer event and the
++	 * WaitForPacket event we can escape this blocking situation.
++	 *
++	 * If the timer event occurs before we have received a DHCP reply
++	 * a further DHCP discover message is sent.
++	 */
 +	events[0] = timer;
 +	events[1] = net->wait_for_packet;
 +	for (;;) {
++		/*
++		 * Wait for packet to be received or timer event.
++		 */
 +		boottime->wait_for_event(2, events, &index);
 +		if (index == 0) {
++			/*
++			 * The timer event occured. Check for timeout.
++			 */
 +			--timeout;
 +			if (!timeout) {
 +				efi_st_error("Timeout occurred\n");
-+				ret = EFI_NOT_FOUND;
-+				goto out;
++				return 1;
 +			}
-+			ret = send_dhcp_request();
-+			if (ret != EFI_SUCCESS) {
-+				efi_st_error("Sending an DHCP request "
-+					     "failed\n");
-+				goto out;
-+			}
-+			efi_st_printf("DHCP Discover\n");
++			/*
++			 * Send further DHCP discover message
++			 */
++			ret = send_dhcp_discover();
++			if (ret != EFI_SUCCESS)
++				return 1;
 +			continue;
 +		}
++		/*
++		 * Receive packet
++		 */
 +		buffer_size = sizeof(buffer);
 +		net->receive(net, NULL, &buffer_size, &buffer,
-+			     &srcaddr, &destaddr, NULL);
++		             &srcaddr, &destaddr, NULL);
 +		if (ret != EFI_SUCCESS) {
 +			efi_st_error("Failed to receive packet");
-+			goto out;
++			return 1;
 +		}
-+		/* Check the packet is meant for this system */
-+		if (memcmp(&destaddr, &net->mode->current_address, ARP_HLEN))
++		/*
++		 * Check the packet is meant for this system.
++		 * Unfortunately QEMU ignores the broadcast flag.
++		 * So we have to check for broadcasts too.
++		 */
++		if (efi_st_memcmp(&destaddr, &net->mode->current_address, ARP_HLEN) &&
++		    efi_st_memcmp(&destaddr, BROADCAST_MAC, ARP_HLEN))
 +			continue;
-+		/* Check this is a DHCP reply */
++		/*
++		 * Check this is a DHCP reply
++		 */
 +		if (buffer.p.eth_hdr.et_protlen != ntohs(PROT_IP) ||
 +		    buffer.p.ip_udp.ip_hl_v != 0x45 ||
 +		    buffer.p.ip_udp.ip_p != IPPROTO_UDP ||
@@ -412,20 +420,37 @@ index 0000000000..6ada9f9887
 +		    buffer.p.ip_udp.udp_dst != ntohs(68) ||
 +		    buffer.p.dhcp_hdr.op != BOOTREPLY)
 +			continue;
-+		efi_st_printf("DHCP reply received\n");
++		/*
++		 * We successfully received a DHCP reply.
++		 */
 +		break;
 +	}
 +
 +	/*
-+	 * Stop network adapter.
++	 * Write a log message.
 +	 */
-+	ret = net->stop(net);
-+	if (ret != EFI_SUCCESS) {
-+		efi_st_error("Failed to stop network adapter\n");
-+		goto out;
-+	}
-+out:
-+	exit_status = ret;
++	addr = (u8 *)&buffer.p.ip_udp.ip_src;
++	efi_st_printf("DHCP reply received from %u.%u.%u.%u (%pm) ",
++	              addr[0], addr[1], addr[2], addr[3], &srcaddr);
++	if (!efi_st_memcmp(&destaddr, BROADCAST_MAC, ARP_HLEN))
++		efi_st_printf("as broadcast message.\n");
++	else
++		efi_st_printf("as unicast message.\n");
++
++	return 0;
++}
++
++/*
++ * Tear down unit test.
++ *
++ * Close the timer event created in setup.
++ * Shut down the network adapter.
++ */
++static int teardown(void)
++{
++	efi_status_t ret;
++	int exit_status = 0;
++
 +	if (timer) {
 +		/*
 +		 * Stop timer.
@@ -433,7 +458,7 @@ index 0000000000..6ada9f9887
 +		ret = boottime->set_timer(timer, EFI_TIMER_STOP, 0);
 +		if (ret != EFI_SUCCESS) {
 +			efi_st_error("Failed to stop timer");
-+			exit_status = ret;
++			exit_status = 1;
 +		}
 +		/*
 +		 * Close timer event.
@@ -441,27 +466,38 @@ index 0000000000..6ada9f9887
 +		ret = boottime->close_event(timer);
 +		if (ret != EFI_SUCCESS) {
 +			efi_st_error("Failed to close event");
-+			exit_status = ret;
++			exit_status = 1;
 +		}
 +	}
 +	if (net) {
++		/*
++		 * Stop network adapter.
++		 */
++		ret = net->stop(net);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Failed to stop network adapter\n");
++			exit_status = 1;
++		}
 +		/*
 +		 * Shut down network adapter.
 +		 */
 +		ret = net->shutdown(net);
 +		if (ret != EFI_SUCCESS) {
 +			efi_st_error("Failed to shut down network adapter\n");
-+			exit_status = ret;
++			exit_status = 1;
 +		}
 +	}
 +
-+	if (exit_status == EFI_SUCCESS)
-+		efi_st_printf("The test ran successfully\n");
-+
-+	boottime->exit(handle, exit_status, 0, NULL);
-+
-+	return EFI_SUCCESS;
++	return exit_status;
 +}
++
++EFI_UNIT_TEST(snp) = {
++	.name = "simple network protocol",
++	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++	.teardown = teardown,
++};
 -- 
 2.11.0
 

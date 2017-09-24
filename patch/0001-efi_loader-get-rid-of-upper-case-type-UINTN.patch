@@ -147,7 +147,7 @@ index 90ace0f51e..2c660241c7 100644
 +++ b/lib/efi_selftest/efi_selftest_tpl.c
 @@ -106,7 +106,7 @@ static int execute(void)
  {
- 	unsigned long index;
+ 	size_t index;
  	efi_status_t ret;
 -	UINTN old_tpl;
 +	size_t old_tpl;
