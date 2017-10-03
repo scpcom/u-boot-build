@@ -8,6 +8,14 @@ reinventing the wheel.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+The patch is based on v2017.11-rc1 with no other patches applied.
+
+Applying it will require rebasing
+[PATCH 1/1] efi_loader: provide function comments for boot services
+https://patchwork.ozlabs.org/patch/817010/
+
+But we have an open issue with the second patch anyway.
+---
  lib/efi_loader/efi_boottime.c | 36 ++----------------------------------
  1 file changed, 2 insertions(+), 34 deletions(-)
 
