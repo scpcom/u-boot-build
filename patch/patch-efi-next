@@ -6,6 +6,7 @@ git am ../patch/0001-efi_loader-use-type-bool-for-event-states.patch
 git am ../patch/0001-efi_selftest-make-tests-easier-to-read.patch
 
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
+
 # EFI Network
 git am ../patch/0001-efi_loader-provide-function-comments-for-boot-servic.patch
 git am ../patch/0001-efi_loader-call-EFI_EXIT-in-efi_copy_mem-efi_set_mem.patch
@@ -51,17 +52,17 @@ git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
-exit
 git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
 git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
+git am ../patch/0001-efi_selftest-test-protocol-management.patch
+exit
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
 git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
 git am ../patch/0001-efi_loader-non-static-efi_open_protocol-efi_close_pr.patch
 git am ../patch/0001-efi_loader-implement-ConnectController.patch
 git am ../patch/0001-efi_loader-implement-DisconnectController.patch
-git am ../patch/0001-efi_selftest-test-protocol-handler-services.patch
 exit
 
 # Image loading
