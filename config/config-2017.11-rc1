@@ -391,6 +391,7 @@ CONFIG_CMD_BOOTSTAGE=y
 #
 # Filesystem commands
 #
+# CONFIG_CMD_BTRFS is not set
 CONFIG_CMD_EXT2=y
 CONFIG_CMD_EXT4=y
 CONFIG_CMD_EXT4_WRITE=y
@@ -899,6 +900,7 @@ CONFIG_CONSOLE_SCROLL_LINES=5
 #
 # File systems
 #
+# CONFIG_FS_BTRFS is not set
 # CONFIG_FS_CBFS is not set
 CONFIG_FS_FAT=y
 # CONFIG_FAT_WRITE is not set
