@@ -1,4 +1,4 @@
-From 33903974781cb089fa4240a0806220655f8319ef Mon Sep 17 00:00:00 2001
+From e99b4366bb2ee864dabdfcf8aaf483e5bca28718 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 23 Sep 2017 12:54:53 +0200
 Subject: [PATCH 1/1] efi_loader: implement WaitForPacket event
@@ -31,7 +31,7 @@ index 3498b96f7a..72a023803d 100644
  		push_packet = NULL;
  	}
 +	if (!new_rx_packet)
-+		wait_for_packet->signaled = 1;
++		wait_for_packet->is_signaled = true;
  	EFI_EXIT(EFI_SUCCESS);
  }
  
