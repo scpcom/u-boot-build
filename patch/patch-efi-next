@@ -1,8 +1,8 @@
 #!/bin/sh
 git am ../patch/0001-efi_selftest-use-efi_st_error-for-all-error-messages.patch
-git am ../patch/0001-efi_selftest-make-tests-easier-to-read.patch
 git am ../patch/0001-efi_loader-use-type-bool-for-event-states.patch
 git am ../patch/0001-efi_loader-replace-efi_div10-by-div64_u64.patch
+git am ../patch/0001-efi_selftest-make-tests-easier-to-read.patch
 
 # EFI Network
 git am ../patch/0001-efi_selftest-enable-CONFIG_CMD_BOOTEFI_SELFTEST.patch
