@@ -16,11 +16,12 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index af2a94ba5a..ff1ef89470 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -672,6 +672,31 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
+@@ -672,6 +672,32 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
  	return EFI_EXIT(EFI_INVALID_PARAMETER);
  }
  
-+static efi_status_t efi_search_protocol(void *handle, efi_guid_t *protocol_guid,
++static efi_status_t efi_search_protocol(void *handle,
++					const efi_guid_t *protocol_guid,
 +					struct efi_handler **handler)
 +{
 +	struct efi_object *efiobj;
