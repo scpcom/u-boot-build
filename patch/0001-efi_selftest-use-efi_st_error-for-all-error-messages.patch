@@ -1,0 +1,100 @@
+From 2f5c34fc97ebcbe80e870487a2a469afb9a86940 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 4 Oct 2017 12:22:24 +0200
+Subject: [PATCH 1/1] efi_selftest: use efi_st_error for all error messages
+
+All error messages in the selftests should use efi_st_error.
+efi_st_error will print the file name and line number of the error.
+
+Splitting message texts due to lines being over 80
+characters is avoided. This resolves the issue reported
+by Simon Glass in
+https://lists.denx.de/pipermail/u-boot/2017-September/307387.html
+
+Reported-by: Simon Glass <sjg@chromium.org>
+Fixes: 623b3a579765 efi_selftest: provide an EFI selftest application
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/efi_selftest.c | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
+
+diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
+index efec832e98..ff00254c21 100644
+--- a/lib/efi_selftest/efi_selftest.c
++++ b/lib/efi_selftest/efi_selftest.c
+@@ -35,8 +35,8 @@ void efi_st_exit_boot_services(void)
+ 	ret = boottime->get_memory_map(&map_size, NULL, &map_key, &desc_size,
+ 				       &desc_version);
+ 	if (ret != EFI_BUFFER_TOO_SMALL) {
+-		efi_st_printf("ERROR: GetMemoryMap did not return "
+-			      "EFI_BUFFER_TOO_SMALL\n");
++		efi_st_error(
++			"GetMemoryMap did not return EFI_BUFFER_TOO_SMALL\n");
+ 		return;
+ 	}
+ 	/* Allocate extra space for newly allocated memory */
+@@ -44,21 +44,18 @@ void efi_st_exit_boot_services(void)
+ 	ret = boottime->allocate_pool(EFI_BOOT_SERVICES_DATA, map_size,
+ 				      (void **)&memory_map);
+ 	if (ret != EFI_SUCCESS) {
+-		efi_st_printf("ERROR: AllocatePool did not return "
+-			      "EFI_SUCCESS\n");
++		efi_st_error("AllocatePool did not return EFI_SUCCESS\n");
+ 		return;
+ 	}
+ 	ret = boottime->get_memory_map(&map_size, memory_map, &map_key,
+ 				       &desc_size, &desc_version);
+ 	if (ret != EFI_SUCCESS) {
+-		efi_st_printf("ERROR: GetMemoryMap did not return "
+-			      "EFI_SUCCESS\n");
++		efi_st_error("GetMemoryMap did not return EFI_SUCCESS\n");
+ 		return;
+ 	}
+ 	ret = boottime->exit_boot_services(handle, map_key);
+ 	if (ret != EFI_SUCCESS) {
+-		efi_st_printf("ERROR: ExitBootServices did not return "
+-			      "EFI_SUCCESS\n");
++		efi_st_error("ExitBootServices did not return EFI_SUCCESS\n");
+ 		return;
+ 	}
+ 	efi_st_printf("\nBoot services terminated\n");
+@@ -79,7 +76,7 @@ static int setup(struct efi_unit_test *test, unsigned int *failures)
+ 	efi_st_printf("\nSetting up '%s'\n", test->name);
+ 	ret = test->setup(handle, systable);
+ 	if (ret) {
+-		efi_st_printf("ERROR: Setting up '%s' failed\n", test->name);
++		efi_st_error("Setting up '%s' failed\n", test->name);
+ 		++*failures;
+ 	} else {
+ 		efi_st_printf("Setting up '%s' succeeded\n", test->name);
+@@ -102,7 +99,7 @@ static int execute(struct efi_unit_test *test, unsigned int *failures)
+ 	efi_st_printf("\nExecuting '%s'\n", test->name);
+ 	ret = test->execute();
+ 	if (ret) {
+-		efi_st_printf("ERROR: Executing '%s' failed\n", test->name);
++		efi_st_error("Executing '%s' failed\n", test->name);
+ 		++*failures;
+ 	} else {
+ 		efi_st_printf("Executing '%s' succeeded\n", test->name);
+@@ -125,7 +122,7 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
+ 	efi_st_printf("\nTearing down '%s'\n", test->name);
+ 	ret = test->teardown();
+ 	if (ret) {
+-		efi_st_printf("ERROR: Tearing down '%s' failed\n", test->name);
++		efi_st_error("Tearing down '%s' failed\n", test->name);
+ 		++*failures;
+ 	} else {
+ 		efi_st_printf("Tearing down '%s' succeeded\n", test->name);
+@@ -213,7 +210,8 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+ 	efi_st_get_key();
+ 	runtime->reset_system(EFI_RESET_WARM, EFI_NOT_READY,
+ 			      sizeof(reset_message), reset_message);
+-	efi_st_printf("\nERROR: reset failed.\n");
++	efi_st_printf("\n");
++	efi_st_error("Reset failed.\n");
+ 
+ 	return EFI_UNSUPPORTED;
+ }
+-- 
+2.14.1
+
