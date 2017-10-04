@@ -1,4 +1,4 @@
-From 4d398f1f002cb477de1cb0e43c86e7e36145f398 Mon Sep 17 00:00:00 2001
+From f81200cdbb9e77b97b7a3f82075392ede54e0bb0 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Sep 2017 17:49:19 +0200
 Subject: [PATCH 1/1] efi_selftest: test protocol management
@@ -17,7 +17,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  create mode 100644 lib/efi_selftest/efi_selftest_manageprotocols.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 9bfecf357b..b1aaa38ea5 100644
+index e446046e02..74d4fd0958 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
 @@ -15,6 +15,8 @@ CFLAGS_efi_selftest_events.o := $(CFLAGS_EFI)
@@ -29,16 +29,17 @@ index 9bfecf357b..b1aaa38ea5 100644
  CFLAGS_efi_selftest_snp.o := $(CFLAGS_EFI)
  CFLAGS_REMOVE_efi_selftest_snp.o := $(CFLAGS_NON_EFI)
  CFLAGS_efi_selftest_tpl.o := $(CFLAGS_EFI)
-@@ -25,5 +27,6 @@ efi_selftest.o \
+@@ -27,6 +29,7 @@ efi_selftest.o \
  efi_selftest_console.o \
  efi_selftest_events.o \
  efi_selftest_exitbootservices.o \
 +efi_selftest_manageprotocols.o \
  efi_selftest_snp.o \
- efi_selftest_tpl.o
+ efi_selftest_tpl.o \
+ efi_selftest_util.o
 diff --git a/lib/efi_selftest/efi_selftest_manageprotocols.c b/lib/efi_selftest/efi_selftest_manageprotocols.c
 new file mode 100644
-index 0000000000..dde90c7e49
+index 0000000000..51db66fd13
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_manageprotocols.c
 @@ -0,0 +1,381 @@
@@ -147,12 +148,12 @@ index 0000000000..dde90c7e49
 +						   &interface3);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("InstallProtocolInterface failed\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (!handle1) {
 +		efi_st_error("InstallProtocolInterface "
 +			     "failed to create handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	handle = handle1;
 +	ret = boottime->install_protocol_interface(&handle1, &guid1,
@@ -160,25 +161,25 @@ index 0000000000..dde90c7e49
 +						   &interface1);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("InstallProtocolInterface failed\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (handle != handle1) {
 +		efi_st_error("InstallProtocolInterface failed to use handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	ret = boottime->install_multiple_protocol_interfaces(&handle2,
 +			&guid1, &interface4, &guid2, &interface2, NULL);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("InstallMultipleProtocolInterfaces failed\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (!handle2 || handle1 == handle2) {
 +		efi_st_error("InstallMultipleProtocolInterfaces "
 +			     "failed to create handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +
-+	return 0;
++	return EFI_ST_SUCCESS;
 +}
 +
 +/*
@@ -187,7 +188,7 @@ index 0000000000..dde90c7e49
 + */
 +static int teardown(void)
 +{
-+	return 0;
++	return EFI_ST_SUCCESS;
 +}
 +
 +/*
@@ -210,17 +211,17 @@ index 0000000000..dde90c7e49
 +	ret = boottime->handle_protocol(handle1, &guid3, (void **)&interface);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("HandleProtocol failed to retrieve interface\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (interface != &interface3) {
 +		efi_st_error("HandleProtocol returned wrong interface\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	ret = boottime->handle_protocol(handle1, &guid2, (void **)&interface);
 +	if (ret == EFI_SUCCESS) {
 +		efi_st_error("HandleProtocol returned "
 +			     "not installed interface\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +
 +	/*
@@ -230,20 +231,20 @@ index 0000000000..dde90c7e49
 +					     &count, &buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandleBuffer with AllHandles failed\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	buffer_size = count;
 +	ret = find_in_buffer(handle1, count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandleBuffer failed "
 +			     "to locate new handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	ret = find_in_buffer(handle2, count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandleBuffer failed "
 +			     "to locate new handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	boottime->set_mem(buffer, sizeof(efi_handle_t) * buffer_size, 0);
 +
@@ -261,7 +262,7 @@ index 0000000000..dde90c7e49
 +	if (ret == EFI_SUCCESS) {
 +		efi_st_error("UninstallMultipleProtocolInterfaces "
 +			     "did not catch error\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +
 +	/*
@@ -273,24 +274,24 @@ index 0000000000..dde90c7e49
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandleBuffer failed "
 +			     "to locate new handles\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (count != 2) {
 +		efi_st_error("LocateHandleBuffer failed "
 +			     "to locate new handles\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	ret = find_in_buffer(handle1, count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandleBuffer failed "
 +			     "to locate new handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	ret = find_in_buffer(handle2, count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandleBuffer failed "
 +			     "to locate new handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	boottime->set_mem(buffer, sizeof(efi_handle_t) * buffer_size, 0);
 +
@@ -302,22 +303,22 @@ index 0000000000..dde90c7e49
 +				      &count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandle with ByProtocol failed\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (count / sizeof(efi_handle_t) != 2) {
 +		efi_st_error("LocateHandle failed to locate new handles\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	buffer_size = count;
 +	ret = find_in_buffer(handle1, count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandle failed to locate new handles\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	ret = find_in_buffer(handle2, count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandle failed to locate new handles\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	boottime->set_mem(buffer, sizeof(efi_handle_t) * buffer_size, 0);
 +
@@ -327,11 +328,11 @@ index 0000000000..dde90c7e49
 +	ret = boottime->locate_protocol(&guid1, NULL, (void **) &interface);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateProtocol failed\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (interface != &interface1 && interface != &interface4) {
 +		efi_st_error("LocateProtocol failed to locate protocol\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +
 +	/*
@@ -344,7 +345,7 @@ index 0000000000..dde90c7e49
 +						NULL);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("UninstallMultipleProtocolInterfaces failed\n");
-+		return 1;
++		/* This test is known to fail due to missing implementation */
 +	}
 +	/*
 +	 * Check that the protocols are really uninstalled.
@@ -354,17 +355,17 @@ index 0000000000..dde90c7e49
 +					     &count, &buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("LocateHandleBuffer failed\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (count != 1) {
 +		efi_st_error("UninstallMultipleProtocolInterfaces failed "
 +			     "to uninstall protocols\n");
-+		return 1;
++		/* This test is known to fail due to missing implementation */
 +	}
 +	ret = find_in_buffer(handle1, count, buffer);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to locate new handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	boottime->set_mem(buffer, sizeof(efi_handle_t) * buffer_size, 0);
 +
@@ -375,21 +376,21 @@ index 0000000000..dde90c7e49
 +					     &prot_buffer, &prot_count);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to get protocols per handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +	if (prot_count != 2) {
 +		efi_st_error("Failed to get protocols per handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
-+	if (memcmp(prot_buffer[0], &guid1, 16) &&
-+	    memcmp(prot_buffer[1], &guid1, 16)) {
++	if (efi_st_memcmp(prot_buffer[0], &guid1, 16) &&
++	    efi_st_memcmp(prot_buffer[1], &guid1, 16)) {
 +		efi_st_error("Failed to get protocols per handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
-+	if (memcmp(prot_buffer[0], &guid3, 16) &&
-+	    memcmp(prot_buffer[1], &guid3, 16)) {
++	if (efi_st_memcmp(prot_buffer[0], &guid3, 16) &&
++	    efi_st_memcmp(prot_buffer[1], &guid3, 16)) {
 +		efi_st_error("Failed to get protocols per handle\n");
-+		return 1;
++		return EFI_ST_FAILURE;
 +	}
 +
 +	/*
@@ -399,21 +400,21 @@ index 0000000000..dde90c7e49
 +						     &interface1);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("UninstallProtocolInterface failed\n");
-+		return 1;
++		/* This test is known to fail due to missing implementation */
 +	}
 +	ret = boottime->handle_protocol(handle1, &guid1, (void **)&interface);
 +	if (ret == EFI_SUCCESS) {
 +		efi_st_error("UninstallProtocolInterface failed\n");
-+		return 1;
++		/* This test is known to fail due to missing implementation */
 +	}
 +	ret = boottime->uninstall_protocol_interface(handle1, &guid3,
 +						     &interface1);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("UninstallProtocolInterface failed\n");
-+		return 1;
++		/* This test is known to fail due to missing implementation */
 +	}
 +
-+	return 0;
++	return EFI_ST_SUCCESS;
 +}
 +
 +EFI_UNIT_TEST(protserv) = {
