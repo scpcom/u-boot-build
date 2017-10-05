@@ -1,4 +1,4 @@
-From 60d19556cfd67d4ff22795ac8388467579db5142 Mon Sep 17 00:00:00 2001
+From ee0e936e8cb47a467aed9a0122293fa0c7db01c7 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 02:40:29 +0200
 Subject: [PATCH 1/1] efi_loader: implement SetWatchdogTimer
@@ -12,9 +12,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  cmd/bootefi.c                 |  1 +
  include/efi_loader.h          |  4 +++
  lib/efi_loader/Makefile       |  2 +-
- lib/efi_loader/efi_boottime.c |  3 ++-
+ lib/efi_loader/efi_boottime.c | 15 ++---------
  lib/efi_loader/efi_watchdog.c | 58 +++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 66 insertions(+), 2 deletions(-)
+ 5 files changed, 66 insertions(+), 14 deletions(-)
  create mode 100644 lib/efi_loader/efi_watchdog.c
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
@@ -30,7 +30,7 @@ index b7087e3da8..24958ada46 100644
  	/* Initialize EFI runtime services */
  	efi_reset_system_init();
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 8487eee9a5..95cf41ae51 100644
+index fa68c0870f..2a6b519f6b 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -165,6 +165,8 @@ int efi_disk_register(void);
@@ -65,10 +65,29 @@ index ddb978f650..83d879b686 100644
  obj-$(CONFIG_DM_VIDEO) += efi_gop.o
  obj-$(CONFIG_PARTITIONS) += efi_disk.o
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 3f997fd93c..3ef5f4b1ba 100644
+index ff19229d6a..37d2c6f91b 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1444,6 +1444,7 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
+@@ -166,18 +166,6 @@ void efi_signal_event(struct efi_event *event)
+ 	event->is_queued = false;
+ }
+ 
+-/*
+- * Write a debug message for an EPI API service that is not implemented yet.
+- *
+- * @funcname	function that is not yet implemented
+- * @return	EFI_UNSUPPORTED
+- */
+-static efi_status_t efi_unsupported(const char *funcname)
+-{
+-	debug("EFI: App called into unimplemented function %s\n", funcname);
+-	return EFI_EXIT(EFI_UNSUPPORTED);
+-}
+-
+ /*
+  * Raise the task priority level.
+  *
+@@ -1444,6 +1432,7 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
  	bootm_disable_interrupts();
  
  	/* Give the payload some time to boot */
@@ -76,7 +95,7 @@ index 3f997fd93c..3ef5f4b1ba 100644
  	WATCHDOG_RESET();
  
  	return EFI_EXIT(EFI_SUCCESS);
-@@ -1503,7 +1504,7 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1503,7 +1492,7 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  {
  	EFI_ENTRY("%ld, 0x%"PRIx64", %ld, %p", timeout, watchdog_code,
  		  data_size, watchdog_data);
