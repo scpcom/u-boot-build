@@ -1,7 +1,7 @@
 From a9d70ed4b7578e9d8b0f3a4fc5fa5401bfdac376 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 16:02:07 +0200
-Subject: [PATCH 1/1] efi_loader: replace efi_div10 by do_div
+Subject: [PATCH v2 1/1] efi_loader: replace efi_div10 by do_div
 
 We should use the existing 64bit division instead of
 reinventing the wheel.
