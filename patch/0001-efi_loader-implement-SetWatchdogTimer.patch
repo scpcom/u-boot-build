@@ -1,6 +1,6 @@
-From bc92630a2e65e131731e2205fa56dec625295824 Mon Sep 17 00:00:00 2001
+From 60d19556cfd67d4ff22795ac8388467579db5142 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Fri, 25 Aug 2017 19:38:38 +0200
+Date: Thu, 5 Oct 2017 02:40:29 +0200
 Subject: [PATCH 1/1] efi_loader: implement SetWatchdogTimer
 
 The watchdog is initialized with a 5 minute timeout period.
@@ -18,10 +18,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  create mode 100644 lib/efi_loader/efi_watchdog.c
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 9be01eb569..c94ad5d7ba 100644
+index b7087e3da8..24958ada46 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
-@@ -139,6 +139,7 @@ static void efi_init_obj_list(void)
+@@ -43,6 +43,7 @@ static void efi_init_obj_list(void)
  #ifdef CONFIG_GENERATE_SMBIOS_TABLE
  	efi_smbios_register();
  #endif
@@ -30,17 +30,19 @@ index 9be01eb569..c94ad5d7ba 100644
  	/* Initialize EFI runtime services */
  	efi_reset_system_init();
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index dd429dba49..a16c26d101 100644
+index 8487eee9a5..95cf41ae51 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -158,11 +158,15 @@ int efi_disk_register(void);
+@@ -165,6 +165,8 @@ int efi_disk_register(void);
  int efi_gop_register(void);
  /* Called by bootefi to make the network interface available */
- int efi_net_register(void **handle);
+ int efi_net_register(void);
 +/* Called by bootefi to make the watchdog available */
 +int efi_watchdog_register(void);
  /* Called by bootefi to make SMBIOS tables available */
  void efi_smbios_register(void);
+ 
+@@ -173,6 +175,8 @@ efi_fs_from_path(struct efi_device_path *fp);
  
  /* Called by networking code to memorize the dhcp ack package */
  void efi_net_set_dhcp_ack(void *pkt, int len);
@@ -50,23 +52,23 @@ index dd429dba49..a16c26d101 100644
  /* Called from places to check whether a timer expired */
  void efi_timer_check(void);
 diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
-index 30bf343a36..6bca05aeb4 100644
+index ddb978f650..83d879b686 100644
 --- a/lib/efi_loader/Makefile
 +++ b/lib/efi_loader/Makefile
-@@ -15,7 +15,7 @@ always := $(efiprogs-y)
- 
+@@ -17,7 +17,7 @@ endif
  obj-$(CONFIG_CMD_BOOTEFI_HELLO) += helloworld_efi.o
  obj-y += efi_image_loader.o efi_boottime.o efi_runtime.o efi_console.o
--obj-y += efi_memory.o efi_device_path_to_text.o
-+obj-y += efi_memory.o efi_device_path_to_text.o efi_watchdog.o
+ obj-y += efi_memory.o efi_device_path_to_text.o efi_device_path.o
+-obj-y += efi_file.o efi_variable.o efi_bootmgr.o
++obj-y += efi_file.o efi_variable.o efi_bootmgr.o efi_watchdog.o
  obj-$(CONFIG_LCD) += efi_gop.o
  obj-$(CONFIG_DM_VIDEO) += efi_gop.o
  obj-$(CONFIG_PARTITIONS) += efi_disk.o
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index f9194a4060..f5c310a7bc 100644
+index 3f997fd93c..3ef5f4b1ba 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -919,6 +919,7 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
+@@ -1444,6 +1444,7 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
  	bootm_disable_interrupts();
  
  	/* Give the payload some time to boot */
@@ -74,7 +76,7 @@ index f9194a4060..f5c310a7bc 100644
  	WATCHDOG_RESET();
  
  	return EFI_EXIT(EFI_SUCCESS);
-@@ -946,7 +947,7 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1503,7 +1504,7 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  {
  	EFI_ENTRY("%ld, 0x%"PRIx64", %ld, %p", timeout, watchdog_code,
  		  data_size, watchdog_data);
