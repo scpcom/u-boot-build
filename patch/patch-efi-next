@@ -29,6 +29,7 @@ git am ../patch/0001-efi_loader-supply-EFI-network-test.patch
 # Implement Watchdog
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 git am ../patch/0001-efi_selftest-provide-test-for-watchdog-timer.patch
+git am ../patch/0001-efi_selftest-allow-to-select-a-single-test-for-exexu.patch
 
 exit
 
