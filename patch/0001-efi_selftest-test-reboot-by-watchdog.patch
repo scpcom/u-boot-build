@@ -1,4 +1,4 @@
-From 8b811ddb9b8755c1f232e3b900c4d98f3dd40239 Mon Sep 17 00:00:00 2001
+From 80c1dceacb0664eb8b5de2ad06627cb28e9cc111 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 21:19:36 +0200
 Subject: [PATCH 1/1] efi_selftest: test reboot by watchdog
@@ -11,11 +11,11 @@ request using
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_selftest/efi_selftest_watchdog.c | 66 ++++++++++++++++++++++++++------
- 1 file changed, 55 insertions(+), 11 deletions(-)
+ lib/efi_selftest/efi_selftest_watchdog.c | 65 +++++++++++++++++++++++++++-----
+ 1 file changed, 55 insertions(+), 10 deletions(-)
 
 diff --git a/lib/efi_selftest/efi_selftest_watchdog.c b/lib/efi_selftest/efi_selftest_watchdog.c
-index 6965bc77d1..6f56b6f574 100644
+index f8c5404000..a2c11ab1b9 100644
 --- a/lib/efi_selftest/efi_selftest_watchdog.c
 +++ b/lib/efi_selftest/efi_selftest_watchdog.c
 @@ -5,11 +5,15 @@
@@ -38,16 +38,15 @@ index 6965bc77d1..6f56b6f574 100644
   */
  
  #include <efi_selftest.h>
-@@ -28,7 +32,7 @@ static struct efi_event *event_notify;
+@@ -28,6 +32,7 @@ static struct efi_event *event_notify;
  static struct efi_event *event_wait;
  static struct efi_boot_services *boottime;
  static struct notify_context notification_context;
--
 +static bool watchdog_reset;
  
  /*
   * Notification function, increments the notfication count if parameter
-@@ -89,6 +93,34 @@ static int setup(const efi_handle_t handle,
+@@ -88,6 +93,34 @@ static int setup(const efi_handle_t handle,
  	return EFI_ST_SUCCESS;
  }
  
@@ -59,7 +58,7 @@ index 6965bc77d1..6f56b6f574 100644
 + * @return:	EFI_ST_SUCCESS for success
 + */
 +static int setup_timer(const efi_handle_t handle,
-+		 const struct efi_system_table *systable)
++		       const struct efi_system_table *systable)
 +{
 +	watchdog_reset = true;
 +	return setup(handle, systable);
@@ -73,7 +72,7 @@ index 6965bc77d1..6f56b6f574 100644
 + * @return:	EFI_ST_SUCCESS for success
 + */
 +static int setup_reboot(const efi_handle_t handle,
-+		 const struct efi_system_table *systable)
++			const struct efi_system_table *systable)
 +{
 +	watchdog_reset = false;
 +	return setup(handle, systable);
@@ -82,7 +81,7 @@ index 6965bc77d1..6f56b6f574 100644
  /*
   * Tear down unit test.
   *
-@@ -147,11 +179,14 @@ static int execute(void)
+@@ -146,11 +179,14 @@ static int execute(void)
  		efi_st_error("Setting watchdog timer failed\n");
  		return EFI_ST_FAILURE;
  	}
@@ -101,7 +100,7 @@ index 6965bc77d1..6f56b6f574 100644
  	}
  	/* Set 1350 ms timer */
  	ret = boottime->set_timer(event_wait, EFI_TIMER_RELATIVE, 13500000);
-@@ -177,10 +212,19 @@ static int execute(void)
+@@ -176,10 +212,19 @@ static int execute(void)
  	return EFI_ST_SUCCESS;
  }
  

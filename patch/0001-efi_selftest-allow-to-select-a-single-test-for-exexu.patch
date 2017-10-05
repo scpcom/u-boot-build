@@ -1,4 +1,4 @@
-From b36df74842dc8e7218621cc2b4cdd6fcfb8eff16 Mon Sep 17 00:00:00 2001
+From 75ec886c69a4fa2d170701a0c53df31c03b378d4 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
@@ -8,18 +8,18 @@ table to the selftest application. It is used to select
 a single test to be executed.
 
 Tests get an on_request property. If this property is set
-the tests are only executed if explicitely requested.
+the tests are only executed if explicitly requested.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                        | 15 ++++++++++++++-
+ cmd/bootefi.c                        | 16 +++++++++++++++-
  include/efi_selftest.h               | 18 ++++++++++++++++++
- lib/efi_selftest/efi_selftest.c      | 34 +++++++++++++++++++++++++++++++---
+ lib/efi_selftest/efi_selftest.c      | 37 ++++++++++++++++++++++++++++++++----
  lib/efi_selftest/efi_selftest_util.c | 11 ++++++++++-
- 4 files changed, 73 insertions(+), 5 deletions(-)
+ 4 files changed, 76 insertions(+), 6 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 24958ada46..ceaf8b0997 100644
+index 24958ada46..e12ef4b5b5 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -10,6 +10,7 @@
@@ -30,13 +30,14 @@ index 24958ada46..ceaf8b0997 100644
  #include <errno.h>
  #include <libfdt.h>
  #include <libfdt_env.h>
-@@ -288,6 +289,17 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+@@ -288,6 +289,18 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  		/* Initialize and populate EFI object list */
  		if (!efi_obj_list_initalized)
  			efi_init_obj_list();
 +		/* Transfer the second parameter as configuration table */
 +		if (argc > 2) {
 +			char *arg = calloc(strlen(argv[2]) + 1, sizeof(char));
++
 +			if (!arg) {
 +				printf("ERROR: out of memory\n");
 +				return 1;
@@ -48,7 +49,7 @@ index 24958ada46..ceaf8b0997 100644
  		return efi_selftest(&loaded_image_info, &systab);
  	} else
  #endif
-@@ -332,8 +344,9 @@ static char bootefi_help_text[] =
+@@ -332,8 +345,9 @@ static char bootefi_help_text[] =
  	"  - boot a sample Hello World application stored within U-Boot\n"
  #endif
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
@@ -107,7 +108,7 @@ index 7ec42a0406..ea0f180251 100644
 +
  #endif /* _EFI_SELFTEST_H */
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
-index 45d8d3d384..f154b98137 100644
+index 45d8d3d384..62d3852c19 100644
 --- a/lib/efi_selftest/efi_selftest.c
 +++ b/lib/efi_selftest/efi_selftest.c
 @@ -15,6 +15,8 @@ static const struct efi_runtime_services *runtime;
@@ -140,11 +141,12 @@ index 45d8d3d384..f154b98137 100644
  
  	systable = systab;
  	boottime = systable->boottime;
-@@ -165,12 +170,26 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -165,12 +170,27 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  
  	efi_st_printf("\nTesting EFI API implementation\n");
  
 -	efi_st_printf("\nNumber of tests to execute: %u\n",
+-		      ll_entry_count(struct efi_unit_test, efi_unit_test));
 +	for (i = 0, table = systab->tables; i < systab->nr_tables;
 +	     ++i, ++table) {
 +		if (!efi_st_memcmp(&efi_selftest_table_guid,
@@ -157,42 +159,43 @@ index 45d8d3d384..f154b98137 100644
 +
 +	if (!testname)
 +		efi_st_printf("\nNumber of tests to execute: %u\n",
- 		      ll_entry_count(struct efi_unit_test, efi_unit_test));
++			      ll_entry_count(struct efi_unit_test,
++					     efi_unit_test));
  
  	/* Execute boottime tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+	     	if (testname ?
++		if (testname ?
 +		    efi_st_strcmp(testname, test->name) : test->on_request)
 +			continue;
  		if (test->phase == EFI_EXECUTE_BEFORE_BOOTTIME_EXIT) {
  			setup(test, &failures);
  			execute(test, &failures);
-@@ -181,6 +200,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -181,6 +201,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute mixed tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+	     	if (testname ?
++		if (testname ?
 +		    efi_st_strcmp(testname, test->name) : test->on_request)
 +			continue;
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
  			setup(test, &failures);
  	}
-@@ -189,6 +211,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -189,6 +212,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+	     	if (testname ?
++		if (testname ?
 +		    efi_st_strcmp(testname, test->name) : test->on_request)
 +			continue;
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT) {
  			execute(test, &failures);
  			teardown(test, &failures);
-@@ -198,6 +223,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -198,6 +224,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute runtime tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+	     	if (testname ?
++		if (testname ?
 +		    efi_st_strcmp(testname, test->name) : test->on_request)
 +			continue;
  		if (test->phase == EFI_SETUP_AFTER_BOOTTIME_EXIT) {

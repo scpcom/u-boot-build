@@ -60,7 +60,7 @@ index 7b5b724a61..840e2290c6 100644
 -				pointer(va_arg(args, void*), &pos);
 +				++c;
 +				switch (*c) {
-+				case 'm':
++				case 'M':
 +					mac(va_arg(args, void*), &pos);
 +					break;
 +				default:

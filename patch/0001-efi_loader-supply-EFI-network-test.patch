@@ -438,7 +438,7 @@ index 0000000000..638be0147d
 +	 * Write a log message.
 +	 */
 +	addr = (u8 *)&buffer.p.ip_udp.ip_src;
-+	efi_st_printf("DHCP reply received from %u.%u.%u.%u (%pm) ",
++	efi_st_printf("DHCP reply received from %u.%u.%u.%u (%pM) ",
 +		      addr[0], addr[1], addr[2], addr[3], &srcaddr);
 +	if (!efi_st_memcmp(&destaddr, BROADCAST_MAC, ARP_HLEN))
 +		efi_st_printf("as broadcast message.\n");
