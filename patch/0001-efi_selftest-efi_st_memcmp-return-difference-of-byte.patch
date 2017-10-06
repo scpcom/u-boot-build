@@ -1,0 +1,31 @@
+From 7ce96b3c851f3a81250987345419dd46d119df22 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 6 Oct 2017 20:34:15 +0200
+Subject: [PATCH 1/1] efi_selftest: efi_st_memcmp return difference of bytes
+
+If the memory regions are different efi_st_memcmp currently
+returns the difference of the addresses. Insted the
+difference of the first differing byte pair should be
+returned.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/efi_selftest_util.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/efi_selftest/efi_selftest_util.c b/lib/efi_selftest/efi_selftest_util.c
+index c9c295e2fb..5cffe383d8 100644
+--- a/lib/efi_selftest/efi_selftest_util.c
++++ b/lib/efi_selftest/efi_selftest_util.c
+@@ -17,7 +17,7 @@ int efi_st_memcmp(const void *buf1, const void *buf2, size_t length)
+ 
+ 	for (; length; --length) {
+ 		if (*pos1 != *pos2)
+-			return pos1 - pos2;
++			return *pos1 - *pos2;
+ 		++pos1;
+ 		++pos2;
+ 	}
+-- 
+2.14.1
+
