@@ -6,26 +6,28 @@
 # git am ../patch/0001-efi_loader-provide-function-comments-for-boot-servic.patch
 # git am ../patch/0001-efi_loader-replace-efi_div10-by-do_div.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
-git am ../patch/0001-efi_loader-comments-for-functions-add-mssing-return.patch
 
 # EFI Network
-git am ../patch/0001-efi_loader-call-EFI_EXIT-in-efi_copy_mem-efi_set_mem.patch
-git am ../patch/0001-efi_loader-parameters-of-CopyMem-and-SetMem.patch
-git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
-git am ../patch/0001-efi_loader-wrong-type-in-wait_for_event.patch
-git am ../patch/0001-efi_loader-incorrect-definition-of-EFI_SIMPLE_NETWOR.patch
-git am ../patch/0001-efi_loader-correct-bits-of-receive_filters-bit-mask.patch
-git am ../patch/0001-efi_loader-fill-simple-network-protocol-revision.patch
-git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
-git am ../patch/0001-efi_net-return-EFI_UNSUPPORTED-where-appropriate.patch
-git am ../patch/0001-efi_loader-use-events-for-efi_net_receive.patch
-git am ../patch/0001-efi_loader-implement-WaitForPacket-event.patch
-git am ../patch/0001-efi_loader-fix-efi_net_get_status.patch
-git am ../patch/0001-efi_loader-size-fields-in-SimpleNetworkProtocol.patch
-git am ../patch/0001-efi_loader-fill-return-values-in-SimpleNetworkProtoc.patch
-git am ../patch/0001-efi_selftest-correct-definition-of-efi_st_error.patch
-git am ../patch/0001-efi_selftest-allow-printing-MAC-addresses.patch
-git am ../patch/0001-efi_loader-supply-EFI-network-test.patch
+# git am ../patch/0001-efi_loader-call-EFI_EXIT-in-efi_copy_mem-efi_set_mem.patch
+# git am ../patch/0001-efi_loader-parameters-of-CopyMem-and-SetMem.patch
+# git am ../patch/0001-efi_loader-pass-GUIDs-as-const-efi_guid_t.patch
+# git am ../patch/0001-efi_loader-wrong-type-in-wait_for_event.patch
+# git am ../patch/0001-efi_loader-incorrect-definition-of-EFI_SIMPLE_NETWOR.patch
+# git am ../patch/0001-efi_loader-correct-bits-of-receive_filters-bit-mask.patch
+# git am ../patch/0001-efi_loader-fill-simple-network-protocol-revision.patch
+# git am ../patch/0001-efi_loader-efi_net-hwaddr_size-6.patch
+# git am ../patch/0001-efi_net-return-EFI_UNSUPPORTED-where-appropriate.patch
+# git am ../patch/0001-efi_loader-use-events-for-efi_net_receive.patch
+# git am ../patch/0001-efi_loader-implement-WaitForPacket-event.patch
+# git am ../patch/0001-efi_loader-fix-efi_net_get_status.patch
+# git am ../patch/0001-efi_loader-size-fields-in-SimpleNetworkProtocol.patch
+# git am ../patch/0001-efi_loader-fill-return-values-in-SimpleNetworkProtoc.patch
+# git am ../patch/0001-efi_selftest-correct-definition-of-efi_st_error.patch
+# git am ../patch/0001-efi_selftest-allow-printing-MAC-addresses.patch
+# git am ../patch/0001-efi_loader-supply-EFI-network-test.patch
+git am ../patch/0001-efi_selftest-efi_st_memcmp-return-difference-of-byte.patch
+
+git am ../patch/0001-efi_loader-comments-for-functions-add-mssing-return.patch
 
 # Implement Watchdog
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
