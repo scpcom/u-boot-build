@@ -30,12 +30,13 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 git am ../patch/0001-efi_loader-comments-for-functions-add-mssing-return.patch
 git am ../patch/0001-efi_selftest-error-handling-in-SNP-test.patch
 git am ../patch/0001-efi_loader-move-efi_search_obj-up-in-code.patch
-git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch
+# git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch
 
 # Implement Watchdog
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 git am ../patch/0001-efi_selftest-provide-test-for-watchdog-timer.patch
 git am ../patch/0001-efi_selftest-allow-to-select-a-single-test-for-exexu.patch
+exit
 git am ../patch/0001-efi_selftest-test-reboot-by-watchdog.patch
 git am ../patch/0001-test-py-test-reboot-by-EFI-watchdog.patch
 git am ../patch/0001-test-py-fix-typo-in-test_efi_loader.py.patch
