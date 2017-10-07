@@ -1,0 +1,50 @@
+From 82a3829f9cc29f086ce6c79e9617713767ead57b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 7 Oct 2017 19:04:54 +0200
+Subject: [PATCH 1/1] efi_selftest: error handling in SNP test
+
+Avoid NULL pointer dereference after setup failed due to a
+missing network.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/efi_selftest_snp.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/lib/efi_selftest/efi_selftest_snp.c b/lib/efi_selftest/efi_selftest_snp.c
+index 638be0147d..bdd6ce20da 100644
+--- a/lib/efi_selftest/efi_selftest_snp.c
++++ b/lib/efi_selftest/efi_selftest_snp.c
+@@ -198,7 +198,7 @@ static int setup(const efi_handle_t handle,
+ 	 */
+ 	ret = boottime->set_timer(timer, EFI_TIMER_PERIODIC, 10000000);
+ 	if (ret != EFI_SUCCESS) {
+-		efi_st_error("Failed to locate simple network protocol\n");
++		efi_st_error("Failed to set timer\n");
+ 		return EFI_ST_FAILURE;
+ 	}
+ 	/*
+@@ -206,6 +206,7 @@ static int setup(const efi_handle_t handle,
+ 	 */
+ 	ret = boottime->locate_protocol(&efi_net_guid, NULL, (void **)&net);
+ 	if (ret != EFI_SUCCESS) {
++		net = NULL;
+ 		efi_st_error("Failed to locate simple network protocol\n");
+ 		return EFI_ST_FAILURE;
+ 	}
+@@ -273,6 +274,12 @@ static int execute(void)
+ 	 */
+ 	unsigned int timeout = 10;
+ 
++	/* Setup may have failed */
++	if (!net || !timer) {
++		efi_st_error("Cannot execute test after setup failure\n");
++		return EFI_ST_FAILURE;
++	}
++
+ 	/*
+ 	 * Send DHCP discover message
+ 	 */
+-- 
+2.14.1
+

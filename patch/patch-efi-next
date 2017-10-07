@@ -28,6 +28,8 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 # git am ../patch/0001-efi_selftest-efi_st_memcmp-return-difference-of-byte.patch
 
 git am ../patch/0001-efi_loader-comments-for-functions-add-mssing-return.patch
+git am ../patch/0001-efi_selftest-error-handling-in-SNP-test.patch
+git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch
 
 # Implement Watchdog
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
