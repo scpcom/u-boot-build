@@ -1,4 +1,4 @@
-From 6b04a73dd6e6b28025ae37954368eb7616b597a2 Mon Sep 17 00:00:00 2001
+From 1cf2399e8f859f60bbb3a316105a5a32477e1660 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
@@ -18,14 +18,14 @@ bootefi selftest list will call the Exit bootservice.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                        | 27 ++++++++++++-----
- include/efi_selftest.h               | 18 +++++++++++
- lib/efi_selftest/efi_selftest.c      | 58 +++++++++++++++++++++++++++++++++---
- lib/efi_selftest/efi_selftest_util.c |  9 ++++++
- 4 files changed, 100 insertions(+), 12 deletions(-)
+ cmd/bootefi.c                        | 22 ++++++++-
+ include/efi_selftest.h               | 18 ++++++++
+ lib/efi_selftest/efi_selftest.c      | 87 ++++++++++++++++++++++++++++++++++--
+ lib/efi_selftest/efi_selftest_util.c |  9 ++++
+ 4 files changed, 130 insertions(+), 6 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 24958ada46..3b956b562e 100644
+index 24958ada46..1cbe030281 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -10,6 +10,7 @@
@@ -44,16 +44,10 @@ index 24958ada46..3b956b562e 100644
  
  	if (argc < 2)
  		return CMD_RET_USAGE;
-@@ -279,16 +281,22 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
- 		efi_setup_loaded_image(&loaded_image_info,
- 				       &loaded_image_info_obj,
- 				       bootefi_device_path, bootefi_image_path);
--		/*
--		 * gd lives in a fixed register which may get clobbered while we
--		 * execute the payload. So save it here and restore it on every
--		 * callback entry
--		 */
--		efi_save_gd();
+@@ -285,10 +287,23 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ 		 * callback entry
+ 		 */
+ 		efi_save_gd();
 +		loaded_image_info.image_code_type = EFI_LOADER_CODE;
 +		loaded_image_info.image_data_type = EFI_LOADER_DATA;
  		/* Initialize and populate EFI object list */
@@ -68,13 +62,14 @@ index 24958ada46..3b956b562e 100644
 +			test = argv[2];
 +		efi_install_configuration_table(&efi_selftest_table_guid, test);
 +		/* Execute the test */
-+		r = EFI_CALL(efi_selftest(&loaded_image_info, &systab));
++		r = efi_selftest(&loaded_image_info, &systab);
++		efi_restore_gd();
 +		list_del(&loaded_image_info_obj.link);
 +		return r;
  	} else
  #endif
  	if (!strcmp(argv[1], "bootmgr")) {
-@@ -332,8 +340,11 @@ static char bootefi_help_text[] =
+@@ -332,8 +347,11 @@ static char bootefi_help_text[] =
  	"  - boot a sample Hello World application stored within U-Boot\n"
  #endif
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
@@ -135,7 +130,7 @@ index 7ec42a0406..ea0f180251 100644
 +
  #endif /* _EFI_SELFTEST_H */
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
-index 45d8d3d384..43ad969b4d 100644
+index 45d8d3d384..580edac3b0 100644
 --- a/lib/efi_selftest/efi_selftest.c
 +++ b/lib/efi_selftest/efi_selftest.c
 @@ -15,6 +15,8 @@ static const struct efi_runtime_services *runtime;
@@ -158,7 +153,48 @@ index 45d8d3d384..43ad969b4d 100644
  	unsigned long desc_size;
  	u32 desc_version;
  	efi_status_t ret;
-@@ -155,6 +157,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -133,6 +135,40 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
+ 	return ret;
+ }
+ 
++/*
++ * Check that a test exists.
++ *
++ * @testname:	name of the test
++ * @return:	test
++ */
++static struct efi_unit_test *find_test(const char *testname) {
++	struct efi_unit_test *test;
++
++	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
++	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
++		if(!efi_st_strcmp(testname, test->name))
++			return test;
++	}
++	printf("\nTest '%s' not found\n", testname);
++	return NULL;
++}
++
++/*
++ * List all available tests.
++ */
++static void list_all_tests(void)
++{
++	struct efi_unit_test *test;
++
++	/* List all tests */
++	efi_st_printf("\nAvailable tests:\n");
++	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
++	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
++		efi_st_printf("'%s'%s\n", test->name,
++			test->on_request ? " - on request" : "");
++	}
++}
++
+ /*
+  * Execute selftest of the EFI API
+  *
+@@ -155,6 +191,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  {
  	struct efi_unit_test *test;
  	unsigned int failures = 0;
@@ -168,7 +204,7 @@ index 45d8d3d384..43ad969b4d 100644
  
  	systable = systab;
  	boottime = systable->boottime;
-@@ -163,14 +168,50 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -163,14 +202,45 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	con_out = systable->con_out;
  	con_in = systable->con_in;
  
@@ -181,24 +217,19 @@ index 45d8d3d384..43ad969b4d 100644
 +		}
 +	}
 +
-+	/* List all tests */
-+	if (testname && !efi_st_strcmp(testname, "list")) {
-+		efi_st_printf("\nAvailable tests:\n");
-+		for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
-+		     test < ll_entry_end(struct efi_unit_test, efi_unit_test);
-+		     ++test) {
-+			efi_st_printf("'%s'%s\n", test->name,
-+				test->on_request ? " - on request" : "");
++	if (testname) {
++		if (!efi_st_strcmp(testname, "list") || !find_test(testname)) {
++			list_all_tests();
++			/*
++			 * TODO:
++			 * Once the Exit boottime service is correctly
++			 * implemented we should call
++			 *   boottime->exit(image_handle, EFI_SUCCESS, 0, NULL);
++			 * here, cf.
++			 * https://lists.denx.de/pipermail/u-boot/2017-October/308720.html
++			 */
++			return EFI_SUCCESS;
 +		}
-+		/*
-+		 * TODO:
-+		 * Once the Exit boottime service is correctly implemented we
-+		 * should call
-+		 *    boottime->exit(image_handle, EFI_SUCCESS, 0, NULL);
-+		 * here, cf.
-+		 * https://lists.denx.de/pipermail/u-boot/2017-October/308720.html
-+		 */
-+		return EFI_SUCCCESS;
 +	}
 +
  	efi_st_printf("\nTesting EFI API implementation\n");
@@ -221,7 +252,7 @@ index 45d8d3d384..43ad969b4d 100644
  		if (test->phase == EFI_EXECUTE_BEFORE_BOOTTIME_EXIT) {
  			setup(test, &failures);
  			execute(test, &failures);
-@@ -181,6 +222,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -181,6 +251,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute mixed tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
@@ -231,7 +262,7 @@ index 45d8d3d384..43ad969b4d 100644
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
  			setup(test, &failures);
  	}
-@@ -189,6 +233,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -189,6 +262,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
@@ -241,7 +272,7 @@ index 45d8d3d384..43ad969b4d 100644
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT) {
  			execute(test, &failures);
  			teardown(test, &failures);
-@@ -198,6 +245,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -198,6 +274,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute runtime tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
@@ -252,7 +283,7 @@ index 45d8d3d384..43ad969b4d 100644
  			setup(test, &failures);
  			execute(test, &failures);
 diff --git a/lib/efi_selftest/efi_selftest_util.c b/lib/efi_selftest/efi_selftest_util.c
-index 5cffe383d8..b6cec7da4e 100644
+index 5cffe383d8..6d256e2e78 100644
 --- a/lib/efi_selftest/efi_selftest_util.c
 +++ b/lib/efi_selftest/efi_selftest_util.c
 @@ -23,3 +23,12 @@ int efi_st_memcmp(const void *buf1, const void *buf2, size_t length)
@@ -262,7 +293,7 @@ index 5cffe383d8..b6cec7da4e 100644
 +
 +int efi_st_strcmp(const char *buf1, const char *buf2)
 +{
-+	for (; *buf1; ++buf1, ++buf2) {
++	for (; *buf1 || *buf2; ++buf1, ++buf2) {
 +		if (*buf1 != *buf2)
 +			return *buf1 - *buf2;
 +	}
