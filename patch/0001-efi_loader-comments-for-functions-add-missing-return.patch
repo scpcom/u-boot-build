@@ -1,7 +1,7 @@
 From d8cd95abefa447a14cdef57cf675faef1764e606 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 6 Oct 2017 12:55:13 +0200
-Subject: [PATCH 1/1] efi_loader: comments for functions add mssing @return
+Subject: [PATCH 1/1] efi_loader: comments for functions add missing @return
 
 For some functions the @return description is missing.
 
