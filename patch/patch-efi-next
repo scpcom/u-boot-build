@@ -29,6 +29,7 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
 git am ../patch/0001-efi_loader-comments-for-functions-add-mssing-return.patch
 git am ../patch/0001-efi_selftest-error-handling-in-SNP-test.patch
+git am ../patch/0001-efi_loader-move-efi_search_obj-up-in-code.patch
 git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch
 
 # Implement Watchdog
