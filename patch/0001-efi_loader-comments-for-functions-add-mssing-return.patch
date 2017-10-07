@@ -1,20 +1,22 @@
-From 300ae8ba9859882fdd43e60044168faec1dd7906 Mon Sep 17 00:00:00 2001
+From d8cd95abefa447a14cdef57cf675faef1764e606 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 6 Oct 2017 12:55:13 +0200
 Subject: [PATCH 1/1] efi_loader: comments for functions add mssing @return
 
-For sum functions the @return description is missing.
+For some functions the @return description is missing.
+
+Fix typo.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ lib/efi_loader/efi_boottime.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index da8e8866bf..40cb332cc3 100644
+index 976d5822f7..73d9f3c4c3 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -599,6 +599,7 @@ out:
+@@ -611,6 +611,7 @@ out:
   * notification function for execution.
   *
   * @event	event to signal
@@ -22,7 +24,16 @@ index da8e8866bf..40cb332cc3 100644
   */
  static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
  {
-@@ -1152,6 +1153,7 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
+@@ -1120,7 +1121,7 @@ static efi_status_t EFIAPI efi_install_configuration_table_ext(efi_guid_t *guid,
+  * Initialize a loaded_image_info + loaded_image_info object with correct
+  * protocols, boot-device, etc.
+  *
+- * @info		loaded image info to be passed to the enty point of the
++ * @info		loaded image info to be passed to the entry point of the
+  *			image
+  * @obj			internal object associated with the loaded image
+  * @device_path		device path of the loaded image
+@@ -1164,6 +1165,7 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
   *
   * @file_path		the path of the image to load
   * @buffer		buffer containing the loaded image
@@ -30,7 +41,7 @@ index da8e8866bf..40cb332cc3 100644
   */
  efi_status_t efi_load_image_from_path(struct efi_device_path *file_path,
  				      void **buffer)
-@@ -1273,6 +1275,7 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
+@@ -1285,6 +1287,7 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
   * @image_handle	handle of the image
   * @exit_data_size	size of the buffer
   * @exit_data		buffer to receive the exit data of the called image
@@ -38,7 +49,7 @@ index da8e8866bf..40cb332cc3 100644
   */
  static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
  					   unsigned long *exit_data_size,
-@@ -1313,6 +1316,7 @@ static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
+@@ -1325,6 +1328,7 @@ static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
   * @exit_status		status code
   * @exit_data_size	size of the buffer in bytes
   * @exit_data		buffer with data describing an error
@@ -46,7 +57,7 @@ index da8e8866bf..40cb332cc3 100644
   */
  static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
  			efi_status_t exit_status, unsigned long exit_data_size,
-@@ -1488,6 +1492,7 @@ static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
+@@ -1499,6 +1503,7 @@ static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
   * @watchdog_code	code to be logged when resetting
   * @data_size		size of buffer in bytes
   * @watchdog_data	buffer with data describing the reset reason
@@ -54,7 +65,7 @@ index da8e8866bf..40cb332cc3 100644
   */
  static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  						  uint64_t watchdog_code,
-@@ -1600,6 +1605,7 @@ static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
+@@ -1611,6 +1616,7 @@ static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
   * @handle			handle for which the information is retrieved
   * @protocol_buffer		buffer with protocol GUIDs
   * @protocol_buffer_count	number of entries in the buffer
@@ -62,7 +73,7 @@ index da8e8866bf..40cb332cc3 100644
   */
  static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
  			efi_guid_t ***protocol_buffer,
-@@ -1711,6 +1717,7 @@ out:
+@@ -1722,6 +1728,7 @@ out:
   * @protocol		GUID of the protocol
   * @registration	registration key passed to the notification function
   * @protocol_interface	interface implementing the protocol
