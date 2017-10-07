@@ -1,4 +1,4 @@
-From b75d57af3a78d59d3700e040d220fb78a69ebcd1 Mon Sep 17 00:00:00 2001
+From 1da55220b31acf125e3615575c2333f81f1d44ef Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 7 Oct 2017 18:58:31 +0200
 Subject: [PATCH 1/1] efi_loader: Exit must remove loaded image handle
@@ -6,36 +6,136 @@ Subject: [PATCH 1/1] efi_loader: Exit must remove loaded image handle
 The handle associated with the loaded image of an EFI application
 has to be removed when the Exit bootservice is called.
 
-Same is true for EFI service images if the exit code is not
+Same is true for EFI services images if the exit code is not
 EFI_SUCCESS.
+
+If an EFI services image exits with EFI_SUCCESS the image handle
+may not be removed.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ cmd/bootefi.c                 | 27 +++++++++++++++++----------
+ include/efi_loader.h          |  2 ++
+ lib/efi_loader/efi_boottime.c | 27 +++++++++++++++++++++++++++
+ 3 files changed, 46 insertions(+), 10 deletions(-)
 
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index b7087e3da8..9c061e870b 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -126,7 +126,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
+ 				     struct efi_device_path *image_path)
+ {
+ 	struct efi_loaded_image loaded_image_info = {};
+-	struct efi_object loaded_image_info_obj = {};
++	struct efi_object *loaded_image_info_obj;
+ 	ulong ret;
+ 
+ 	ulong (*entry)(void *image_handle, struct efi_system_table *st)
+@@ -139,7 +139,12 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
+ 	if (!efi_obj_list_initalized)
+ 		efi_init_obj_list();
+ 
+-	efi_setup_loaded_image(&loaded_image_info, &loaded_image_info_obj,
++	loaded_image_info_obj = calloc(1, sizeof(struct efi_object));
++	if (!loaded_image_info_obj) {
++		printf("ERROR: out of memory\n");
++		return EFI_OUT_OF_RESOURCES;
++	}
++	efi_setup_loaded_image(&loaded_image_info, loaded_image_info_obj,
+ 			       device_path, image_path);
+ 
+ 	/*
+@@ -154,7 +159,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
+ 
+ 		if (image_setup_libfdt(&img, fdt, 0, NULL)) {
+ 			printf("ERROR: Failed to process device tree\n");
+-			return -EINVAL;
++			return EFI_INVALID_PARAMETER;
+ 		}
+ 
+ 		/* Link to it in the efi tables */
+@@ -177,8 +182,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
+ 	/* Load the EFI payload */
+ 	entry = efi_load_pe(efi, &loaded_image_info);
+ 	if (!entry) {
+-		ret = -ENOENT;
+-		goto exit;
++		efi_remove_loaded_image_handle(&loaded_image_info);
++		return EFI_NOT_FOUND;
+ 	}
+ 
+ 	/* we don't support much: */
+@@ -212,9 +217,6 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
+ 	ret = efi_do_enter(&loaded_image_info, &systab, entry);
+ 
+ exit:
+-	/* image has returned, loaded-image obj goes *poof*: */
+-	list_del(&loaded_image_info_obj.link);
+-
+ 	return ret;
+ }
+ 
+@@ -273,10 +275,15 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
+ 	if (!strcmp(argv[1], "selftest")) {
+ 		struct efi_loaded_image loaded_image_info = {};
+-		struct efi_object loaded_image_info_obj = {};
++		struct efi_object *loaded_image_info_obj;
+ 
++		loaded_image_info_obj = calloc(1, sizeof(struct efi_object));
++		if (!loaded_image_info_obj) {
++			printf("ERROR: out of memory\n");
++			return -ENOMEM;
++		}
+ 		efi_setup_loaded_image(&loaded_image_info,
+-				       &loaded_image_info_obj,
++				       loaded_image_info_obj,
+ 				       bootefi_device_path, bootefi_image_path);
+ 		/*
+ 		 * gd lives in a fixed register which may get clobbered while we
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index e1179b7dcd..afb46380e6 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -174,6 +174,8 @@ void efi_net_set_dhcp_ack(void *pkt, int len);
+ 
+ /* Called from places to check whether a timer expired */
+ void efi_timer_check(void);
++/* Removes loaded image handle */
++void efi_remove_loaded_image_handle(struct efi_loaded_image *loaded_image_info);
+ /* PE loader implementation */
+ void *efi_load_pe(void *efi, struct efi_loaded_image *loaded_image_info);
+ /* Called once to store the pristine gd pointer */
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 40cb332cc3..56568e371b 100644
+index babe23dad4..111dd9bc10 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1148,6 +1148,16 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
+@@ -1180,6 +1180,23 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
  	list_add_tail(&obj->link, &efi_obj_list);
  }
  
 +/*
-+ * Free all resources linked to the loaded image handle.
++ * Remove a loaded image handle.
 + *
 + * @loaded_image_info:	handle of the loaded image
 + */
 +void efi_remove_loaded_image_handle(struct efi_loaded_image *loaded_image_info)
 +{
-+	list_del(loaded_image_info->link);
++	struct efi_object *obj;
++
++	obj = efi_search_obj(loaded_image_info);
++	if (!obj)
++		return;
++
++	list_del(&obj->link);
++	free(obj);
 +}
 +
  /*
   * Load an image using a file path.
   *
-@@ -1337,6 +1347,16 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
+@@ -1369,6 +1386,16 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
  	efi_restore_gd();
  
  	loaded_image_info->exit_status = exit_status;
