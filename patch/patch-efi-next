@@ -25,7 +25,7 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 # git am ../patch/0001-efi_selftest-correct-definition-of-efi_st_error.patch
 # git am ../patch/0001-efi_selftest-allow-printing-MAC-addresses.patch
 # git am ../patch/0001-efi_loader-supply-EFI-network-test.patch
-git am ../patch/0001-efi_selftest-efi_st_memcmp-return-difference-of-byte.patch
+# git am ../patch/0001-efi_selftest-efi_st_memcmp-return-difference-of-byte.patch
 
 git am ../patch/0001-efi_loader-comments-for-functions-add-mssing-return.patch
 
@@ -33,6 +33,7 @@ git am ../patch/0001-efi_loader-comments-for-functions-add-mssing-return.patch
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 git am ../patch/0001-efi_selftest-provide-test-for-watchdog-timer.patch
 git am ../patch/0001-efi_selftest-allow-to-select-a-single-test-for-exexu.patch
+exit
 git am ../patch/0001-efi_selftest-test-reboot-by-watchdog.patch
 git am ../patch/0001-test-py-test-reboot-by-EFI-watchdog.patch
 
