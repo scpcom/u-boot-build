@@ -15,7 +15,7 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 5e369ed58e..4b494f3cf9 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -690,6 +690,26 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+@@ -690,6 +690,27 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  	return EFI_EXIT(EFI_INVALID_PARAMETER);
  }
  
@@ -31,6 +31,7 @@ index 5e369ed58e..4b494f3cf9 100644
 +
 +	list_for_each(lhandle, &efi_obj_list) {
 +		struct efi_object *efiobj;
++
 +		efiobj = list_entry(lhandle, struct efi_object, link);
 +		if (efiobj->handle == handle)
 +			return efiobj;

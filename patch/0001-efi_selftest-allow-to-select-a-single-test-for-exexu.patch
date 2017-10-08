@@ -1,4 +1,4 @@
-From 1cf2399e8f859f60bbb3a316105a5a32477e1660 Mon Sep 17 00:00:00 2001
+From fb3174d89a718943e7c2a2b2b7e72a87d79810a9 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
@@ -20,12 +20,12 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  cmd/bootefi.c                        | 22 ++++++++-
  include/efi_selftest.h               | 18 ++++++++
- lib/efi_selftest/efi_selftest.c      | 87 ++++++++++++++++++++++++++++++++++--
+ lib/efi_selftest/efi_selftest.c      | 88 ++++++++++++++++++++++++++++++++++--
  lib/efi_selftest/efi_selftest_util.c |  9 ++++
- 4 files changed, 130 insertions(+), 6 deletions(-)
+ 4 files changed, 131 insertions(+), 6 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 24958ada46..1cbe030281 100644
+index 24958ada46..f5616c9e53 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -10,6 +10,7 @@
@@ -36,14 +36,14 @@ index 24958ada46..1cbe030281 100644
  #include <errno.h>
  #include <libfdt.h>
  #include <libfdt_env.h>
-@@ -256,6 +257,7 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
- 	char *saddr, *sfdt;
- 	unsigned long addr, fdt_addr = 0;
- 	unsigned long r;
-+	char *test = NULL;
+@@ -275,6 +276,7 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ 	if (!strcmp(argv[1], "selftest")) {
+ 		struct efi_loaded_image loaded_image_info = {};
+ 		struct efi_object loaded_image_info_obj = {};
++		char *test = NULL;
  
- 	if (argc < 2)
- 		return CMD_RET_USAGE;
+ 		efi_setup_loaded_image(&loaded_image_info,
+ 				       &loaded_image_info_obj,
 @@ -285,10 +287,23 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  		 * callback entry
  		 */
@@ -130,7 +130,7 @@ index 7ec42a0406..ea0f180251 100644
 +
  #endif /* _EFI_SELFTEST_H */
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
-index 45d8d3d384..580edac3b0 100644
+index 45d8d3d384..35a961aeb0 100644
 --- a/lib/efi_selftest/efi_selftest.c
 +++ b/lib/efi_selftest/efi_selftest.c
 @@ -15,6 +15,8 @@ static const struct efi_runtime_services *runtime;
@@ -153,7 +153,7 @@ index 45d8d3d384..580edac3b0 100644
  	unsigned long desc_size;
  	u32 desc_version;
  	efi_status_t ret;
-@@ -133,6 +135,40 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
+@@ -133,6 +135,41 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
  	return ret;
  }
  
@@ -163,12 +163,13 @@ index 45d8d3d384..580edac3b0 100644
 + * @testname:	name of the test
 + * @return:	test
 + */
-+static struct efi_unit_test *find_test(const char *testname) {
++static struct efi_unit_test *find_test(const char *testname)
++{
 +	struct efi_unit_test *test;
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+		if(!efi_st_strcmp(testname, test->name))
++		if (!efi_st_strcmp(testname, test->name))
 +			return test;
 +	}
 +	printf("\nTest '%s' not found\n", testname);
@@ -187,14 +188,14 @@ index 45d8d3d384..580edac3b0 100644
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +		efi_st_printf("'%s'%s\n", test->name,
-+			test->on_request ? " - on request" : "");
++			      test->on_request ? " - on request" : "");
 +	}
 +}
 +
  /*
   * Execute selftest of the EFI API
   *
-@@ -155,6 +191,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -155,6 +192,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  {
  	struct efi_unit_test *test;
  	unsigned int failures = 0;
@@ -204,7 +205,7 @@ index 45d8d3d384..580edac3b0 100644
  
  	systable = systab;
  	boottime = systable->boottime;
-@@ -163,14 +202,45 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -163,14 +203,45 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	con_out = systable->con_out;
  	con_in = systable->con_in;
  
@@ -252,7 +253,7 @@ index 45d8d3d384..580edac3b0 100644
  		if (test->phase == EFI_EXECUTE_BEFORE_BOOTTIME_EXIT) {
  			setup(test, &failures);
  			execute(test, &failures);
-@@ -181,6 +251,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -181,6 +252,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute mixed tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
@@ -262,7 +263,7 @@ index 45d8d3d384..580edac3b0 100644
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
  			setup(test, &failures);
  	}
-@@ -189,6 +262,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -189,6 +263,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
@@ -272,7 +273,7 @@ index 45d8d3d384..580edac3b0 100644
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT) {
  			execute(test, &failures);
  			teardown(test, &failures);
-@@ -198,6 +274,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -198,6 +275,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute runtime tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
