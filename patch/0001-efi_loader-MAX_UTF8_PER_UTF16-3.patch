@@ -1,0 +1,49 @@
+From 7b502fc6f6cbb04f84a487c4d83b0080e8b8e3a5 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 9 Oct 2017 20:23:52 +0200
+Subject: [PATCH 1/1] efi_loader: MAX_UTF8_PER_UTF16 = 3
+
+A code point encoded by one UTF-16 symbol is converted to a
+maximum of three UTF-8 symbols.
+
+0xffff could be encoded as 0xef 0xbf 0xbf.
+The first byte carries four bits, the second and third byte
+carry six bits each.
+
+A code point encoded by two UTF-16 symbols is converted to four
+UTF-8 symbols.
+
+Fixes: 78178bb0c9d lib: add some utf16 handling helpers
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+The code is only used by efi_loader.
+So this patch should go via efi-next.
+---
+ include/charset.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/charset.h b/include/charset.h
+index 9c2866bbe6..2f7f7eacc9 100644
+--- a/include/charset.h
++++ b/include/charset.h
+@@ -9,7 +9,7 @@
+ #ifndef __CHARSET_H_
+ #define __CHARSET_H_
+ 
+-#define MAX_UTF8_PER_UTF16 4
++#define MAX_UTF8_PER_UTF16 3
+ 
+ /**
+  * utf16_strlen() - Get the length of an utf16 string
+@@ -52,7 +52,7 @@ uint16_t *utf16_strdup(const uint16_t *s);
+  * Converts 'size' characters of the utf16 string 'src' to utf8
+  * written to the 'dest' buffer.
+  *
+- * NOTE that a single utf16 character can generate up to 4 utf8
++ * NOTE that a single utf16 character can generate up to 3 utf8
+  * characters.  See MAX_UTF8_PER_UTF16.
+  *
+  * @dest   the destination buffer to write the utf8 characters
+-- 
+2.14.1
+
