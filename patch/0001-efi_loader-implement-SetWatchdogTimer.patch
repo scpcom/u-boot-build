@@ -1,4 +1,4 @@
-From 11b17a3d1ddd6439a74bffe7721422e62031c8bd Mon Sep 17 00:00:00 2001
+From ffe665d8f3533089fc24974dd1e8e3f903591095 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 02:40:29 +0200
 Subject: [PATCH 1/1] efi_loader: implement SetWatchdogTimer
@@ -10,11 +10,11 @@ It is stopped by ExitBoottimeServices.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  cmd/bootefi.c                 |  1 +
- include/efi_loader.h          |  4 +++
+ include/efi_loader.h          |  4 ++
  lib/efi_loader/Makefile       |  2 +-
- lib/efi_loader/efi_boottime.c | 15 ++---------
- lib/efi_loader/efi_watchdog.c | 59 +++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 67 insertions(+), 14 deletions(-)
+ lib/efi_loader/efi_boottime.c | 17 ++-------
+ lib/efi_loader/efi_watchdog.c | 86 +++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 95 insertions(+), 15 deletions(-)
  create mode 100644 lib/efi_loader/efi_watchdog.c
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
@@ -65,7 +65,7 @@ index ddb978f650..83d879b686 100644
  obj-$(CONFIG_DM_VIDEO) += efi_gop.o
  obj-$(CONFIG_PARTITIONS) += efi_disk.o
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 976d5822f7..da8e8866bf 100644
+index 30577f717e..fd8d15655b 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -155,18 +155,6 @@ void efi_signal_event(struct efi_event *event)
@@ -87,7 +87,7 @@ index 976d5822f7..da8e8866bf 100644
  /*
   * Raise the task priority level.
   *
-@@ -1448,6 +1436,7 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
+@@ -1454,6 +1442,7 @@ static efi_status_t EFIAPI efi_exit_boot_services(void *image_handle,
  	bootm_disable_interrupts();
  
  	/* Give the payload some time to boot */
@@ -95,7 +95,16 @@ index 976d5822f7..da8e8866bf 100644
  	WATCHDOG_RESET();
  
  	return EFI_EXIT(EFI_SUCCESS);
-@@ -1507,7 +1496,7 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1497,7 +1486,7 @@ static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
+ /*
+  * Reset the watchdog timer.
+  *
+- * This function implements the WatchdogTimer service.
++ * This function implements the SetWatchdogTimer service.
+  * See the Unified Extensible Firmware Interface (UEFI) specification
+  * for details.
+  *
+@@ -1514,7 +1503,7 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  {
  	EFI_ENTRY("%ld, 0x%"PRIx64", %ld, %p", timeout, watchdog_code,
  		  data_size, watchdog_data);
@@ -106,12 +115,12 @@ index 976d5822f7..da8e8866bf 100644
  /*
 diff --git a/lib/efi_loader/efi_watchdog.c b/lib/efi_loader/efi_watchdog.c
 new file mode 100644
-index 0000000000..50e95290ea
+index 0000000000..eb437faf4b
 --- /dev/null
 +++ b/lib/efi_loader/efi_watchdog.c
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,86 @@
 +/*
-+ *  EFI device path interface
++ *  EFI watchdog
 + *
 + *  Copyright (c) 2017 Heinrich Schuchardt
 + *
@@ -123,6 +132,12 @@ index 0000000000..50e95290ea
 +
 +static struct efi_event *watchdog_timer_event;
 +
++/*
++ * Reset the system when the watchdog event is notified.
++ *
++ * @event:	the watchdog event
++ * @context:	not used
++ */
 +static void EFIAPI efi_watchdog_timer_notify(struct efi_event *event,
 +					     void *context)
 +{
@@ -135,6 +150,14 @@ index 0000000000..50e95290ea
 +	EFI_EXIT(EFI_UNSUPPORTED);
 +}
 +
++/*
++ * Reset the watchdog timer.
++ *
++ * This function is used by the SetWatchdogTimer service.
++ *
++ * @timeout:		seconds before reset by watchdog
++ * @return:		status code
++ */
 +efi_status_t efi_set_watchdog(unsigned long timeout)
 +{
 +	efi_status_t r;
@@ -149,11 +172,18 @@ index 0000000000..50e95290ea
 +	return r;
 +}
 +
-+/* This gets called from do_bootefi_exec(). */
++/*
++ * Initialize the EFI watchdog.
++ *
++ * This function is called by efi_init_obj_list()
++ */
 +int efi_watchdog_register(void)
 +{
 +	efi_status_t r;
 +
++	/*
++	 * Create a timer event.
++	 */
 +	r = efi_create_event(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK,
 +			     efi_watchdog_timer_notify, NULL,
 +			     &watchdog_timer_event);
@@ -161,7 +191,13 @@ index 0000000000..50e95290ea
 +		printf("ERROR: Failed to register watchdog event\n");
 +		return r;
 +	}
-+	/* Set watchdog to trigger after 5 minutes */
++	/*
++	 * The UEFI standard requires that the watchdog timer is set to five
++	 * minutes when invoking an EFI boot option.
++	 *
++	 * Unified Extensible Firmware Interface (UEFI), version 2.7 Errata A
++	 * 7.5. Miscellaneous Boot Services - EFI_BOOT_SERVICES.SetWatchdogTimer
++	 */
 +	r = efi_set_watchdog(300);
 +	if (r != EFI_SUCCESS) {
 +		printf("ERROR: Failed to set watchdog timer\n");
