@@ -13,6 +13,7 @@ git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 git am ../patch/0001-efi_selftest-provide-test-for-watchdog-timer.patch
 # git am ../patch/0001-efi_loader-new-function-utf8_to_utf16.patch
 # git am ../patch/0001-efi_loader-MAX_UTF8_PER_UTF16-3.patch
+git am ../patch/0001-efi_loader-guard-against-double-inclusion-of-efi_loa.patch
 git am ../patch/0001-efi_selftest-allow-to-select-a-single-test-for-exexu.patch
 exit
 git am ../patch/0001-efi_selftest-test-reboot-by-watchdog.patch

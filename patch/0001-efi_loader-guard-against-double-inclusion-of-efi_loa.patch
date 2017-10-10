@@ -1,0 +1,28 @@
+From def3ddd95de88f03dba898f4ea15d2a9cba03cf9 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 10 Oct 2017 15:07:02 +0200
+Subject: [PATCH 1/1] efi_loader: guard against double inclusion of
+ efi_loader.h
+
+Use a define to check if efi_loader.h is included twice.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_selftest.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/efi_selftest.h b/include/efi_selftest.h
+index ea0f180251..730b37303e 100644
+--- a/include/efi_selftest.h
++++ b/include/efi_selftest.h
+@@ -12,6 +12,7 @@
+ #include <common.h>
+ #include <efi.h>
+ #include <efi_api.h>
++#include <efi_loader.h>
+ #include <linker_lists.h>
+ 
+ #define EFI_ST_SUCCESS 0
+-- 
+2.11.0
+
