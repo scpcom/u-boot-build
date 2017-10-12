@@ -1,0 +1,95 @@
+From dd16972291351e702637611ee9a1945ce3378577 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 9 Oct 2017 20:21:24 +0200
+Subject: [PATCH 1/1] efi_loader: new function utf8_to_utf16
+
+Provide a conversion function from utf8 to utf16.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/charset.h | 13 +++++++++++++
+ lib/charset.c     | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 62 insertions(+)
+
+diff --git a/include/charset.h b/include/charset.h
+index 39279f746a..9c2866bbe6 100644
+--- a/include/charset.h
++++ b/include/charset.h
+@@ -62,4 +62,17 @@ uint16_t *utf16_strdup(const uint16_t *s);
+  */
+ uint8_t *utf16_to_utf8(uint8_t *dest, const uint16_t *src, size_t size);
+ 
++/**
++ * utf8_to_utf16() - Convert an utf8 string to utf16
++ *
++ * Converts up to 'size' characters of the utf16 string 'src' to utf8
++ * written to the 'dest' buffer.
++ *
++ * @dest   the destination buffer to write the utf8 characters
++ * @src    the source utf16 string
++ * @size   the number of utf16 characters to convert
++ * @return the pointer to the first unwritten byte in 'dest'
++ */
++uint16_t *utf8_to_utf16(uint16_t *dest, const uint8_t *src, size_t size);
++
+ #endif /* __CHARSET_H_ */
+diff --git a/lib/charset.c b/lib/charset.c
+index ff76e88c77..db06bbcd71 100644
+--- a/lib/charset.c
++++ b/lib/charset.c
+@@ -99,3 +99,52 @@ uint8_t *utf16_to_utf8(uint8_t *dest, const uint16_t *src, size_t size)
+ 
+ 	return dest;
+ }
++
++uint16_t *utf8_to_utf16(uint16_t *dest, const uint8_t *src, size_t size)
++{
++	while (size--) {
++		int extension_bytes;
++		uint32_t code;
++
++		extension_bytes = 0;
++		if (*src <= 0x7f) {
++			code = *src++;
++			/* Exit on zero byte */
++			if (!code)
++				size = 0;
++		} else if (*src <= 0xbf) {
++			/* Illegal code */
++			code = '?';
++		} else if (*src <= 0xdf) {
++			code = *src++ & 0x1f;
++			extension_bytes = 1;
++		} else if (*src <= 0xef) {
++			code = *src++ & 0x0f;
++			extension_bytes = 2;
++		} else if (*src <= 0xf7) {
++			code = *src++ & 0x07;
++			extension_bytes = 3;
++		} else {
++			/* Illegal code */
++			code = '?';
++		}
++
++		for (; extension_bytes && size; --size, --extension_bytes) {
++			if (*src & 0xc0 == 0x80) {
++				code << 6;
++				code |= *src++ & 0x3f;
++			} else {
++				/* Illegal code */
++				code = '?';
++				extension_bytes = 0;
++			}
++		}
++
++		if (code < 0x10000) {
++			*dest++ = code;
++		} else {
++			*dest++ = ((code >> 10) & 0x3ff) | 0xd800;
++			*dest++ = (code & 0x3ff) | 0xdc00;
++		}
++	}
++}
+-- 
+2.14.1
+
