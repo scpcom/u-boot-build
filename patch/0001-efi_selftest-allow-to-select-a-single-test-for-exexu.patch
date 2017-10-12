@@ -184,7 +184,7 @@ index 45d8d3d384..95a2eac03a 100644
 +		if (!efi_st_strcmp(testname, test->name))
 +			return test;
 +	}
-+	printf("\nTest '%s' not found\n", testname);
++	efi_st_printf("\nTest '%s' not found\n", testname);
 +	return NULL;
 +}
 +
