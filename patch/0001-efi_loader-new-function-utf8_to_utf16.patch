@@ -1,21 +1,33 @@
-From dd16972291351e702637611ee9a1945ce3378577 Mon Sep 17 00:00:00 2001
+From 23f93f35cc1a3e2cafc52bff265e2060abee0655 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 9 Oct 2017 20:21:24 +0200
 Subject: [PATCH 1/1] efi_loader: new function utf8_to_utf16
 
 Provide a conversion function from utf8 to utf16.
 
+Add missing #include <linux/types.h> in include/charset.h.
+Remove superfluous #include <common.h> in lib/charset.c.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/charset.h | 13 +++++++++++++
- lib/charset.c     | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 62 insertions(+)
+ include/charset.h | 15 +++++++++++++++
+ lib/charset.c     | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 71 insertions(+), 1 deletion(-)
 
 diff --git a/include/charset.h b/include/charset.h
-index 39279f746a..9c2866bbe6 100644
+index 37a3278499..33dbbb651c 100644
 --- a/include/charset.h
 +++ b/include/charset.h
-@@ -62,4 +62,17 @@ uint16_t *utf16_strdup(const uint16_t *s);
+@@ -9,6 +9,8 @@
+ #ifndef __CHARSET_H_
+ #define __CHARSET_H_
+ 
++#include <linux/types.h>
++
+ #define MAX_UTF8_PER_UTF16 3
+ 
+ /**
+@@ -62,4 +64,17 @@ uint16_t *utf16_strdup(const uint16_t *s);
   */
  uint8_t *utf16_to_utf8(uint8_t *dest, const uint16_t *src, size_t size);
  
@@ -23,21 +35,29 @@ index 39279f746a..9c2866bbe6 100644
 + * utf8_to_utf16() - Convert an utf8 string to utf16
 + *
 + * Converts up to 'size' characters of the utf16 string 'src' to utf8
-+ * written to the 'dest' buffer.
++ * written to the 'dest' buffer. Stops at 0x00.
 + *
 + * @dest   the destination buffer to write the utf8 characters
 + * @src    the source utf16 string
-+ * @size   the number of utf16 characters to convert
++ * @size   maximum number of utf16 characters to convert
 + * @return the pointer to the first unwritten byte in 'dest'
 + */
 +uint16_t *utf8_to_utf16(uint16_t *dest, const uint8_t *src, size_t size);
 +
  #endif /* __CHARSET_H_ */
 diff --git a/lib/charset.c b/lib/charset.c
-index ff76e88c77..db06bbcd71 100644
+index ff76e88c77..8cd17ea1cb 100644
 --- a/lib/charset.c
 +++ b/lib/charset.c
-@@ -99,3 +99,52 @@ uint8_t *utf16_to_utf8(uint8_t *dest, const uint16_t *src, size_t size)
+@@ -6,7 +6,6 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
+-#include <common.h>
+ #include <charset.h>
+ #include <malloc.h>
+ 
+@@ -99,3 +98,59 @@ uint8_t *utf16_to_utf8(uint8_t *dest, const uint16_t *src, size_t size)
  
  	return dest;
  }
@@ -72,23 +92,30 @@ index ff76e88c77..db06bbcd71 100644
 +		}
 +
 +		for (; extension_bytes && size; --size, --extension_bytes) {
-+			if (*src & 0xc0 == 0x80) {
-+				code << 6;
++			if ((*src & 0xc0) == 0x80) {
++				code <<= 6;
 +				code |= *src++ & 0x3f;
 +			} else {
 +				/* Illegal code */
 +				code = '?';
-+				extension_bytes = 0;
++				++src;
++				--size;
++				break;
 +			}
 +		}
 +
 +		if (code < 0x10000) {
 +			*dest++ = code;
 +		} else {
-+			*dest++ = ((code >> 10) & 0x3ff) | 0xd800;
++			/*
++			 * Simplified expression for
++			 * (((code - 0x10000) >> 10) & 0x3ff) | 0xd800
++			 */
++			*dest++ = (code >> 10) + 0xd7c0;
 +			*dest++ = (code & 0x3ff) | 0xdc00;
 +		}
 +	}
++	return dest;
 +}
 -- 
 2.14.1

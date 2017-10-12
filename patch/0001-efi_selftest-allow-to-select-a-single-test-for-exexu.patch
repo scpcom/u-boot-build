@@ -1,34 +1,40 @@
-From 8782997af8482648345cfe6cfc46208d5b94c241 Mon Sep 17 00:00:00 2001
+From a012228904087b6de65acf83ed5623171d0b92c3 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
 
-The second argument of bootefi is passed as a configuration
-table to the selftest application. It is used to select
-a single test to be executed.
+Environment variable efi_selftest is passed as lod option
+to the selftest application. It is used to select a single
+test to be executed.
+
+Special value list we display a list of all available tests.
 
 Tests get an on_request property. If this property is set
 the tests are only executed if explicitly requested.
 
-A new command 'bootefi selftest list' is added that allows to list
-all tests.
-
 The invocation of efi_selftest is changed to reflect that
-bootefi selftest list will call the Exit bootservice.
+bootefi selftest with efi_selftest = 'list' will call the
+Exit bootservice.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                        | 43 +++++++++++++++++-
- include/efi_selftest.h               | 19 ++++++++
- lib/efi_selftest/efi_selftest.c      | 88 ++++++++++++++++++++++++++++++++++--
- lib/efi_selftest/efi_selftest_util.c |  9 ++++
- 4 files changed, 153 insertions(+), 6 deletions(-)
+ cmd/bootefi.c                           | 42 +++++++++++++++-
+ include/efi_selftest.h                  | 18 +++++++
+ lib/efi_selftest/efi_selftest.c         | 89 +++++++++++++++++++++++++++++++--
+ lib/efi_selftest/efi_selftest_console.c | 11 ++++
+ lib/efi_selftest/efi_selftest_util.c    | 11 +++-
+ 5 files changed, 164 insertions(+), 7 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 24958ada46..92d8e1da05 100644
+index 18176a1266..5423e07c93 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
-@@ -10,6 +10,7 @@
+@@ -6,10 +6,12 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#include <charset.h>
+ #include <common.h>
  #include <command.h>
  #include <dm.h>
  #include <efi_loader.h>
@@ -36,7 +42,7 @@ index 24958ada46..92d8e1da05 100644
  #include <errno.h>
  #include <libfdt.h>
  #include <libfdt_env.h>
-@@ -50,6 +51,32 @@ static void efi_init_obj_list(void)
+@@ -50,6 +52,32 @@ static void efi_init_obj_list(void)
  	efi_get_time_init();
  }
  
@@ -62,18 +68,14 @@ index 24958ada46..92d8e1da05 100644
 +		printf("ERROR: Out of memory\n");
 +		return;
 +	}
-+	utf8_to_utf16(loaded_image_info->load_options, env, size);
++	utf8_to_utf16(loaded_image_info->load_options, (u8 *) env, size);
 +	loaded_image_info->load_options_size = size * 2;
 +}
 +
  static void *copy_fdt(void *fdt)
  {
  	u64 fdt_size = fdt_totalsize(fdt);
-@@ -275,20 +302,30 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
- 	if (!strcmp(argv[1], "selftest")) {
- 		struct efi_loaded_image loaded_image_info = {};
- 		struct efi_object loaded_image_info_obj = {};
-+		char *test = NULL;
+@@ -301,17 +329,25 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  
  		efi_setup_loaded_image(&loaded_image_info,
  				       &loaded_image_info_obj,
@@ -93,7 +95,6 @@ index 24958ada46..92d8e1da05 100644
 -		return efi_selftest(&loaded_image_info, &systab);
 +		/* Transfer environment variable efi_selftest as load option */
 +		set_load_options(&loaded_image_info, "efi_selftest");
-+		loaded_image_info.load_options = test;
 +		/* Execute the test */
 +		r = efi_selftest(&loaded_image_info, &systab);
 +		efi_restore_gd();
@@ -102,7 +103,7 @@ index 24958ada46..92d8e1da05 100644
  	} else
  #endif
  	if (!strcmp(argv[1], "bootmgr")) {
-@@ -334,6 +371,8 @@ static char bootefi_help_text[] =
+@@ -357,6 +393,8 @@ static char bootefi_help_text[] =
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
  	"bootefi selftest\n"
  	"  - boot an EFI selftest application stored within U-Boot\n"
@@ -112,7 +113,7 @@ index 24958ada46..92d8e1da05 100644
  	"bootmgr [fdt addr]\n"
  	"  - load and boot EFI payload based on BootOrder/BootXXXX variables.\n"
 diff --git a/include/efi_selftest.h b/include/efi_selftest.h
-index 7ec42a0406..730b37303e 100644
+index 7ec42a0406..978ca2a7ea 100644
 --- a/include/efi_selftest.h
 +++ b/include/efi_selftest.h
 @@ -12,6 +12,7 @@
@@ -123,24 +124,23 @@ index 7ec42a0406..730b37303e 100644
  #include <linker_lists.h>
  
  #define EFI_ST_SUCCESS 0
-@@ -72,6 +73,16 @@ void efi_st_printf(const char *fmt, ...)
+@@ -71,6 +72,15 @@ void efi_st_printf(const char *fmt, ...)
+  */
  int efi_st_memcmp(const void *buf1, const void *buf2, size_t length);
  
- /*
-+ * Compare strings.
-+ * We cannot use lib/string.c due to different CFLAGS values.
++/*
++ * Compare an u16 string to a char string.
 + *
-+ * @buf1:	first buffer
-+ * @buf2:	second buffer
++ * @buf1:	u16 string
++ * @buf2:	char string
 + * @return:	0 if both buffers contain the same bytes
 + */
-+int efi_st_strcmp(const char *buf1, const char *buf2);
++int efi_st_strcmp_16_8(const u16 *buf1, const char *buf2);
 +
-+/*
+ /*
   * Reads an Unicode character from the input device.
   *
-  * @return: Unicode character
-@@ -88,6 +99,7 @@ u16 efi_st_get_key(void);
+@@ -88,6 +98,7 @@ u16 efi_st_get_key(void);
   * @setup:	set up the unit test
   * @teardown:	tear down the unit test
   * @execute:	execute the unit test
@@ -148,7 +148,7 @@ index 7ec42a0406..730b37303e 100644
   */
  struct efi_unit_test {
  	const char *name;
-@@ -96,10 +108,17 @@ struct efi_unit_test {
+@@ -96,10 +107,17 @@ struct efi_unit_test {
  		     const struct efi_system_table *systable);
  	int (*execute)(void);
  	int (*teardown)(void);
@@ -167,7 +167,7 @@ index 7ec42a0406..730b37303e 100644
 +
  #endif /* _EFI_SELFTEST_H */
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
-index 45d8d3d384..de8bc959ef 100644
+index 45d8d3d384..f9abdc2c6d 100644
 --- a/lib/efi_selftest/efi_selftest.c
 +++ b/lib/efi_selftest/efi_selftest.c
 @@ -15,6 +15,8 @@ static const struct efi_runtime_services *runtime;
@@ -190,25 +190,26 @@ index 45d8d3d384..de8bc959ef 100644
  	unsigned long desc_size;
  	u32 desc_version;
  	efi_status_t ret;
-@@ -134,6 +136,41 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
+@@ -133,6 +135,41 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
+ 	return ret;
  }
  
- /*
++/*
 + * Check that a test exists.
 + *
 + * @testname:	name of the test
 + * @return:	test
 + */
-+static struct efi_unit_test *find_test(const char *testname)
++static struct efi_unit_test *find_test(const u16 *testname)
 +{
 +	struct efi_unit_test *test;
 +
 +	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
 +	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+		if (!efi_st_strcmp(testname, test->name))
++		if (!efi_st_strcmp_16_8(testname, test->name))
 +			return test;
 +	}
-+	efi_st_printf("\nTest '%s' not found\n", testname);
++	efi_st_printf("\nTest '%ps' not found\n", testname);
 +	return NULL;
 +}
 +
@@ -228,21 +229,20 @@ index 45d8d3d384..de8bc959ef 100644
 +	}
 +}
 +
-+/*
+ /*
   * Execute selftest of the EFI API
   *
-  * This is the main entry point of the EFI selftest application.
 @@ -155,6 +192,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  {
  	struct efi_unit_test *test;
  	unsigned int failures = 0;
-+	const char *testname = NULL;
++	const u16 *testname = NULL;
 +	struct efi_loaded_image *loaded_image;
 +	efi_status_t ret;
  
  	systable = systab;
  	boottime = systable->boottime;
-@@ -163,14 +203,45 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -163,14 +203,46 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	con_out = systable->con_out;
  	con_in = systable->con_in;
  
@@ -252,11 +252,12 @@ index 45d8d3d384..de8bc959ef 100644
 +		efi_st_error("Cannot open loaded image protocol");
 +		return ret;
 +	}
++
 +	if (loaded_image->load_options)
-+		testname = (char *)loaded_image->load_options;
++		testname = (u16 *)loaded_image->load_options;
 +
 +	if (testname) {
-+		if (!efi_st_strcmp(testname, "list") || !find_test(testname)) {
++		if (!efi_st_strcmp_16_8(testname, "list") || !find_test(testname)) {
 +			list_all_tests();
 +			/*
 +			 * TODO:
@@ -275,7 +276,7 @@ index 45d8d3d384..de8bc959ef 100644
 -	efi_st_printf("\nNumber of tests to execute: %u\n",
 -		      ll_entry_count(struct efi_unit_test, efi_unit_test));
 +	if (testname)
-+		printf("\nSelected test: %s\n", testname);
++		efi_st_printf("\nSelected test: '%ps'\n", testname);
 +	else
 +		efi_st_printf("\nNumber of tests to execute: %u\n",
 +			      ll_entry_count(struct efi_unit_test,
@@ -285,58 +286,93 @@ index 45d8d3d384..de8bc959ef 100644
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +		if (testname ?
-+		    efi_st_strcmp(testname, test->name) : test->on_request)
++		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
 +			continue;
  		if (test->phase == EFI_EXECUTE_BEFORE_BOOTTIME_EXIT) {
  			setup(test, &failures);
  			execute(test, &failures);
-@@ -181,6 +252,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -181,6 +253,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute mixed tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +		if (testname ?
-+		    efi_st_strcmp(testname, test->name) : test->on_request)
++		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
 +			continue;
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
  			setup(test, &failures);
  	}
-@@ -189,6 +263,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -189,6 +264,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +		if (testname ?
-+		    efi_st_strcmp(testname, test->name) : test->on_request)
++		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
 +			continue;
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT) {
  			execute(test, &failures);
  			teardown(test, &failures);
-@@ -198,6 +275,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -198,6 +276,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute runtime tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
 +		if (testname ?
-+		    efi_st_strcmp(testname, test->name) : test->on_request)
++		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
 +			continue;
  		if (test->phase == EFI_SETUP_AFTER_BOOTTIME_EXIT) {
  			setup(test, &failures);
  			execute(test, &failures);
+diff --git a/lib/efi_selftest/efi_selftest_console.c b/lib/efi_selftest/efi_selftest_console.c
+index 840e2290c6..b873bd500c 100644
+--- a/lib/efi_selftest/efi_selftest_console.c
++++ b/lib/efi_selftest/efi_selftest_console.c
+@@ -142,6 +142,7 @@ void efi_st_printf(const char *fmt, ...)
+ 	const char *c;
+ 	u16 *pos = buf;
+ 	const char *s;
++	const u16 *u;
+ 
+ 	va_start(args, fmt);
+ 
+@@ -179,9 +180,19 @@ void efi_st_printf(const char *fmt, ...)
+ 			case 'p':
+ 				++c;
+ 				switch (*c) {
++				/* MAC address */
+ 				case 'm':
+ 					mac(va_arg(args, void*), &pos);
+ 					break;
++
++				/* u16 string */
++				case 's':
++					u = va_arg(args, u16*);
++					/* Ensure string fits into buffer */
++					for (; *u && pos < buf + 120; ++u) {
++						*pos++ = *u;
++					}
++					break;
+ 				default:
+ 					--c;
+ 					pointer(va_arg(args, void*), &pos);
 diff --git a/lib/efi_selftest/efi_selftest_util.c b/lib/efi_selftest/efi_selftest_util.c
-index 5cffe383d8..6d256e2e78 100644
+index 5cffe383d8..1b17bf4d4b 100644
 --- a/lib/efi_selftest/efi_selftest_util.c
 +++ b/lib/efi_selftest/efi_selftest_util.c
-@@ -23,3 +23,12 @@ int efi_st_memcmp(const void *buf1, const void *buf2, size_t length)
+@@ -21,5 +21,14 @@ int efi_st_memcmp(const void *buf1, const void *buf2, size_t length)
+ 		++pos1;
+ 		++pos2;
  	}
- 	return EFI_ST_SUCCESS;
- }
+-	return EFI_ST_SUCCESS;
++	return 0;
++}
 +
-+int efi_st_strcmp(const char *buf1, const char *buf2)
++int efi_st_strcmp_16_8(const u16 *buf1, const char *buf2)
 +{
 +	for (; *buf1 || *buf2; ++buf1, ++buf2) {
 +		if (*buf1 != *buf2)
 +			return *buf1 - *buf2;
 +	}
-+	return EFI_ST_SUCCESS;
-+}
++	return 0;
+ }
 -- 
-2.11.0
+2.14.1
 
