@@ -1,5 +1,6 @@
 #!/bin/sh
 # Other patches
+git am ../patch/0001-efi_selftest-correctly-check-return-values.patch
 git am ../patch/0001-usbtty-fix-typos.patch
 
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
