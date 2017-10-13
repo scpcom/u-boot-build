@@ -1,13 +1,13 @@
-From a012228904087b6de65acf83ed5623171d0b92c3 Mon Sep 17 00:00:00 2001
+From 0bd6b5a0ff79f298936e3381fe0d277b55c3955c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
 
-Environment variable efi_selftest is passed as lod option
+Environment variable efi_selftest is passed as load options
 to the selftest application. It is used to select a single
 test to be executed.
 
-Special value list we display a list of all available tests.
+Special value 'list' displays a list of all available tests.
 
 Tests get an on_request property. If this property is set
 the tests are only executed if explicitly requested.
@@ -16,17 +16,20 @@ The invocation of efi_selftest is changed to reflect that
 bootefi selftest with efi_selftest = 'list' will call the
 Exit bootservice.
 
+Environment variable bootargs is used as load options
+for all other bootefi payloads.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                           | 42 +++++++++++++++-
+ cmd/bootefi.c                           | 46 ++++++++++++++++-
  include/efi_selftest.h                  | 18 +++++++
  lib/efi_selftest/efi_selftest.c         | 89 +++++++++++++++++++++++++++++++--
  lib/efi_selftest/efi_selftest_console.c | 11 ++++
  lib/efi_selftest/efi_selftest_util.c    | 11 +++-
- 5 files changed, 164 insertions(+), 7 deletions(-)
+ 5 files changed, 168 insertions(+), 7 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 18176a1266..5423e07c93 100644
+index 18176a1266..06bb5ff4bc 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -6,10 +6,12 @@
@@ -75,7 +78,24 @@ index 18176a1266..5423e07c93 100644
  static void *copy_fdt(void *fdt)
  {
  	u64 fdt_size = fdt_totalsize(fdt);
-@@ -301,17 +329,25 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+@@ -190,6 +218,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
+ 		efi_install_configuration_table(&fdt_guid, NULL);
+ 	}
+ 
++	/* Transfer environment variable bootargs as load options */
++	set_load_options(&loaded_image_info, "bootargs");
+ 	/* Load the EFI payload */
+ 	entry = efi_load_pe(efi, &loaded_image_info);
+ 	if (!entry) {
+@@ -237,6 +267,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
+ 
+ exit:
+ 	/* image has returned, loaded-image obj goes *poof*: */
++	free(loaded_image_info.load_options);
+ 	list_del(&loaded_image_info_obj.link);
+ 
+ 	return ret;
+@@ -301,17 +332,26 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  
  		efi_setup_loaded_image(&loaded_image_info,
  				       &loaded_image_info_obj,
@@ -93,17 +113,18 @@ index 18176a1266..5423e07c93 100644
  		if (!efi_obj_list_initalized)
  			efi_init_obj_list();
 -		return efi_selftest(&loaded_image_info, &systab);
-+		/* Transfer environment variable efi_selftest as load option */
++		/* Transfer environment variable efi_selftest as load options */
 +		set_load_options(&loaded_image_info, "efi_selftest");
 +		/* Execute the test */
 +		r = efi_selftest(&loaded_image_info, &systab);
 +		efi_restore_gd();
++		free(loaded_image_info.load_options);
 +		list_del(&loaded_image_info_obj.link);
 +		return r;
  	} else
  #endif
  	if (!strcmp(argv[1], "bootmgr")) {
-@@ -357,6 +393,8 @@ static char bootefi_help_text[] =
+@@ -357,6 +397,8 @@ static char bootefi_help_text[] =
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
  	"bootefi selftest\n"
  	"  - boot an EFI selftest application stored within U-Boot\n"
