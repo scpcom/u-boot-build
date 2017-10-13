@@ -4,10 +4,11 @@ Date: Thu, 5 Oct 2017 21:19:36 +0200
 Subject: [PATCH 1/1] efi_selftest: test reboot by watchdog
 
 A test is added that verifies that the watchdog timer actually
-causes a reboot upon timeout. The test in only executed on
+causes a reboot upon timeout. The test is only executed on
 request using
 
-    bootefi selftest 'watchdog reboot'
+    setenv efi_selftest watchdog reboot  
+    bootefi selftest
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---

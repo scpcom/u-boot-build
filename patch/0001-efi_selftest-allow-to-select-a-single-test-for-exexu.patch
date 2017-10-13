@@ -1,7 +1,7 @@
-From 0bd6b5a0ff79f298936e3381fe0d277b55c3955c Mon Sep 17 00:00:00 2001
+From 483761e6dfabe326e349684d0fb37c66e59d6166 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
-Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
+Subject: [PATCH v2 6/9] efi_selftest: allow to select a single test for exexution
 
 Environment variable efi_selftest is passed as load options
 to the selftest application. It is used to select a single
@@ -21,15 +21,18 @@ for all other bootefi payloads.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v2
+	use an environment variable to choose a test
+---
  cmd/bootefi.c                           | 46 ++++++++++++++++-
  include/efi_selftest.h                  | 18 +++++++
- lib/efi_selftest/efi_selftest.c         | 89 +++++++++++++++++++++++++++++++--
- lib/efi_selftest/efi_selftest_console.c | 11 ++++
+ lib/efi_selftest/efi_selftest.c         | 90 +++++++++++++++++++++++++++++++--
+ lib/efi_selftest/efi_selftest_console.c | 10 ++++
  lib/efi_selftest/efi_selftest_util.c    | 11 +++-
  5 files changed, 168 insertions(+), 7 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 18176a1266..06bb5ff4bc 100644
+index 18176a1266..2d70137482 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -6,10 +6,12 @@
@@ -71,7 +74,7 @@ index 18176a1266..06bb5ff4bc 100644
 +		printf("ERROR: Out of memory\n");
 +		return;
 +	}
-+	utf8_to_utf16(loaded_image_info->load_options, (u8 *) env, size);
++	utf8_to_utf16(loaded_image_info->load_options, (u8 *)env, size);
 +	loaded_image_info->load_options_size = size * 2;
 +}
 +
@@ -188,7 +191,7 @@ index 7ec42a0406..978ca2a7ea 100644
 +
  #endif /* _EFI_SELFTEST_H */
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
-index 45d8d3d384..f9abdc2c6d 100644
+index 45d8d3d384..110284f9c7 100644
 --- a/lib/efi_selftest/efi_selftest.c
 +++ b/lib/efi_selftest/efi_selftest.c
 @@ -15,6 +15,8 @@ static const struct efi_runtime_services *runtime;
@@ -263,7 +266,7 @@ index 45d8d3d384..f9abdc2c6d 100644
  
  	systable = systab;
  	boottime = systable->boottime;
-@@ -163,14 +203,46 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -163,14 +203,47 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	con_out = systable->con_out;
  	con_in = systable->con_in;
  
@@ -278,7 +281,8 @@ index 45d8d3d384..f9abdc2c6d 100644
 +		testname = (u16 *)loaded_image->load_options;
 +
 +	if (testname) {
-+		if (!efi_st_strcmp_16_8(testname, "list") || !find_test(testname)) {
++		if (!efi_st_strcmp_16_8(testname, "list") ||
++		    !find_test(testname)) {
 +			list_all_tests();
 +			/*
 +			 * TODO:
@@ -312,7 +316,7 @@ index 45d8d3d384..f9abdc2c6d 100644
  		if (test->phase == EFI_EXECUTE_BEFORE_BOOTTIME_EXIT) {
  			setup(test, &failures);
  			execute(test, &failures);
-@@ -181,6 +253,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -181,6 +254,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute mixed tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
@@ -322,7 +326,7 @@ index 45d8d3d384..f9abdc2c6d 100644
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
  			setup(test, &failures);
  	}
-@@ -189,6 +264,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -189,6 +265,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
@@ -332,7 +336,7 @@ index 45d8d3d384..f9abdc2c6d 100644
  		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT) {
  			execute(test, &failures);
  			teardown(test, &failures);
-@@ -198,6 +276,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -198,6 +277,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	/* Execute runtime tests */
  	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
  	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
@@ -343,7 +347,7 @@ index 45d8d3d384..f9abdc2c6d 100644
  			setup(test, &failures);
  			execute(test, &failures);
 diff --git a/lib/efi_selftest/efi_selftest_console.c b/lib/efi_selftest/efi_selftest_console.c
-index 840e2290c6..b873bd500c 100644
+index 840e2290c6..6a7fd20da5 100644
 --- a/lib/efi_selftest/efi_selftest_console.c
 +++ b/lib/efi_selftest/efi_selftest_console.c
 @@ -142,6 +142,7 @@ void efi_st_printf(const char *fmt, ...)
@@ -354,7 +358,7 @@ index 840e2290c6..b873bd500c 100644
  
  	va_start(args, fmt);
  
-@@ -179,9 +180,19 @@ void efi_st_printf(const char *fmt, ...)
+@@ -179,9 +180,18 @@ void efi_st_printf(const char *fmt, ...)
  			case 'p':
  				++c;
  				switch (*c) {
@@ -367,9 +371,8 @@ index 840e2290c6..b873bd500c 100644
 +				case 's':
 +					u = va_arg(args, u16*);
 +					/* Ensure string fits into buffer */
-+					for (; *u && pos < buf + 120; ++u) {
++					for (; *u && pos < buf + 120; ++u)
 +						*pos++ = *u;
-+					}
 +					break;
  				default:
  					--c;
