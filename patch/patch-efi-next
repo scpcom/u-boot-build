@@ -21,10 +21,10 @@ git am ../patch/0001-efi_selftest-test-reboot-by-watchdog.patch
 git am ../patch/0001-test-py-test-reboot-by-EFI-watchdog.patch
 git am ../patch/0001-test-py-fix-typo-in-test_efi_loader.py.patch
 git am ../patch/0001-efi_selftest-provide-test-for-EFI_SIMPLE_TEXT_OUTPUT.patch
-exit
 
 git am ../patch/0001-x86-provide-CONFIG_BUILD_ROM.patch
 git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
+exit
 # git am ../patch/0001-efi_loader-fix-bug-in-efi_add_known_memory.patch
 # git am ../patch/0001-efi_loader-provide-comment-for-protocol-GUIDs.patch
 
