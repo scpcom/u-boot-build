@@ -32,7 +32,7 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 21bd18f0ec..af2a94ba5a 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1390,13 +1390,11 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
+@@ -1390,13 +1390,11 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
   * @handle	handle to find
   * @return	EFI object
   */
