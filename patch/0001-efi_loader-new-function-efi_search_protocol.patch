@@ -1,4 +1,4 @@
-From 0152acdb8d8bcd30402a26ead66cd962ae047340 Mon Sep 17 00:00:00 2001
+From 58172f31a9ca18b234a3148643178b57b606cffd Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 20 Aug 2017 12:04:50 +0200
 Subject: [PATCH 1/1] efi_loader: new function efi_search_protocol
@@ -9,17 +9,25 @@ use to avoid duplicating code.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ lib/efi_loader/efi_boottime.c | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index af2a94ba5a..ff1ef89470 100644
+index 6f3e64320a..fdddd9a56c 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -672,6 +672,32 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
- 	return EFI_EXIT(EFI_INVALID_PARAMETER);
+@@ -699,6 +699,40 @@ static struct efi_object *efi_search_obj(void *handle)
+ 	return NULL;
  }
  
++/*
++ * Find a protocol on a handle.
++ *
++ * @handle		handle
++ * @protocol_guid	GUID of the protocol
++ * @handler		reference to the protocol
++ * @return		status code
++ */
 +static efi_status_t efi_search_protocol(void *handle,
 +					const efi_guid_t *protocol_guid,
 +					struct efi_handler **handler)
@@ -47,8 +55,8 @@ index af2a94ba5a..ff1ef89470 100644
 +}
 +
  /*
-  * Check if an event is signaled.
+  * Install protocol interface.
   *
 -- 
-2.11.0
+2.14.2
 
