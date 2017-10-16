@@ -31,8 +31,8 @@ git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 #git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
-exit
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
+exit
 # git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
 git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 # git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch

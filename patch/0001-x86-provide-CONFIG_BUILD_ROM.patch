@@ -1,7 +1,7 @@
-From 0f7d005a212f6a918860bfa0d45088a7c9f44f73 Mon Sep 17 00:00:00 2001
+From 32027f84b216bb508729bbfc2485115f4140676b Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Sep 2017 13:14:25 +0200
-Subject: [PATCH v3 1/1] x86: provide CONFIG_BUILD_ROM
+Subject: [PATCH v4 1/1] x86: provide CONFIG_BUILD_ROM
 
 Up to now we depended on an exported variable to build u-boot.rom.
 We should be able to specify it in the configuration file, too.
@@ -16,6 +16,10 @@ Cc: Simon Glass <sjg@chromium.org>
 Cc: Bin Meng <bmeng.cn@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v4
+	Place BUILD_ROM in defconfig according to the sequence of
+	the generated .config.
+	Remove default=n
 v3
 	Rework the documentation. Simon suggested not to deprecate
 	the export variable.
@@ -24,25 +28,24 @@ v2
 	as suggested by Bin.
 	Fix typos.
 ---
- Kconfig                       | 10 ++++++++++
+ Kconfig                       |  9 +++++++++
  Makefile                      |  2 +-
  configs/qemu-x86_64_defconfig |  1 +
  configs/qemu-x86_defconfig    |  1 +
  doc/README.x86                | 10 +++++++---
- 5 files changed, 20 insertions(+), 4 deletions(-)
+ 5 files changed, 19 insertions(+), 4 deletions(-)
 
 diff --git a/Kconfig b/Kconfig
-index d951e9f804..70508591fd 100644
+index d951e9f804..d90102fc03 100644
 --- a/Kconfig
 +++ b/Kconfig
-@@ -158,6 +158,16 @@ config PHYS_64BIT
+@@ -158,6 +158,15 @@ config PHYS_64BIT
  	  This can be used not only for 64bit SoCs, but also for
  	  large physical address extention on 32bit SoCs.
  
 +config BUILD_ROM
 +	bool "Build U-Boot as BIOS replacement"
 +	depends on X86
-+	default n
 +	help
 +	  This option allows to build a ROM version of U-Boot.
 +	  The build process generally requires several binary blobs
@@ -66,25 +69,29 @@ index 888486b296..f26ab77f6a 100644
  endif
  
 diff --git a/configs/qemu-x86_64_defconfig b/configs/qemu-x86_64_defconfig
-index 071dca6eee..c3a97cbdda 100644
+index 071dca6eee..1c211f7943 100644
 --- a/configs/qemu-x86_64_defconfig
 +++ b/configs/qemu-x86_64_defconfig
-@@ -1,4 +1,5 @@
- CONFIG_X86=y
+@@ -14,6 +14,7 @@ CONFIG_SMP=y
+ CONFIG_GENERATE_PIRQ_TABLE=y
+ CONFIG_GENERATE_MP_TABLE=y
+ CONFIG_GENERATE_ACPI_TABLE=y
 +CONFIG_BUILD_ROM=y
- CONFIG_SPL_LIBCOMMON_SUPPORT=y
- CONFIG_SPL_LIBGENERIC_SUPPORT=y
- CONFIG_SYS_MALLOC_F_LEN=0x1000
+ CONFIG_FIT=y
+ CONFIG_SPL_LOAD_FIT=y
+ CONFIG_BOOTSTAGE=y
 diff --git a/configs/qemu-x86_defconfig b/configs/qemu-x86_defconfig
-index cdbc5c4a6e..e4a3e31ad5 100644
+index cdbc5c4a6e..54f7fe0c9b 100644
 --- a/configs/qemu-x86_defconfig
 +++ b/configs/qemu-x86_defconfig
-@@ -1,4 +1,5 @@
- CONFIG_X86=y
+@@ -5,6 +5,7 @@ CONFIG_SMP=y
+ CONFIG_GENERATE_PIRQ_TABLE=y
+ CONFIG_GENERATE_MP_TABLE=y
+ CONFIG_GENERATE_ACPI_TABLE=y
 +CONFIG_BUILD_ROM=y
- CONFIG_MAX_CPUS=2
- CONFIG_DEFAULT_DEVICE_TREE="qemu-x86_i440fx"
- CONFIG_SMP=y
+ CONFIG_FIT=y
+ CONFIG_BOOTSTAGE=y
+ CONFIG_BOOTSTAGE_REPORT=y
 diff --git a/doc/README.x86 b/doc/README.x86
 index c96a22cb08..1e3af5af90 100644
 --- a/doc/README.x86
@@ -109,5 +116,5 @@ index c96a22cb08..1e3af5af90 100644
  ---
  
 -- 
-2.14.1
+2.14.2
 
