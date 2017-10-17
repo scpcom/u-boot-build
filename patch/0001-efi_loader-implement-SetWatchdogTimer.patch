@@ -1,4 +1,4 @@
-From ffe665d8f3533089fc24974dd1e8e3f903591095 Mon Sep 17 00:00:00 2001
+From e22ca8be4675f92dc30155e0a4e0346f66581947 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 02:40:29 +0200
 Subject: [PATCH 1/1] efi_loader: implement SetWatchdogTimer
@@ -13,12 +13,12 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h          |  4 ++
  lib/efi_loader/Makefile       |  2 +-
  lib/efi_loader/efi_boottime.c | 17 ++-------
- lib/efi_loader/efi_watchdog.c | 86 +++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 95 insertions(+), 15 deletions(-)
+ lib/efi_loader/efi_watchdog.c | 89 +++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 98 insertions(+), 15 deletions(-)
  create mode 100644 lib/efi_loader/efi_watchdog.c
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index b7087e3da8..24958ada46 100644
+index 478bc116e2..18176a1266 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -43,6 +43,7 @@ static void efi_init_obj_list(void)
@@ -30,7 +30,7 @@ index b7087e3da8..24958ada46 100644
  	/* Initialize EFI runtime services */
  	efi_reset_system_init();
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index e1179b7dcd..223d8d8222 100644
+index 1b92edbd77..af64b11cee 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -163,6 +163,8 @@ int efi_disk_register(void);
@@ -115,10 +115,10 @@ index 30577f717e..fd8d15655b 100644
  /*
 diff --git a/lib/efi_loader/efi_watchdog.c b/lib/efi_loader/efi_watchdog.c
 new file mode 100644
-index 0000000000..eb437faf4b
+index 0000000000..35a45dedf8
 --- /dev/null
 +++ b/lib/efi_loader/efi_watchdog.c
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,89 @@
 +/*
 + *  EFI watchdog
 + *
@@ -129,6 +129,9 @@ index 0000000000..eb437faf4b
 +
 +#include <common.h>
 +#include <efi_loader.h>
++
++/* Conversion factor from seconds to multiples of 100ns */
++#define EFI_SECONDS_TO_100NS 10000000ULL
 +
 +static struct efi_event *watchdog_timer_event;
 +
@@ -165,7 +168,7 @@ index 0000000000..eb437faf4b
 +	if (timeout)
 +		/* Reset watchdog */
 +		r = efi_set_timer(watchdog_timer_event, EFI_TIMER_RELATIVE,
-+				  10000000 * timeout);
++				  EFI_SECONDS_TO_100NS * timeout);
 +	else
 +		/* Deactivate watchdog */
 +		r = efi_set_timer(watchdog_timer_event, EFI_TIMER_STOP, 0);
@@ -206,5 +209,5 @@ index 0000000000..eb437faf4b
 +	return 0;
 +}
 -- 
-2.14.1
+2.14.2
 
