@@ -4,7 +4,7 @@ Date: Tue, 17 Oct 2017 21:08:11 +0200
 Subject: [PATCH 1/1] efi_selftest: efi_st_memcmp should return 0
 
 If the compared memory areas match the return value should be 0.
-We should not use the unrelated constant EFI_SUCCESS.
+We should not use the unrelated constant EFI_ST_SUCCESS.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---

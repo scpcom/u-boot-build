@@ -3,7 +3,7 @@ From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 17 Oct 2017 20:36:44 +0200
 Subject: [PATCH 1/1] efi_selftest: correctly cleanup after selftest
 
-After execuing bootefi selftest
+After executing bootefi selftest
 * restore GD
 * unlink the load image handle
 * return 0 or 1 and not a truncated efi_status_t.

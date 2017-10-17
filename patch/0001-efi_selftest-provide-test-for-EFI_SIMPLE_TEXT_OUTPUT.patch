@@ -76,7 +76,7 @@ index 0000000000..7bc4d2f446
 +		for (background = 0; background < 0x80; background += 0x10) {
 +			attrib = foreground | background;
 +			con_out->set_attribute(con_out, attrib);
-+			efi_st_printf("%p", (void *) attrib);
++			efi_st_printf("%p", (void *)attrib);
 +		}
 +		con_out->set_attribute(con_out, 0);
 +		efi_st_printf("\n");

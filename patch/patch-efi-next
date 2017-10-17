@@ -20,8 +20,6 @@ git am ../patch/0001-efi_selftest-reformat-code.patch
 git am ../patch/0001-efi_selftest-efi_st_memcmp-should-return-0.patch
 git am ../patch/0001-efi_selftest-deduplicate-code.patch
 git am ../patch/0001-efi_selftest-allow-to-select-a-single-test-for-exexu.patch
-
-exit
 git am ../patch/0001-efi_selftest-correctly-cleanup-after-selftest.patch
 git am ../patch/0001-efi_loader-use-bootargs-as-load-options.patch
 git am ../patch/0001-efi_selftest-test-reboot-by-watchdog.patch

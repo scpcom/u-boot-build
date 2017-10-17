@@ -1,9 +1,9 @@
-From 5e8b63d8ae39b42209faeadc2336be118dfaee54 Mon Sep 17 00:00:00 2001
+From 1ee25792845edb8c97bb06c1b1b40fe01ff114cb Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
-Subject: [PATCH 1/1] efi_selftest: reformat code
+Subject: [PATCH v3 08/18] efi_selftest: reformat code
 
-Remove superlfuous spaces.
+Remove superfluous spaces.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---

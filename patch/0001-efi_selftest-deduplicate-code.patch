@@ -3,7 +3,7 @@ From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: deduplicate code
 
-Move duplicate code to the funciton efi_st_do_tests.
+Move duplicate code to the new function efi_st_do_tests.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
