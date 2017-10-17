@@ -1,4 +1,4 @@
-From 388c96397dab1a3dfacc6fb3552b65c9c0d51edf Mon Sep 17 00:00:00 2001
+From b7c449af58fa56b46713dc79f7c97e6f872a9cdc Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
@@ -6,6 +6,10 @@ Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
 Environment variable efi_selftest is passed as load options
 to the selftest application. It is used to select a single
 test to be executed.
+
+The load options are an UTF8 string. Yet I decided to keep
+the name propertiy of the tests as char[] to reduce code
+size.
 
 Special value 'list' displays a list of all available tests.
 
@@ -20,10 +24,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  cmd/bootefi.c                           | 37 +++++++++++++-
  include/efi_selftest.h                  | 18 +++++++
- lib/efi_selftest/efi_selftest.c         | 86 ++++++++++++++++++++++++++++++++-
+ lib/efi_selftest/efi_selftest.c         | 88 ++++++++++++++++++++++++++++++---
  lib/efi_selftest/efi_selftest_console.c | 10 ++++
  lib/efi_selftest/efi_selftest_util.c    |  9 ++++
- 5 files changed, 157 insertions(+), 3 deletions(-)
+ 5 files changed, 154 insertions(+), 8 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
 index d497381ac3..18331536dd 100644
@@ -153,10 +157,10 @@ index 7ec42a0406..978ca2a7ea 100644
 +
  #endif /* _EFI_SELFTEST_H */
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
-index c2c339a7be..110284f9c7 100644
+index 73f074d9e1..33f00ab3a6 100644
 --- a/lib/efi_selftest/efi_selftest.c
 +++ b/lib/efi_selftest/efi_selftest.c
-@@ -15,6 +15,8 @@ static const struct efi_runtime_services *runtime;
+@@ -22,6 +22,8 @@ static const struct efi_runtime_services *runtime;
  static efi_handle_t handle;
  static u16 reset_message[] = L"Selftest completed";
  
@@ -165,7 +169,7 @@ index c2c339a7be..110284f9c7 100644
  /*
   * Exit the boot services.
   *
-@@ -133,6 +135,41 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
+@@ -140,20 +142,59 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
  	return ret;
  }
  
@@ -205,11 +209,30 @@ index c2c339a7be..110284f9c7 100644
 +}
 +
  /*
-  * Execute selftest of the EFI API
+  * Execute test steps of one phase.
   *
-@@ -155,6 +192,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
++ * @testname	name of a single selected test or NULL
+  * @phase	test phase
+  * @steps	steps to execute
+  * failures	returns EFI_ST_SUCCESS if all test steps succeeded
+  */
+-void efi_st_do_tests(unsigned int phase, unsigned int steps,
++void efi_st_do_tests(const u16 *testname, unsigned int phase, unsigned int steps,
+ 		     unsigned int *failures)
  {
  	struct efi_unit_test *test;
+ 
+ 	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
+ 	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
++		if (testname ?
++		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
++			continue;
+ 		if (test->phase != phase)
+ 			continue;
+ 		if (steps & EFI_ST_SETUP)
+@@ -186,6 +227,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+ 				 struct efi_system_table *systab)
+ {
  	unsigned int failures = 0;
 +	const u16 *testname = NULL;
 +	struct efi_loaded_image *loaded_image;
@@ -217,7 +240,7 @@ index c2c339a7be..110284f9c7 100644
  
  	systable = systab;
  	boottime = systable->boottime;
-@@ -163,14 +203,47 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -194,27 +238,57 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	con_out = systable->con_out;
  	con_in = systable->con_in;
  
@@ -259,44 +282,28 @@ index c2c339a7be..110284f9c7 100644
 +					     efi_unit_test));
  
  	/* Execute boottime tests */
- 	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
- 	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+		if (testname ?
-+		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
-+			continue;
- 		if (test->phase == EFI_EXECUTE_BEFORE_BOOTTIME_EXIT) {
- 			setup(test, &failures);
- 			execute(test, &failures);
-@@ -181,6 +254,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
- 	/* Execute mixed tests */
- 	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
- 	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+		if (testname ?
-+		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
-+			continue;
- 		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT)
- 			setup(test, &failures);
- 	}
-@@ -189,6 +265,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+-	efi_st_do_tests(EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	efi_st_do_tests(testname, EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
+ 			EFI_ST_SETUP | EFI_ST_EXECUTE | EFI_ST_TEARDOWN,
+ 			&failures);
  
- 	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
- 	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+		if (testname ?
-+		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
-+			continue;
- 		if (test->phase == EFI_SETUP_BEFORE_BOOTTIME_EXIT) {
- 			execute(test, &failures);
- 			teardown(test, &failures);
-@@ -198,6 +277,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+ 	/* Execute mixed tests */
+-	efi_st_do_tests(EFI_SETUP_BEFORE_BOOTTIME_EXIT,
++	efi_st_do_tests(testname, EFI_SETUP_BEFORE_BOOTTIME_EXIT,
+ 			EFI_ST_SETUP, &failures);
+ 
+ 	efi_st_exit_boot_services();
+ 
+-	efi_st_do_tests(EFI_SETUP_BEFORE_BOOTTIME_EXIT,
++	efi_st_do_tests(testname, EFI_SETUP_BEFORE_BOOTTIME_EXIT,
+ 			EFI_ST_EXECUTE | EFI_ST_TEARDOWN, &failures);
+ 
  	/* Execute runtime tests */
- 	for (test = ll_entry_start(struct efi_unit_test, efi_unit_test);
- 	     test < ll_entry_end(struct efi_unit_test, efi_unit_test); ++test) {
-+		if (testname ?
-+		    efi_st_strcmp_16_8(testname, test->name) : test->on_request)
-+			continue;
- 		if (test->phase == EFI_SETUP_AFTER_BOOTTIME_EXIT) {
- 			setup(test, &failures);
- 			execute(test, &failures);
+-	efi_st_do_tests(EFI_SETUP_AFTER_BOOTTIME_EXIT,
++	efi_st_do_tests(testname, EFI_SETUP_AFTER_BOOTTIME_EXIT,
+ 			EFI_ST_SETUP | EFI_ST_EXECUTE | EFI_ST_TEARDOWN,
+ 			&failures);
+ 
 diff --git a/lib/efi_selftest/efi_selftest_console.c b/lib/efi_selftest/efi_selftest_console.c
 index 840e2290c6..6a7fd20da5 100644
 --- a/lib/efi_selftest/efi_selftest_console.c
