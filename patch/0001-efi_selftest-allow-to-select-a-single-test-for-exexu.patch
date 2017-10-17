@@ -1,4 +1,4 @@
-From 8e5abaa87ee4a53f202287edd6047186ded0f0e6 Mon Sep 17 00:00:00 2001
+From caa2acacecec3b7a176338f9163ce641a1ec4311 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
@@ -26,7 +26,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  5 files changed, 160 insertions(+), 6 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 59696f4601..97de5173e1 100644
+index d497381ac3..18331536dd 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -6,10 +6,12 @@
@@ -75,7 +75,7 @@ index 59696f4601..97de5173e1 100644
  static void *copy_fdt(void *fdt)
  {
  	u64 fdt_size = fdt_totalsize(fdt);
-@@ -311,7 +339,12 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+@@ -317,7 +345,12 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  		/* Initialize and populate EFI object list */
  		if (!efi_obj_list_initalized)
  			efi_init_obj_list();
@@ -89,7 +89,7 @@ index 59696f4601..97de5173e1 100644
  	} else
  #endif
  	if (!strcmp(argv[1], "bootmgr")) {
-@@ -357,6 +390,8 @@ static char bootefi_help_text[] =
+@@ -363,6 +396,8 @@ static char bootefi_help_text[] =
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
  	"bootefi selftest\n"
  	"  - boot an EFI selftest application stored within U-Boot\n"
@@ -165,17 +165,6 @@ index 45d8d3d384..110284f9c7 100644
  /*
   * Exit the boot services.
   *
-@@ -25,8 +27,8 @@ static u16 reset_message[] = L"Selftest completed";
-  */
- void efi_st_exit_boot_services(void)
- {
--	unsigned long  map_size = 0;
--	unsigned long  map_key;
-+	unsigned long map_size = 0;
-+	unsigned long map_key;
- 	unsigned long desc_size;
- 	u32 desc_version;
- 	efi_status_t ret;
 @@ -133,6 +135,41 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
  	return ret;
  }
