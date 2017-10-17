@@ -1,7 +1,7 @@
-From 483761e6dfabe326e349684d0fb37c66e59d6166 Mon Sep 17 00:00:00 2001
+From 5ec602bf8589078eec996582d4e459673e6a962e Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
-Subject: [PATCH v2 6/9] efi_selftest: allow to select a single test for exexution
+Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
 
 Environment variable efi_selftest is passed as load options
 to the selftest application. It is used to select a single
@@ -21,18 +21,15 @@ for all other bootefi payloads.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
-v2
-	use an environment variable to choose a test
----
- cmd/bootefi.c                           | 46 ++++++++++++++++-
+ cmd/bootefi.c                           | 55 +++++++++++++++++++-
  include/efi_selftest.h                  | 18 +++++++
  lib/efi_selftest/efi_selftest.c         | 90 +++++++++++++++++++++++++++++++--
  lib/efi_selftest/efi_selftest_console.c | 10 ++++
  lib/efi_selftest/efi_selftest_util.c    | 11 +++-
- 5 files changed, 168 insertions(+), 7 deletions(-)
+ 5 files changed, 177 insertions(+), 7 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 18176a1266..2d70137482 100644
+index 18176a1266..b2f6fd486a 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -6,10 +6,12 @@
@@ -98,12 +95,23 @@ index 18176a1266..2d70137482 100644
  	list_del(&loaded_image_info_obj.link);
  
  	return ret;
-@@ -301,17 +332,26 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+@@ -299,19 +330,37 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ 		struct efi_loaded_image loaded_image_info = {};
+ 		struct efi_object loaded_image_info_obj = {};
  
++		/*
++		 * Construct a memory device path.
++		 */
++		bootefi_device_path = efi_dp_from_mem(EFI_RESERVED_MEMORY_TYPE,
++						      efi_selftest,
++						      efi_selftest);
++		bootefi_image_path = efi_dp_from_file(bootefi_device_path, 0,
++						      "selftest");
++
  		efi_setup_loaded_image(&loaded_image_info,
  				       &loaded_image_info_obj,
 -				       bootefi_device_path, bootefi_image_path);
-+				       NULL, NULL);
++				       device_path, image_path);
  		/*
  		 * gd lives in a fixed register which may get clobbered while we
  		 * execute the payload. So save it here and restore it on every
@@ -127,7 +135,7 @@ index 18176a1266..2d70137482 100644
  	} else
  #endif
  	if (!strcmp(argv[1], "bootmgr")) {
-@@ -357,6 +397,8 @@ static char bootefi_help_text[] =
+@@ -357,6 +406,8 @@ static char bootefi_help_text[] =
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
  	"bootefi selftest\n"
  	"  - boot an EFI selftest application stored within U-Boot\n"
@@ -398,5 +406,5 @@ index 5cffe383d8..1b17bf4d4b 100644
 +	return 0;
  }
 -- 
-2.14.1
+2.14.2
 
