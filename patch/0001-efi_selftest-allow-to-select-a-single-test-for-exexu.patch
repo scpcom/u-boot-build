@@ -1,4 +1,4 @@
-From 5ec602bf8589078eec996582d4e459673e6a962e Mon Sep 17 00:00:00 2001
+From f2ef77a98acdfd56664dd7dab9fabe7aaeaa153d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
@@ -16,20 +16,17 @@ The invocation of efi_selftest is changed to reflect that
 bootefi selftest with efi_selftest = 'list' will call the
 Exit bootservice.
 
-Environment variable bootargs is used as load options
-for all other bootefi payloads.
-
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                           | 55 +++++++++++++++++++-
+ cmd/bootefi.c                           | 50 +++++++++++++++++-
  include/efi_selftest.h                  | 18 +++++++
  lib/efi_selftest/efi_selftest.c         | 90 +++++++++++++++++++++++++++++++--
  lib/efi_selftest/efi_selftest_console.c | 10 ++++
  lib/efi_selftest/efi_selftest_util.c    | 11 +++-
- 5 files changed, 177 insertions(+), 7 deletions(-)
+ 5 files changed, 173 insertions(+), 6 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 18176a1266..b2f6fd486a 100644
+index 18176a1266..6f6682ea47 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -6,10 +6,12 @@
@@ -78,15 +75,6 @@ index 18176a1266..b2f6fd486a 100644
  static void *copy_fdt(void *fdt)
  {
  	u64 fdt_size = fdt_totalsize(fdt);
-@@ -190,6 +218,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
- 		efi_install_configuration_table(&fdt_guid, NULL);
- 	}
- 
-+	/* Transfer environment variable bootargs as load options */
-+	set_load_options(&loaded_image_info, "bootargs");
- 	/* Load the EFI payload */
- 	entry = efi_load_pe(efi, &loaded_image_info);
- 	if (!entry) {
 @@ -237,6 +267,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
  
  exit:
@@ -95,26 +83,20 @@ index 18176a1266..b2f6fd486a 100644
  	list_del(&loaded_image_info_obj.link);
  
  	return ret;
-@@ -299,19 +330,37 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+@@ -299,6 +330,12 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  		struct efi_loaded_image loaded_image_info = {};
  		struct efi_object loaded_image_info_obj = {};
  
-+		/*
-+		 * Construct a memory device path.
-+		 */
++		/* Construct a dummy device path. */
 +		bootefi_device_path = efi_dp_from_mem(EFI_RESERVED_MEMORY_TYPE,
-+						      efi_selftest,
-+						      efi_selftest);
-+		bootefi_image_path = efi_dp_from_file(bootefi_device_path, 0,
-+						      "selftest");
++						      (uintptr_t)&efi_selftest,
++						      (uintptr_t)&efi_selftest);
++		bootefi_image_path = efi_dp_from_file(NULL, 0, "\\selftest");
 +
  		efi_setup_loaded_image(&loaded_image_info,
  				       &loaded_image_info_obj,
--				       bootefi_device_path, bootefi_image_path);
-+				       device_path, image_path);
- 		/*
- 		 * gd lives in a fixed register which may get clobbered while we
- 		 * execute the payload. So save it here and restore it on every
+ 				       bootefi_device_path, bootefi_image_path);
+@@ -308,10 +345,19 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  		 * callback entry
  		 */
  		efi_save_gd();
@@ -135,7 +117,7 @@ index 18176a1266..b2f6fd486a 100644
  	} else
  #endif
  	if (!strcmp(argv[1], "bootmgr")) {
-@@ -357,6 +406,8 @@ static char bootefi_help_text[] =
+@@ -357,6 +403,8 @@ static char bootefi_help_text[] =
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
  	"bootefi selftest\n"
  	"  - boot an EFI selftest application stored within U-Boot\n"

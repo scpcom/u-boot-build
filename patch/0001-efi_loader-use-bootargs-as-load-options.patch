@@ -1,0 +1,29 @@
+From 1acb57ec5ac49a2b91d853e9345fdab42514d998 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 17 Oct 2017 20:56:03 +0200
+Subject: [PATCH 1/1] efi_loader: use bootargs as load options
+
+Use environment variable bootargs used as load options
+for bootefi payloads.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index aba7b27bd7..6f6682ea47 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -218,6 +218,8 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
+ 		efi_install_configuration_table(&fdt_guid, NULL);
+ 	}
+ 
++	/* Transfer environment variable bootargs as load options */
++	set_load_options(&loaded_image_info, "bootargs");
+ 	/* Load the EFI payload */
+ 	entry = efi_load_pe(efi, &loaded_image_info);
+ 	if (!entry) {
+-- 
+2.14.2
+
