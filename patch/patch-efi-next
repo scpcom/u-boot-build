@@ -17,6 +17,7 @@ git am ../patch/0001-efi_loader-guard-against-double-inclusion-of-efi_loa.patch
 git am ../patch/0001-efi_loader-consistently-use-efi_status_t-in-bootefi.patch
 git am ../patch/0001-efi_selftest-provide-a-dummy-device-path.patch
 git am ../patch/0001-efi_selftest-reformat-code.patch
+git am ../patch/0001-efi_selftest-efi_st_memcmp-should-return-0.patch
 git am ../patch/0001-efi_selftest-allow-to-select-a-single-test-for-exexu.patch
 
 exit
