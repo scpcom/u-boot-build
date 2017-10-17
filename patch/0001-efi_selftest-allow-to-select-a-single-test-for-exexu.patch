@@ -1,4 +1,4 @@
-From f2ef77a98acdfd56664dd7dab9fabe7aaeaa153d Mon Sep 17 00:00:00 2001
+From 8e5abaa87ee4a53f202287edd6047186ded0f0e6 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
 Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
@@ -18,15 +18,15 @@ Exit bootservice.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                           | 50 +++++++++++++++++-
+ cmd/bootefi.c                           | 37 +++++++++++++-
  include/efi_selftest.h                  | 18 +++++++
  lib/efi_selftest/efi_selftest.c         | 90 +++++++++++++++++++++++++++++++--
  lib/efi_selftest/efi_selftest_console.c | 10 ++++
  lib/efi_selftest/efi_selftest_util.c    | 11 +++-
- 5 files changed, 173 insertions(+), 6 deletions(-)
+ 5 files changed, 160 insertions(+), 6 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 18176a1266..6f6682ea47 100644
+index 59696f4601..97de5173e1 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -6,10 +6,12 @@
@@ -75,33 +75,7 @@ index 18176a1266..6f6682ea47 100644
  static void *copy_fdt(void *fdt)
  {
  	u64 fdt_size = fdt_totalsize(fdt);
-@@ -237,6 +267,7 @@ static unsigned long do_bootefi_exec(void *efi, void *fdt,
- 
- exit:
- 	/* image has returned, loaded-image obj goes *poof*: */
-+	free(loaded_image_info.load_options);
- 	list_del(&loaded_image_info_obj.link);
- 
- 	return ret;
-@@ -299,6 +330,12 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
- 		struct efi_loaded_image loaded_image_info = {};
- 		struct efi_object loaded_image_info_obj = {};
- 
-+		/* Construct a dummy device path. */
-+		bootefi_device_path = efi_dp_from_mem(EFI_RESERVED_MEMORY_TYPE,
-+						      (uintptr_t)&efi_selftest,
-+						      (uintptr_t)&efi_selftest);
-+		bootefi_image_path = efi_dp_from_file(NULL, 0, "\\selftest");
-+
- 		efi_setup_loaded_image(&loaded_image_info,
- 				       &loaded_image_info_obj,
- 				       bootefi_device_path, bootefi_image_path);
-@@ -308,10 +345,19 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
- 		 * callback entry
- 		 */
- 		efi_save_gd();
-+		loaded_image_info.image_code_type = EFI_LOADER_CODE;
-+		loaded_image_info.image_data_type = EFI_LOADER_DATA;
+@@ -311,7 +339,12 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  		/* Initialize and populate EFI object list */
  		if (!efi_obj_list_initalized)
  			efi_init_obj_list();
@@ -110,14 +84,12 @@ index 18176a1266..6f6682ea47 100644
 +		set_load_options(&loaded_image_info, "efi_selftest");
 +		/* Execute the test */
 +		r = efi_selftest(&loaded_image_info, &systab);
-+		efi_restore_gd();
 +		free(loaded_image_info.load_options);
-+		list_del(&loaded_image_info_obj.link);
 +		return r;
  	} else
  #endif
  	if (!strcmp(argv[1], "bootmgr")) {
-@@ -357,6 +403,8 @@ static char bootefi_help_text[] =
+@@ -357,6 +390,8 @@ static char bootefi_help_text[] =
  #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
  	"bootefi selftest\n"
  	"  - boot an EFI selftest application stored within U-Boot\n"

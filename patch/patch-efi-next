@@ -14,9 +14,12 @@ git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 git am ../patch/0001-efi_selftest-provide-test-for-watchdog-timer.patch
 git am ../patch/0001-efi_loader-new-function-utf8_to_utf16.patch
 git am ../patch/0001-efi_loader-guard-against-double-inclusion-of-efi_loa.patch
+git am ../patch/0001-efi_loader-consistently-use-efi_status_t-in-bootefi.patch
+git am ../patch/0001-efi_selftest-provide-a-dummy-device-path.patch
 git am ../patch/0001-efi_selftest-allow-to-select-a-single-test-for-exexu.patch
-exit
 
+exit
+git am ../patch/0001-efi_selftest-correctly-cleanup-after-selftest.patch
 git am ../patch/0001-efi_loader-use-bootargs-as-load-options.patch
 git am ../patch/0001-efi_selftest-test-reboot-by-watchdog.patch
 git am ../patch/0001-test-py-test-reboot-by-EFI-watchdog.patch

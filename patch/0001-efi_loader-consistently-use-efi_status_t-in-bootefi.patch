@@ -1,0 +1,56 @@
+From 6d629161e1494a2ff49cc0ecbfea082759427b46 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 17 Oct 2017 20:28:33 +0200
+Subject: [PATCH] efi_loader: consistently use efi_status_t in bootefi
+
+Where ulong or unsigned long are used to hold an EFI status
+code we should consistenly use efi_status_t.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 18176a1266..59696f4601 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -93,7 +93,7 @@ static void *copy_fdt(void *fdt)
+ 	return new_fdt;
+ }
+ 
+-static ulong efi_do_enter(void *image_handle,
++static efi_status_t efi_do_enter(void *image_handle,
+ 			  struct efi_system_table *st,
+ 			  asmlinkage ulong (*entry)(void *image_handle,
+ 				struct efi_system_table *st))
+@@ -107,7 +107,7 @@ static ulong efi_do_enter(void *image_handle,
+ }
+ 
+ #ifdef CONFIG_ARM64
+-static unsigned long efi_run_in_el2(asmlinkage ulong (*entry)(
++static efi_status_t efi_run_in_el2(asmlinkage ulong (*entry)(
+ 			void *image_handle, struct efi_system_table *st),
+ 			void *image_handle, struct efi_system_table *st)
+ {
+@@ -122,7 +122,7 @@ static unsigned long efi_run_in_el2(asmlinkage ulong (*entry)(
+  * Load an EFI payload into a newly allocated piece of memory, register all
+  * EFI objects it would want to access and jump to it.
+  */
+-static unsigned long do_bootefi_exec(void *efi, void *fdt,
++static efi_status_t do_bootefi_exec(void *efi, void *fdt,
+ 				     struct efi_device_path *device_path,
+ 				     struct efi_device_path *image_path)
+ {
+@@ -278,7 +278,7 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ {
+ 	char *saddr, *sfdt;
+ 	unsigned long addr, fdt_addr = 0;
+-	unsigned long r;
++	efi_status_t r;
+ 
+ 	if (argc < 2)
+ 		return CMD_RET_USAGE;
+-- 
+2.14.2
+
