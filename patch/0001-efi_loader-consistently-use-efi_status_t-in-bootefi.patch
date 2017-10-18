@@ -1,13 +1,15 @@
 From ea8592d008e2882e28a39258e4161c44ea0a15ef Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 17 Oct 2017 20:28:33 +0200
-Subject: [PATCH v3 6/18] efi_loader: consistently use efi_status_t in bootefi
+Subject: [PATCH v4 06/18] efi_loader: consistently use efi_status_t in bootefi
 
 Where ulong or unsigned long are used to hold an EFI status
 code we should consistenly use efi_status_t.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v4
+	fix indentation
 v3
 	new patch
 ---
@@ -29,7 +31,7 @@ index 18176a1266..6bdbb89c29 100644
 +static efi_status_t efi_do_enter(
 +			void *image_handle, struct efi_system_table *st,
 +			asmlinkage ulong (*entry)(void *image_handle,
-+			struct efi_system_table *st))
++						  struct efi_system_table *st))
  {
  	efi_status_t ret = EFI_LOAD_ERROR;
  
