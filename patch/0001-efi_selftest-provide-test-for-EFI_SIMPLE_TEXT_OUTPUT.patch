@@ -1,4 +1,4 @@
-From 657ba8226265e3700c5355207dd809f309b2e499 Mon Sep 17 00:00:00 2001
+From e1410ef0d3baeb305e8f39444d324efdec3e04e5 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 13 Oct 2017 23:23:52 +0200
 Subject: [PATCH 1/1] efi_selftest: provide test for
@@ -9,26 +9,24 @@ OutputString, TestString, SetAttribute.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_selftest/Makefile                  |  5 ++-
+ lib/efi_selftest/Makefile                  |  3 ++
  lib/efi_selftest/efi_selftest_textoutput.c | 53 ++++++++++++++++++++++++++++++
- 2 files changed, 57 insertions(+), 1 deletion(-)
+ 2 files changed, 56 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_textoutput.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 3e5c9a6d16..b1385383ed 100644
+index 3e5c9a6d16..88b998bd4c 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
-@@ -17,7 +17,9 @@ CFLAGS_efi_selftest_exitbootservices.o := $(CFLAGS_EFI)
+@@ -17,6 +17,8 @@ CFLAGS_efi_selftest_exitbootservices.o := $(CFLAGS_EFI)
  CFLAGS_REMOVE_efi_selftest_exitbootservices.o := $(CFLAGS_NON_EFI)
  CFLAGS_efi_selftest_snp.o := $(CFLAGS_EFI)
  CFLAGS_REMOVE_efi_selftest_snp.o := $(CFLAGS_NON_EFI)
--CFLAGS_efi_selftest_tpl.o := $(CFLAGS_EFI)
-+CFLAGS_efi_selftest_text_output.o := $(CFLAGS_EFI)
-+CFLAGS_REMOVE_efi_selftest_tpl.o := $(CFLAGS_NON_EFI)
-+CFLAGS_efi_selftest_text_output.o := $(CFLAGS_EFI)
++CFLAGS_efi_selftest_textoutput.o := $(CFLAGS_EFI)
++CFLAGS_REVMOE_efi_selftest_textoutput.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_tpl.o := $(CFLAGS_EFI)
  CFLAGS_REMOVE_efi_selftest_tpl.o := $(CFLAGS_NON_EFI)
  CFLAGS_efi_selftest_util.o := $(CFLAGS_EFI)
- CFLAGS_REMOVE_efi_selftest_util.o := $(CFLAGS_NON_EFI)
 @@ -30,6 +32,7 @@ efi_selftest_console.o \
  efi_selftest_events.o \
  efi_selftest_exitbootservices.o \
@@ -39,7 +37,7 @@ index 3e5c9a6d16..b1385383ed 100644
  efi_selftest_watchdog.o
 diff --git a/lib/efi_selftest/efi_selftest_textoutput.c b/lib/efi_selftest/efi_selftest_textoutput.c
 new file mode 100644
-index 0000000000..7bc4d2f446
+index 0000000000..6e8c90cc8b
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_textoutput.c
 @@ -0,0 +1,53 @@
@@ -97,5 +95,5 @@ index 0000000000..7bc4d2f446
 +	.execute = execute,
 +};
 -- 
-2.14.1
+2.14.2
 
