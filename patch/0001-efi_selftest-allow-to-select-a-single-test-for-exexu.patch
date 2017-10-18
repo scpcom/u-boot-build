@@ -1,8 +1,7 @@
-From f0cd335e1cdc283e0234f34a1c4696f58990cce4 Mon Sep 17 00:00:00 2001
+From b276fb0b598a9f751604fcb7e0a6410b3ddc60e2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 5 Oct 2017 20:56:03 +0200
-Subject: [PATCH v3 11/18] efi_selftest: allow to select a single test for
- exexution
+Subject: [PATCH 1/1] efi_selftest: allow to select a single test for exexution
 
 Environment variable efi_selftest is passed as load options
 to the selftest application. It is used to select a single
@@ -23,20 +22,15 @@ Exit bootservice.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
-v3
-	split off unrelated changes to separate patches
-v2
-	use an environment variable to choose a test
----
  cmd/bootefi.c                           | 37 +++++++++++++-
- include/efi_selftest.h                  | 18 +++++++
- lib/efi_selftest/efi_selftest.c         | 90 ++++++++++++++++++++++++++++++---
+ include/efi_selftest.h                  | 12 +++++
+ lib/efi_selftest/efi_selftest.c         | 88 ++++++++++++++++++++++++++++++---
  lib/efi_selftest/efi_selftest_console.c | 10 ++++
  lib/efi_selftest/efi_selftest_util.c    |  9 ++++
- 5 files changed, 155 insertions(+), 9 deletions(-)
+ 5 files changed, 147 insertions(+), 9 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index d497381ac3..18331536dd 100644
+index 6dab3cc2a7..05375a657a 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -6,10 +6,12 @@
@@ -109,7 +103,7 @@ index d497381ac3..18331536dd 100644
  	"bootmgr [fdt addr]\n"
  	"  - load and boot EFI payload based on BootOrder/BootXXXX variables.\n"
 diff --git a/include/efi_selftest.h b/include/efi_selftest.h
-index 7ec42a0406..978ca2a7ea 100644
+index 7ec42a0406..5cc8d4f600 100644
 --- a/include/efi_selftest.h
 +++ b/include/efi_selftest.h
 @@ -12,6 +12,7 @@
@@ -144,7 +138,7 @@ index 7ec42a0406..978ca2a7ea 100644
   */
  struct efi_unit_test {
  	const char *name;
-@@ -96,10 +107,17 @@ struct efi_unit_test {
+@@ -96,6 +107,7 @@ struct efi_unit_test {
  		     const struct efi_system_table *systable);
  	int (*execute)(void);
  	int (*teardown)(void);
@@ -152,30 +146,11 @@ index 7ec42a0406..978ca2a7ea 100644
  };
  
  /* Declare a new EFI unit test */
- #define EFI_UNIT_TEST(__name)						\
- 	ll_entry_declare(struct efi_unit_test, __name, efi_unit_test)
- 
-+#define EFI_SELFTEST_TABLE_GUID \
-+	EFI_GUID(0xbc3ebe57, 0x09e5, 0xa59d, 0xdb, 0x87, \
-+		 0xf5, 0x79, 0x61, 0x62, 0x06, 0xde)
-+
-+extern const efi_guid_t efi_selftest_table_guid;
-+
- #endif /* _EFI_SELFTEST_H */
 diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
-index 73f074d9e1..5d8bb54d53 100644
+index 73f074d9e1..b6bc4dd5c0 100644
 --- a/lib/efi_selftest/efi_selftest.c
 +++ b/lib/efi_selftest/efi_selftest.c
-@@ -22,6 +22,8 @@ static const struct efi_runtime_services *runtime;
- static efi_handle_t handle;
- static u16 reset_message[] = L"Selftest completed";
- 
-+const efi_guid_t efi_selftest_table_guid = EFI_SELFTEST_TABLE_GUID;
-+
- /*
-  * Exit the boot services.
-  *
-@@ -140,20 +142,59 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
+@@ -140,20 +140,59 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
  	return ret;
  }
  
@@ -237,7 +212,7 @@ index 73f074d9e1..5d8bb54d53 100644
  		if (test->phase != phase)
  			continue;
  		if (steps & EFI_ST_SETUP)
-@@ -186,6 +227,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -186,6 +225,9 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  				 struct efi_system_table *systab)
  {
  	unsigned int failures = 0;
@@ -247,7 +222,7 @@ index 73f074d9e1..5d8bb54d53 100644
  
  	systable = systab;
  	boottime = systable->boottime;
-@@ -194,27 +238,57 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+@@ -194,27 +236,57 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
  	con_out = systable->con_out;
  	con_in = systable->con_in;
  
