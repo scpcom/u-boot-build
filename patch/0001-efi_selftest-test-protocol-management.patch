@@ -1,4 +1,4 @@
-From 640a0b707ee6c7ac92aa34a90add2eb1c49a86d0 Mon Sep 17 00:00:00 2001
+From 02b29e9191cb61c6e066579b64f1844c998a0d89 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Sep 2017 17:49:19 +0200
 Subject: [PATCH 1/1] efi_selftest: test protocol management
@@ -12,8 +12,8 @@ LocateHandle, LocateHandleBuffer.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                       |   3 +
- lib/efi_selftest/efi_selftest_manageprotocols.c | 381 ++++++++++++++++++++++++
- 2 files changed, 384 insertions(+)
+ lib/efi_selftest/efi_selftest_manageprotocols.c | 370 ++++++++++++++++++++++++
+ 2 files changed, 373 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_manageprotocols.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -39,10 +39,10 @@ index 88b998bd4c..acd184db4b 100644
  efi_selftest_tpl.o \
 diff --git a/lib/efi_selftest/efi_selftest_manageprotocols.c b/lib/efi_selftest/efi_selftest_manageprotocols.c
 new file mode 100644
-index 0000000000..51db66fd13
+index 0000000000..2cf945ee66
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_manageprotocols.c
-@@ -0,0 +1,381 @@
+@@ -0,0 +1,370 @@
 +/*
 + * efi_selftest_manageprotocols
 + *
@@ -151,8 +151,7 @@ index 0000000000..51db66fd13
 +		return EFI_ST_FAILURE;
 +	}
 +	if (!handle1) {
-+		efi_st_error("InstallProtocolInterface "
-+			     "failed to create handle\n");
++		efi_st_error("InstallProtocolInterface failed to create handle\n");
 +		return EFI_ST_FAILURE;
 +	}
 +	handle = handle1;
@@ -174,8 +173,7 @@ index 0000000000..51db66fd13
 +		return EFI_ST_FAILURE;
 +	}
 +	if (!handle2 || handle1 == handle2) {
-+		efi_st_error("InstallMultipleProtocolInterfaces "
-+			     "failed to create handle\n");
++		efi_st_error("InstallMultipleProtocolInterfaces failed to create handle\n");
 +		return EFI_ST_FAILURE;
 +	}
 +
@@ -219,8 +217,7 @@ index 0000000000..51db66fd13
 +	}
 +	ret = boottime->handle_protocol(handle1, &guid2, (void **)&interface);
 +	if (ret == EFI_SUCCESS) {
-+		efi_st_error("HandleProtocol returned "
-+			     "not installed interface\n");
++		efi_st_error("HandleProtocol returned not installed interface\n");
 +		return EFI_ST_FAILURE;
 +	}
 +
@@ -236,14 +233,12 @@ index 0000000000..51db66fd13
 +	buffer_size = count;
 +	ret = find_in_buffer(handle1, count, buffer);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_error("LocateHandleBuffer failed "
-+			     "to locate new handle\n");
++		efi_st_error("LocateHandleBuffer failed to locate new handle\n");
 +		return EFI_ST_FAILURE;
 +	}
 +	ret = find_in_buffer(handle2, count, buffer);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_error("LocateHandleBuffer failed "
-+			     "to locate new handle\n");
++		efi_st_error("LocateHandleBuffer failed to locate new handle\n");
 +		return EFI_ST_FAILURE;
 +	}
 +	boottime->set_mem(buffer, sizeof(efi_handle_t) * buffer_size, 0);
@@ -260,8 +255,7 @@ index 0000000000..51db66fd13
 +						&guid3, &interface3,
 +						NULL);
 +	if (ret == EFI_SUCCESS) {
-+		efi_st_error("UninstallMultipleProtocolInterfaces "
-+			     "did not catch error\n");
++		efi_st_printf("TODO: UninstallMultipleProtocolInterfaces did not catch error\n");
 +		return EFI_ST_FAILURE;
 +	}
 +
@@ -272,25 +266,21 @@ index 0000000000..51db66fd13
 +	ret = boottime->locate_handle_buffer(BY_PROTOCOL, &guid1, NULL,
 +					     &count, &buffer);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_error("LocateHandleBuffer failed "
-+			     "to locate new handles\n");
++		efi_st_error("LocateHandleBuffer failed to locate new handles\n");
 +		return EFI_ST_FAILURE;
 +	}
 +	if (count != 2) {
-+		efi_st_error("LocateHandleBuffer failed "
-+			     "to locate new handles\n");
++		efi_st_error("LocateHandleBuffer failed to locate new handles\n");
 +		return EFI_ST_FAILURE;
 +	}
 +	ret = find_in_buffer(handle1, count, buffer);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_error("LocateHandleBuffer failed "
-+			     "to locate new handle\n");
++		efi_st_error("LocateHandleBuffer failed to locate new handle\n");
 +		return EFI_ST_FAILURE;
 +	}
 +	ret = find_in_buffer(handle2, count, buffer);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_error("LocateHandleBuffer failed "
-+			     "to locate new handle\n");
++		efi_st_error("LocateHandleBuffer failed to locate new handle\n");
 +		return EFI_ST_FAILURE;
 +	}
 +	boottime->set_mem(buffer, sizeof(efi_handle_t) * buffer_size, 0);
@@ -344,7 +334,7 @@ index 0000000000..51db66fd13
 +						&guid2, &interface2,
 +						NULL);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_error("UninstallMultipleProtocolInterfaces failed\n");
++		efi_st_printf("TODO: UninstallMultipleProtocolInterfaces failed\n");
 +		/* This test is known to fail due to missing implementation */
 +	}
 +	/*
@@ -358,8 +348,7 @@ index 0000000000..51db66fd13
 +		return EFI_ST_FAILURE;
 +	}
 +	if (count != 1) {
-+		efi_st_error("UninstallMultipleProtocolInterfaces failed "
-+			     "to uninstall protocols\n");
++		efi_st_printf("TODO: UninstallMultipleProtocolInterfaces failed to uninstall protocols\n");
 +		/* This test is known to fail due to missing implementation */
 +	}
 +	ret = find_in_buffer(handle1, count, buffer);
@@ -399,18 +388,18 @@ index 0000000000..51db66fd13
 +	ret = boottime->uninstall_protocol_interface(handle1, &guid1,
 +						     &interface1);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_error("UninstallProtocolInterface failed\n");
++		efi_st_printf("TODO: UninstallProtocolInterface failed\n");
 +		/* This test is known to fail due to missing implementation */
 +	}
 +	ret = boottime->handle_protocol(handle1, &guid1, (void **)&interface);
 +	if (ret == EFI_SUCCESS) {
-+		efi_st_error("UninstallProtocolInterface failed\n");
++		efi_st_printf("TODO: UninstallProtocolInterface failed\n");
 +		/* This test is known to fail due to missing implementation */
 +	}
 +	ret = boottime->uninstall_protocol_interface(handle1, &guid3,
 +						     &interface1);
 +	if (ret != EFI_SUCCESS) {
-+		efi_st_error("UninstallProtocolInterface failed\n");
++		efi_st_printf("TODO: UninstallProtocolInterface failed\n");
 +		/* This test is known to fail due to missing implementation */
 +	}
 +
@@ -418,7 +407,7 @@ index 0000000000..51db66fd13
 +}
 +
 +EFI_UNIT_TEST(protserv) = {
-+	.name = "protocol services",
++	.name = "manage protocols",
 +	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
 +	.setup = setup,
 +	.execute = execute,

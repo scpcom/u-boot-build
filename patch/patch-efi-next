@@ -29,13 +29,14 @@ git am ../patch/0001-efi_selftest-provide-test-for-EFI_SIMPLE_TEXT_OUTPUT.patch
 
 # Image loading
 git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
-exit
 
 # EFI protocol services
+git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
+git am ../patch/0001-efi_selftest-test-protocol-management.patch
+exit
 git am ../patch/0001-efi_loader-get-rid-of-upper-case-type-UINTN.patch
 git am ../patch/0001-efi_loader-ProtocolsPerHandle-argument-ProtocolBuffe.patch
 git am ../patch/0001-efi_loader-arguments-of-efi_locate_handle-_buffer.patch
-git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 #git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
@@ -44,7 +45,6 @@ exit
 # git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
 git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 # git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
-git am ../patch/0001-efi_selftest-test-protocol-management.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
 git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
