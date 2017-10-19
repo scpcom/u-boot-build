@@ -26,13 +26,13 @@ index bd18b94199..4bfe521ec9 100644
 +/* Call this to validate a handle and find the EFI object for it */
 +struct efi_object *efi_search_obj(void *handle);
  /* Call this to create an event */
- efi_status_t efi_create_event(uint32_t type, size_t notify_tpl,
+ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
  			      void (EFIAPI *notify_function) (
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 21bd18f0ec..af2a94ba5a 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1390,13 +1390,11 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+@@ -1390,14 +1390,11 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
   * @handle	handle to find
   * @return	EFI object
   */
@@ -44,6 +44,7 @@ index 21bd18f0ec..af2a94ba5a 100644
  
 -	list_for_each(lhandle, &efi_obj_list) {
 -		struct efi_object *efiobj;
+-
 -		efiobj = list_entry(lhandle, struct efi_object, link);
 +	list_for_each_entry(efiobj, &efi_obj_list, link) {
  		if (efiobj->handle == handle)

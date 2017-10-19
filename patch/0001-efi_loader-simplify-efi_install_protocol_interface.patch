@@ -31,7 +31,7 @@ index ff1ef89470..a828c6969a 100644
   *
   * @handle			handle on which the protocol shall be installed
   * @protocol			GUID of the protocol to be installed
-@@ -747,9 +747,12 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
+@@ -747,9 +747,9 @@ static efi_status_t EFIAPI efi_install_protocol_interface(void **handle,
  			const efi_guid_t *protocol, int protocol_interface_type,
  			void *protocol_interface)
  {
@@ -39,9 +39,6 @@ index ff1ef89470..a828c6969a 100644
  	int i;
  	efi_status_t r;
 +	struct efi_object *efiobj;
-+
-+	EFI_ENTRY("%p, %pUl, %d, %p", handle, protocol, protocol_interface_type,
-+		  protocol_interface);
  
  	if (!handle || !protocol ||
  	    protocol_interface_type != EFI_NATIVE_INTERFACE) {

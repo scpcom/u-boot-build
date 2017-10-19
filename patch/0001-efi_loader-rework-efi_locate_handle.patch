@@ -1,4 +1,4 @@
-From 16694cdbad5d32ecfb168b7d62cbd8427e6a4b36 Mon Sep 17 00:00:00 2001
+From c5b08da7a8c2871ad2837636eef91ac747ee15cd Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 20 Aug 2017 15:32:33 +0200
 Subject: [PATCH 1/1] efi_loader: rework efi_locate_handle
@@ -9,14 +9,14 @@ Use list_for_each_entry instead of list_for_each.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 46 +++++++++++++++++++++++++++++++------------
- 1 file changed, 33 insertions(+), 13 deletions(-)
+ lib/efi_loader/efi_boottime.c | 44 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 32 insertions(+), 12 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index efde26d866..88461aeb05 100644
+index 54d322c2d4..b8a00ca519 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -649,6 +649,7 @@ static int efi_search(enum efi_locate_search_type search_type,
+@@ -937,6 +937,7 @@ static int efi_search(enum efi_locate_search_type search_type,
  	case ALL_HANDLES:
  		return 0;
  	case BY_REGISTER_NOTIFY:
@@ -24,15 +24,14 @@ index efde26d866..88461aeb05 100644
  		return -1;
  	case BY_PROTOCOL:
  		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
-@@ -667,16 +668,38 @@ static efi_status_t efi_locate_handle(
+@@ -968,16 +969,38 @@ static efi_status_t efi_locate_handle(
  			const efi_guid_t *protocol, void *search_key,
- 			size_t *buffer_size, efi_handle_t *buffer)
+ 			efi_uintn_t *buffer_size, efi_handle_t *buffer)
  {
 -	struct list_head *lhandle;
--	unsigned long size = 0;
 +	struct efi_object *efiobj;
-+	size_t size = 0;
-+
+ 	efi_uintn_t size = 0;
+ 
 +	/* Check parameters */
 +	switch (search_type) {
 +	case ALL_HANDLES:
@@ -57,7 +56,7 @@ index efde26d866..88461aeb05 100644
 +	 */
 +	if (!buffer_size || (*buffer_size && !buffer))
 +		return EFI_INVALID_PARAMETER;
- 
++
  	/* Count how much space we need */
 -	list_for_each(lhandle, &efi_obj_list) {
 -		struct efi_object *efiobj;
@@ -70,7 +69,7 @@ index efde26d866..88461aeb05 100644
  	}
  
  	if (*buffer_size < size) {
-@@ -689,12 +712,9 @@ static efi_status_t efi_locate_handle(
+@@ -990,12 +1013,9 @@ static efi_status_t efi_locate_handle(
  		return EFI_NOT_FOUND;
  
  	/* Then fill the array */
@@ -87,5 +86,5 @@ index efde26d866..88461aeb05 100644
  
  	return EFI_SUCCESS;
 -- 
-2.11.0
+2.14.2
 

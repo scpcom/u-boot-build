@@ -37,13 +37,13 @@ git am ../patch/0001-efi_loader-remove-unused-typedef-for-INTN.patch
 git am ../patch/0001-efi_loader-replace-UINTN-by-efi_uintn_t.patch
 git am ../patch/0001-efi_loader-consistently-use-efi_uintn_t-in-boot-serv.patch
 # git am ../patch/0001-efi_loader-get-rid-of-upper-case-type-UINTN.patch
-git am ../patch/0001-efi_loader-ProtocolsPerHandle-argument-ProtocolBuffe.patch
-git am ../patch/0001-efi_loader-arguments-of-efi_locate_handle-_buffer.patch
+# git am ../patch/0001-efi_loader-ProtocolsPerHandle-argument-ProtocolBuffe.patch
+# git am ../patch/0001-efi_loader-arguments-of-efi_locate_handle-_buffer.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
-#git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
+git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
+exit
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
-exit
 # git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
 git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 # git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
