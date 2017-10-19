@@ -2,7 +2,6 @@
 git am ../patch/0001-x86-provide-CONFIG_BUILD_ROM.patch
 git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
-# git am ../patch/0001-efi_loader-use-named-constant-for-memory-type.patch
 
 # Fix building u-boot.rom for qemu-x86_64_defconfig
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
@@ -36,9 +35,6 @@ git am ../patch/0001-efi_selftest-test-protocol-management.patch
 git am ../patch/0001-efi_loader-remove-unused-typedef-for-INTN.patch
 git am ../patch/0001-efi_loader-replace-UINTN-by-efi_uintn_t.patch
 git am ../patch/0001-efi_loader-consistently-use-efi_uintn_t-in-boot-serv.patch
-# git am ../patch/0001-efi_loader-get-rid-of-upper-case-type-UINTN.patch
-# git am ../patch/0001-efi_loader-ProtocolsPerHandle-argument-ProtocolBuffe.patch
-# git am ../patch/0001-efi_loader-arguments-of-efi_locate_handle-_buffer.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 exit
