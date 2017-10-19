@@ -227,7 +227,7 @@ index 0000000000..66100edeb2
 +	size_t buffer_size;
 +	unsigned long int count = 0;
 +	efi_guid_t **prot_buffer;
-+	unsigned long int  prot_count;
++	unsigned long int prot_count;
 +
 +	/*
 +	 * Test HandleProtocol
