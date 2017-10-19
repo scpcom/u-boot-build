@@ -34,6 +34,7 @@ git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
 git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
 git am ../patch/0001-efi_selftest-test-protocol-management.patch
 git am ../patch/0001-efi_loader-remove-unused-typedef-for-INTN.patch
+git am ../patch/0001-efi_loader-replace-UINTN-by-efi_uintn_t.patch
 exit
 git am ../patch/0001-efi_loader-get-rid-of-upper-case-type-UINTN.patch
 git am ../patch/0001-efi_loader-ProtocolsPerHandle-argument-ProtocolBuffe.patch

@@ -1,0 +1,144 @@
+From 42f3523b4a036e8541acf90e101e4ce563580318 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 19 Oct 2017 20:09:23 +0200
+Subject: [PATCH 1/1] efi_loader: replace UINTN by efi_uintn_t
+
+UINTN is used in the UEFI specification for unsigned integers
+matching the bitness of the CPU.
+
+Types in U-Boot should be lower case. The patch replaces it
+by efi_uintn_t.
+
+Suggested-by: Simon Glass <sjg@chromium.org>
+Suggested-by: Rob Clark <robdclark@gmail.com>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h                   |  8 ++++----
+ include/efi_loader.h                |  4 ++--
+ lib/efi_loader/efi_boottime.c       | 12 ++++++------
+ lib/efi_selftest/efi_selftest_tpl.c |  2 +-
+ 4 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index 8ea44b1a7a..5ab78baeea 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -28,7 +28,7 @@ enum efi_timer_delay {
+ 	EFI_TIMER_RELATIVE = 2
+ };
+ 
+-#define UINTN size_t
++#define efi_uintn_t size_t
+ typedef uint16_t *efi_string_t;
+ 
+ #define EVT_TIMER				0x80000000
+@@ -48,8 +48,8 @@ struct efi_event;
+ /* EFI Boot Services table */
+ struct efi_boot_services {
+ 	struct efi_table_hdr hdr;
+-	efi_status_t (EFIAPI *raise_tpl)(UINTN new_tpl);
+-	void (EFIAPI *restore_tpl)(UINTN old_tpl);
++	efi_status_t (EFIAPI *raise_tpl)(efi_uintn_t new_tpl);
++	void (EFIAPI *restore_tpl)(efi_uintn_t old_tpl);
+ 
+ 	efi_status_t (EFIAPI *allocate_pages)(int, int, unsigned long,
+ 					      efi_physical_addr_t *);
+@@ -61,7 +61,7 @@ struct efi_boot_services {
+ 	efi_status_t (EFIAPI *free_pool)(void *);
+ 
+ 	efi_status_t (EFIAPI *create_event)(uint32_t type,
+-			UINTN notify_tpl,
++			efi_uintn_t notify_tpl,
+ 			void (EFIAPI *notify_function) (
+ 					struct efi_event *event,
+ 					void *context),
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index e506eeec61..83b27d0449 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -144,7 +144,7 @@ struct efi_object {
+  */
+ struct efi_event {
+ 	uint32_t type;
+-	UINTN notify_tpl;
++	efi_uintn_t notify_tpl;
+ 	void (EFIAPI *notify_function)(struct efi_event *event, void *context);
+ 	void *notify_context;
+ 	u64 trigger_next;
+@@ -193,7 +193,7 @@ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map);
+ /* Call this to set the current device name */
+ void efi_set_bootdev(const char *dev, const char *devnr, const char *path);
+ /* Call this to create an event */
+-efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
++efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ 			      void (EFIAPI *notify_function) (
+ 					struct efi_event *event,
+ 					void *context),
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index cdf895fb2d..fdfa93a187 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -21,7 +21,7 @@
+ DECLARE_GLOBAL_DATA_PTR;
+ 
+ /* Task priority level */
+-static UINTN efi_tpl = TPL_APPLICATION;
++static efi_uintn_t efi_tpl = TPL_APPLICATION;
+ 
+ /* This list contains all the EFI objects our payload has access to */
+ LIST_HEAD(efi_obj_list);
+@@ -165,9 +165,9 @@ void efi_signal_event(struct efi_event *event)
+  * @new_tpl	new value of the task priority level
+  * @return	old value of the task priority level
+  */
+-static unsigned long EFIAPI efi_raise_tpl(UINTN new_tpl)
++static unsigned long EFIAPI efi_raise_tpl(efi_uintn_t new_tpl)
+ {
+-	UINTN old_tpl = efi_tpl;
++	efi_uintn_t old_tpl = efi_tpl;
+ 
+ 	EFI_ENTRY("0x%zx", new_tpl);
+ 
+@@ -190,7 +190,7 @@ static unsigned long EFIAPI efi_raise_tpl(UINTN new_tpl)
+  *
+  * @old_tpl	value of the task priority level to be restored
+  */
+-static void EFIAPI efi_restore_tpl(UINTN old_tpl)
++static void EFIAPI efi_restore_tpl(efi_uintn_t old_tpl)
+ {
+ 	EFI_ENTRY("0x%zx", old_tpl);
+ 
+@@ -359,7 +359,7 @@ static struct efi_event efi_events[16];
+  * @event		created event
+  * @return		status code
+  */
+-efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
++efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ 			      void (EFIAPI *notify_function) (
+ 					struct efi_event *event,
+ 					void *context),
+@@ -409,7 +409,7 @@ efi_status_t efi_create_event(uint32_t type, UINTN notify_tpl,
+  * @return		status code
+  */
+ static efi_status_t EFIAPI efi_create_event_ext(
+-			uint32_t type, UINTN notify_tpl,
++			uint32_t type, efi_uintn_t notify_tpl,
+ 			void (EFIAPI *notify_function) (
+ 					struct efi_event *event,
+ 					void *context),
+diff --git a/lib/efi_selftest/efi_selftest_tpl.c b/lib/efi_selftest/efi_selftest_tpl.c
+index ddb67ed268..15d62903c0 100644
+--- a/lib/efi_selftest/efi_selftest_tpl.c
++++ b/lib/efi_selftest/efi_selftest_tpl.c
+@@ -113,7 +113,7 @@ static int execute(void)
+ {
+ 	size_t index;
+ 	efi_status_t ret;
+-	UINTN old_tpl;
++	efi_uintn_t old_tpl;
+ 
+ 	/* Set 10 ms timer */
+ 	notification_count = 0;
+-- 
+2.14.2
+
