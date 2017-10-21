@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2017.11-rc1 Configuration
+# U-Boot 2017.11-rc2 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
@@ -448,7 +448,6 @@ CONFIG_MKIMAGE_DTC_PATH="dtc"
 # Environment
 #
 CONFIG_ENV_IS_NOWHERE=y
-# CONFIG_ENV_IS_IN_DATAFLASH is not set
 # CONFIG_ENV_IS_IN_EEPROM is not set
 # CONFIG_ENV_IS_IN_FAT is not set
 # CONFIG_ENV_IS_IN_FLASH is not set
@@ -645,6 +644,7 @@ CONFIG_E1000=y
 # CONFIG_RGMII is not set
 # CONFIG_RTL8139 is not set
 # CONFIG_RTL8169 is not set
+# CONFIG_SMC911X is not set
 # CONFIG_SUN7I_GMAC is not set
 # CONFIG_SUN4I_EMAC is not set
 # CONFIG_SUN8I_EMAC is not set
