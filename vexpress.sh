@@ -6,5 +6,7 @@ make mrproper
 tools/buildman/buildman -k -o buildman vexpress_ca15_tc2
 qemu-system-arm -M vexpress-a15 -cpu cortex-a15 \
 -kernel buildman/current/vexpress_ca15_tc2/u-boot \
--m 1024M --nographic -sd ../img.vexpress
+-m 1024M --nographic -netdev \
+user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
+-device netdev=eth0,mac=12:A1:00:12:34:13-sd ../img.vexpress
 cd ..

@@ -1,5 +1,5 @@
 #!/bin/sh
-git am ../patch/0001-x86-provide-CONFIG_BUILD_ROM.patch
+# git am ../patch/0001-x86-provide-CONFIG_BUILD_ROM.patch
 git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
@@ -8,6 +8,7 @@ git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # Implement Watchdog
+# <<< start of watchdog series
 git am ../patch/0001-efi_loader-move-efi_search_obj-up-in-code.patch
 git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
 git am ../patch/0001-efi_selftest-provide-test-for-watchdog-timer.patch
@@ -28,8 +29,10 @@ git am ../patch/0001-efi_selftest-provide-test-for-EFI_SIMPLE_TEXT_OUTPUT.patch
 
 # Image loading
 git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
+# >>> end of watchdog series
 
 # EFI protocol services
+# <<< start of protocol series
 git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
 git am ../patch/0001-efi_selftest-test-protocol-management.patch
 git am ../patch/0001-efi_loader-remove-unused-typedef-for-INTN.patch
@@ -37,6 +40,7 @@ git am ../patch/0001-efi_loader-replace-UINTN-by-efi_uintn_t.patch
 git am ../patch/0001-efi_loader-consistently-use-efi_uintn_t-in-boot-serv.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
+# >>> end of protocol series
 exit
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
