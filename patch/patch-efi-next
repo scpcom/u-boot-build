@@ -32,8 +32,8 @@ git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
 # >>> end of watchdog series
 
 # EFI protocol services
+# git am ../patch/0001-DO-NOT-MERGE-let-uninstall-protocol-always-succeed.patch
 # <<< start of protocol series
-git am ../patch/0001-DO-NOT-MERGE-let-uninstall-protocol-always-succeed.patch
 git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
 git am ../patch/0001-efi_selftest-test-protocol-management.patch
 git am ../patch/0001-efi_loader-eliminate-efi_install_protocol_interface_.patch
@@ -43,6 +43,7 @@ git am ../patch/0001-efi_loader-replace-UINTN-by-efi_uintn_t.patch
 git am ../patch/0001-efi_loader-consistently-use-efi_uintn_t-in-boot-serv.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
+git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 # >>> end of protocol series
 exit
 git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
