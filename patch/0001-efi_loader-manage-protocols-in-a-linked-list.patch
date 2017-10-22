@@ -45,8 +45,8 @@ index 2bcca3dfd8..364a9b0a20 100644
  /**
   * struct efi_event
   *
-@@ -194,6 +188,15 @@ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map);
- void efi_set_bootdev(const char *dev, const char *devnr, const char *path);
+@@ -194,6 +188,15 @@ void efi_set_bootdev(const char *dev, const char *devnr, const char *path);
+ efi_status_t efi_create_handle(void **handle);
  /* Call this to validate a handle and find the EFI object for it */
  struct efi_object *efi_search_obj(void *handle);
 +/* Find a protocol on a handle */
@@ -217,7 +217,7 @@ index bdbed32656..b245b31f61 100644
 -	struct list_head *lhandle;
 -	int i;
 -	efi_status_t r = EFI_NOT_FOUND;
-+	struct efi_handler *handler; 
++	struct efi_handler *handler;
 +	efi_status_t r;
  
  	EFI_ENTRY("%p, %pUl, %p", handle, protocol, protocol_interface);
@@ -332,7 +332,7 @@ index bdbed32656..b245b31f61 100644
 -	if (device_path)
 -		info->device_handle = efi_dp_find_obj(device_path, NULL);
 +	ret = efi_add_protocol(obj->handle, &efi_guid_console_control,
-+			      (void *)&efi_console_control);
++			       (void *)&efi_console_control);
 +	if (ret != EFI_SUCCESS)
 +		goto failure;
  
@@ -396,7 +396,7 @@ index bdbed32656..b245b31f61 100644
 +	/* Count protocols */
 +	list_for_each(protocol_handle, &efiobj->protocols)
 +		++*protocol_buffer_count;
-+			
++
 +	/* Copy guids */
 +	if (*protocol_buffer_count) {
 +		size_t j = 0;

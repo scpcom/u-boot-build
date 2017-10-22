@@ -43,6 +43,7 @@ git am ../patch/0001-efi_loader-replace-UINTN-by-efi_uintn_t.patch
 git am ../patch/0001-efi_loader-consistently-use-efi_uintn_t-in-boot-serv.patch
 git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
+git am ../patch/0001-efi_loader-make-efi_create_handle-non-static.patch
 git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 # >>> end of protocol series
 exit
