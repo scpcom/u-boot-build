@@ -1,15 +1,16 @@
-From b642aa6f40d083316ec206f7994965dc271483f8 Mon Sep 17 00:00:00 2001
+From f79bfaefdafb6865efb2dcf2c4df80fafc1171f1 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 22 Oct 2017 10:16:41 +0200
 Subject: [PATCH 1/1] efi_loader: manage protocols in a linked list
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/efi_loader.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/efi_loader.h          | 14 +++-----
+ lib/efi_loader/efi_boottime.c | 84 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 88 insertions(+), 10 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 2bcca3dfd8..213066d5e6 100644
+index 2bcca3dfd8..320d00ac88 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -101,6 +101,8 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
@@ -21,7 +22,7 @@ index 2bcca3dfd8..213066d5e6 100644
  	const efi_guid_t *guid;
  	void *protocol_interface;
  };
-@@ -115,8 +117,8 @@ struct efi_handler {
+@@ -115,20 +117,12 @@ struct efi_handler {
  struct efi_object {
  	/* Every UEFI object is part of a global object list */
  	struct list_head link;
@@ -32,6 +33,113 @@ index 2bcca3dfd8..213066d5e6 100644
  	/* The object spawner can either use this for data or as identifier */
  	void *handle;
  };
+ 
+-#define EFI_PROTOCOL_OBJECT(_guid, _protocol) (struct efi_object){	\
+-	.protocols = {{							\
+-		.guid = &(_guid),	 				\
+-		.protocol_interface = (void *)(_protocol), 		\
+-	}},								\
+-	.handle = (void *)(_protocol),					\
+-}
+-
+ /**
+  * struct efi_event
+  *
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index bdbed32656..6af5bf139f 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -696,6 +696,90 @@ struct efi_object *efi_search_obj(void *handle)
+ 	return NULL;
+ }
+ 
++/*
++ * Find a protocol on a handle.
++ *
++ * @handle		handle
++ * @protocol_guid	GUID of the protocol
++ * @handler		reference to the protocol
++ * @return		status code
++ */
++static efi_status_t efi_search_protocol(void *handle,
++					const efi_guid_t *protocol_guid,
++					struct efi_handler **handler)
++{
++	struct efi_object *efiobj;
++	struct list_head *lhandle;
++
++	if (!handle || !protocol_guid)
++		return EFI_INVALID_PARAMETER;
++	efiobj = efi_search_obj(handle);
++	if (!efiobj)
++		return EFI_INVALID_PARAMETER;
++	list_for_each(lhandle, &efiobj->protocols) {
++		struct efi_handler *protocol;
++
++		protocol = list_entry(lhandle, struct efi_handler, link);
++		if (!guidcmp(protocol->guid, protocol_guid)) {
++			if (handler)
++				*handler = protocol;
++			return EFI_SUCCESS;
++		}
++	}
++	return EFI_NOT_FOUND;
++}
++
++/*
++ * Install new protocol on a handle.
++ *
++ * @handle			handle on which the protocol shall be installed
++ * @protocol			GUID of the protocol to be installed
++ * @protocol_interface		interface of the protocol implementation
++ * @return			status code
++ */
++efi_status_t efi_add_protocol(void *handle, const efi_guid_t *protocol,
++			      void *protocol_interface)
++{
++	struct efi_object *efiobj;
++	struct efi_handler *handler;
++	efi_status_t ret;
++
++	efiobj = efi_search_obj(handle);
++	if (!efiobj)
++		return EFI_INVALID_PARAMETER;
++	ret = efi_search_protocol(handle, protocol, NULL);
++	if (ret != EFI_NOT_FOUND)
++		return EFI_INVALID_PARAMETER;
++	handler = calloc(1, sizeof(struct efi_handler));
++	if (!handler)
++		return EFI_OUT_OF_RESOURCES;
++	handler->guid = protocol;
++	handler->protocol_interface = protocol_interface;
++	list_add_tail(&handler->link, &efiobj->protocols);
++}
++
++/*
++ * Delete protocol on a handle.
++ *
++ * @handle			handle on which the protocol shall be installed
++ * @protocol			GUID of the protocol to be installed
++ * @protocol_interface		interface of the protocol implementation
++ * @return			status code
++ */
++efi_status_t efi_remove_protocol(void *handle, const efi_guid_t *protocol,
++				 void *protocol_interface)
++{
++	struct efi_handler *handler;
++	efi_status_t ret;
++
++	ret = efi_search_protocol(handle, protocol, &handler);
++	if (ret != EFI_SUCESS)
++		return ret;
++	list_del(&handler->link);
++	free(handler)
++	return EFI_SUCCESS;
++}
++
+ /*
+  * Install protocol interface.
+  *
 -- 
 2.14.2
 
