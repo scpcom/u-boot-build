@@ -1,4 +1,4 @@
-From fcbaf5a11b8cdb545dc6878a086f9d8d0ac90779 Mon Sep 17 00:00:00 2001
+From 6a6d943a0a405970c6048ba21fb813c55c01a091 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 22 Oct 2017 10:16:41 +0200
 Subject: [PATCH 1/1] efi_loader: manage protocols in a linked list
@@ -9,7 +9,8 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  lib/efi_loader/efi_boottime.c    | 319 ++++++++++++++++++++-------------------
  lib/efi_loader/efi_console.c     |  54 +++++--
  lib/efi_loader/efi_device_path.c |  43 +++---
- 4 files changed, 239 insertions(+), 204 deletions(-)
+ lib/efi_loader/efi_gop.c         |  10 +-
+ 5 files changed, 247 insertions(+), 206 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index 0d70ea6a28..087058d9e8 100644
@@ -79,11 +80,10 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index e1849cd4fa..135a0ff9ad 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -702,6 +702,92 @@ struct efi_object *efi_search_obj(void *handle)
- 	return NULL;
+@@ -703,6 +703,92 @@ struct efi_object *efi_search_obj(void *handle)
  }
  
-+/*
+ /*
 + * Find a protocol on a handle.
 + *
 + * @handle		handle
@@ -169,9 +169,10 @@ index e1849cd4fa..135a0ff9ad 100644
 +	return EFI_SUCCESS;
 +}
 +
- /*
++/*
   * Install protocol interface.
   *
+  * This function implements the InstallProtocolInterface service.
 @@ -720,8 +806,6 @@ static efi_status_t EFIAPI efi_install_protocol_interface(
  			void **handle, const efi_guid_t *protocol,
  			int protocol_interface_type, void *protocol_interface)
@@ -675,6 +676,35 @@ index f6e368e029..4052662c2d 100644
  	}
  
  	return NULL;
+diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
+index c228614810..eaa8ff564c 100644
+--- a/lib/efi_loader/efi_gop.c
++++ b/lib/efi_loader/efi_gop.c
+@@ -132,6 +132,7 @@ int efi_gop_register(void)
+ 	u32 bpix, col, row;
+ 	u64 fb_base, fb_size;
+ 	void *fb;
++	efi_status_t ret;
+ 
+ #ifdef CONFIG_DM_VIDEO
+ 	struct udevice *vdev;
+@@ -179,9 +180,14 @@ int efi_gop_register(void)
+ 	}
+ 
+ 	/* Fill in object data */
+-	gopobj->parent.protocols[0].guid = &efi_gop_guid;
+-	gopobj->parent.protocols[0].protocol_interface = &gopobj->ops;
+ 	gopobj->parent.handle = &gopobj->ops;
++	ret = efi_add_protocol(gopobj->parent.handle, &efi_gop_guid,
++			       &gopobj->ops);
++	if (ret != EFI_SUCCESS) {
++		free(gopobj);
++		printf("ERROR: Out of memory");
++		return 1;
++	}
+ 	gopobj->ops.query_mode = gop_query_mode;
+ 	gopobj->ops.set_mode = gop_set_mode;
+ 	gopobj->ops.blt = gop_blt;
 -- 
-2.14.1
+2.11.0
 
