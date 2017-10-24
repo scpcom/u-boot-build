@@ -20,7 +20,7 @@ index 411a8c9226..c228614810 100644
  
  	gopobj = calloc(1, sizeof(*gopobj));
 +	if (!gopobj) {
-+		printf("ERROR: Out of memory");
++		printf("ERROR: Out of memory\n");
 +		return 1;
 +	}
  

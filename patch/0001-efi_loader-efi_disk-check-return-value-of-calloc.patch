@@ -35,7 +35,7 @@ index e61dbc8058..5840d32160 100644
  
  	diskobj = calloc(1, sizeof(*diskobj));
 +	if (!diskobj) {
-+		printf("ERROR: Out of memory");
++		printf("ERROR: Out of memory\n");
 +		return;
 +	}
  
