@@ -1,0 +1,31 @@
+From 3611291654946a6cc11d2016911581a4ff42472c Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 24 Oct 2017 18:08:05 +0200
+Subject: [PATCH 1/1] efi_loader: efi_gop: check calloc return value
+
+Calloc may return NULL. We have to check the return value.
+
+Fixes: be8d324191f efi_loader: Add GOP support
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_gop.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
+index 411a8c9226..c228614810 100644
+--- a/lib/efi_loader/efi_gop.c
++++ b/lib/efi_loader/efi_gop.c
+@@ -173,6 +173,10 @@ int efi_gop_register(void)
+ 	}
+ 
+ 	gopobj = calloc(1, sizeof(*gopobj));
++	if (!gopobj) {
++		printf("ERROR: Out of memory");
++		return 1;
++	}
+ 
+ 	/* Fill in object data */
+ 	gopobj->parent.protocols[0].guid = &efi_gop_guid;
+-- 
+2.11.0
+

@@ -34,6 +34,7 @@ git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
 # EFI protocol services
 # git am ../patch/0001-DO-NOT-MERGE-let-uninstall-protocol-always-succeed.patch
 # <<< start of protocol series
+git am ../patch/0001-efi_loader-efi_gop-check-calloc-return-value.patch
 git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
 git am ../patch/0001-efi_selftest-test-protocol-management.patch
 git am ../patch/0001-efi_loader-eliminate-efi_install_protocol_interface_.patch
