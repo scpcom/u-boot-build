@@ -1,5 +1,6 @@
 #!/bin/sh
 # git am ../patch/0001-x86-provide-CONFIG_BUILD_ROM.patch
+git am ../patch/0001-tpm-add-missing-va_end.patch
 git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
@@ -48,6 +49,7 @@ git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 git am ../patch/0001-efi_loader-efi_gop-check-calloc-return-value.patch
 git am ../patch/0001-efi_loader-efi_disk-check-return-value-of-calloc.patch
 git am ../patch/0001-efi_loader-efi_net-check-return-vallue-of-calloc.patch
+git am ../patch/0001-efi_loader-efi_dp_match-should-have-const-arguments.patch
 git am ../patch/0001-efi_loader-make-efi_create_handle-non-static.patch
 git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 # >>> end of protocol series 2
