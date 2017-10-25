@@ -59,7 +59,6 @@ git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
 #git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 # >>> end of protocol series 2
 exit
-git am ../patch/0001-efi_loader-new-function-efi_search_protocol.patch
 # git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
 git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 # git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
