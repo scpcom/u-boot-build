@@ -56,11 +56,12 @@ git am ../patch/0001-efi_loader-efi_gop-use-correct-types-for-parameters.patch
 git am ../patch/0001-efi_selftest-test-for-graphics-output-protocol.patch
 git am ../patch/0001-efi_loader-helper-functions-for-protocol-management.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
+# the following patch needs reviewing
+git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 #git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 # >>> end of protocol series 2
 exit
 # git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
-git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 # git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
