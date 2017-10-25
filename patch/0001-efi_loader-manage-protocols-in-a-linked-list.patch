@@ -231,7 +231,7 @@ index e1849cd4fa..a854f4dd5f 100644
 -	}
 -	r = EFI_INVALID_PARAMETER;
 +	/* Add new protocol */
-+	r = efi_add_protocol(handle, protocol, protocol_interface);
++	r = efi_add_protocol(*handle, protocol, protocol_interface);
  out:
  	return EFI_EXIT(r);
  }
