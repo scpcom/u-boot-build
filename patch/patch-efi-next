@@ -52,6 +52,7 @@ git am ../patch/0001-efi_loader-efi_net-check-return-vallue-of-calloc.patch
 git am ../patch/0001-efi_loader-efi_dp_match-should-have-const-arguments.patch
 git am ../patch/0001-efi_loader-make-efi_create_handle-non-static.patch
 git am ../patch/0001-efi_loader-argument-of-efi_search_obj-should-be-cons.patch
+git am ../patch/0001-efi_selftest-test-for-graphics-output-protocol.patch
 git am ../patch/0001-efi_loader-helper-functions-for-protocol-management.patch
 #git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 # >>> end of protocol series 2
