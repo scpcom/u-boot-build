@@ -1,0 +1,43 @@
+From da0bc933ea6e95268ca3e97783ba6818951b7e09 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 25 Oct 2017 13:47:50 +0200
+Subject: [PATCH 1/1] efi_loader: argument of efi_search_obj should be const
+
+The argument of efi_search_obj is not changed so it should
+be marked as const.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h          | 2 +-
+ lib/efi_loader/efi_boottime.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index f42dceaf51..a5aae1b87e 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -195,7 +195,7 @@ void efi_set_bootdev(const char *dev, const char *devnr, const char *path);
+ /* Create handle */
+ efi_status_t efi_create_handle(void **handle);
+ /* Call this to validate a handle and find the EFI object for it */
+-struct efi_object *efi_search_obj(void *handle);
++struct efi_object *efi_search_obj(const void *handle);
+ /* Call this to create an event */
+ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ 			      void (EFIAPI *notify_function) (
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index e1849cd4fa..556a0b7e12 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -690,7 +690,7 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+  * @handle	handle to find
+  * @return	EFI object
+  */
+-struct efi_object *efi_search_obj(void *handle)
++struct efi_object *efi_search_obj(const void *handle)
+ {
+ 	struct efi_object *efiobj;
+ 
+-- 
+2.11.0
+
