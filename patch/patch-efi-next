@@ -51,7 +51,7 @@ git am ../patch/0001-efi_loader-debug-output-efi_install_protocol_interfa.patch
 git am ../patch/0001-efi_loader-implement-UninstallMultipleProtocolInterf.patch
 git am ../patch/0001-efi_loader-efi_gop-check-calloc-return-value.patch
 git am ../patch/0001-efi_loader-efi_disk-check-return-value-of-calloc.patch
-git am ../patch/0001-efi_loader-efi_net-check-return-vallue-of-calloc.patch
+git am ../patch/0001-efi_loader-efi_net-check-return-value-of-calloc.patch
 git am ../patch/0001-efi_loader-efi_dp_match-should-have-const-arguments.patch
 git am ../patch/0001-efi_loader-make-efi_create_handle-non-static.patch
 git am ../patch/0001-efi_loader-argument-of-efi_search_obj-should-be-cons.patch
