@@ -64,10 +64,12 @@ git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
 git am ../patch/0001-efi_loader-simplify-efi_locate_protocol.patch
 git am ../patch/0001-efi_loader-refactor-efi_setup_loaded_image.patch
 git am ../patch/0001-efi_loader-efi_console-use-helper-functions.patch
+# >>> end of protocol series 2
+# <<< start of protocol series 3
 git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
 exit
 #git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
-# >>> end of protocol series 2
+# >>> end of protocol series 3
 exit
 # git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
 # git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
