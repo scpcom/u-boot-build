@@ -46,6 +46,7 @@ git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
 git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
 # >>> end of protocol series
 # <<< start of protocol series 2
+git am ../patch/0001-efi_loader-fix-typo-efi_install_multiple_protocol_in.patch
 git am ../patch/0001-efi_loader-debug-output-efi_install_protocol_interfa.patch
 git am ../patch/0001-efi_loader-implement-UninstallMultipleProtocolInterf.patch
 git am ../patch/0001-efi_loader-efi_gop-check-calloc-return-value.patch
