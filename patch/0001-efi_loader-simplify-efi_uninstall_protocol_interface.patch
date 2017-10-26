@@ -1,4 +1,4 @@
-From e5ed0f979e794b4f33ca82eaca459506626b78b5 Mon Sep 17 00:00:00 2001
+From 78341598d42ebd2e4a06b9fdf7c6c338d04ffe03 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 25 Oct 2017 20:15:15 +0200
 Subject: [PATCH 1/1] efi_loader: simplify efi_uninstall_protocol_interface
@@ -8,11 +8,11 @@ efi_remove_protocol to simplify the coding.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 40 ++++++++++++----------------------------
- 1 file changed, 12 insertions(+), 28 deletions(-)
+ lib/efi_loader/efi_boottime.c | 38 +++++++++++---------------------------
+ 1 file changed, 11 insertions(+), 27 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index d089c7f4ff..31effc947a 100644
+index d089c7f4ff..d2d8de9522 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -905,9 +905,8 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(
@@ -54,8 +54,6 @@ index d089c7f4ff..31effc947a 100644
 -				goto out;
 -			}
 -		}
--	}
--
 +	/* Find the protocol on the handle */
 +	r = efi_search_protocol(handle, protocol, &handler);
 +	if (r != EFI_SUCCESS)
@@ -65,7 +63,8 @@ index d089c7f4ff..31effc947a 100644
 +		r =  EFI_ACCESS_DENIED;
 +	} else {
 +		r = efi_remove_protocol(handle, protocol, protocol_interface);
-+ 	}
+ 	}
+-
  out:
  	return EFI_EXIT(r);
  }
