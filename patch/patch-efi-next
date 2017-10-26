@@ -60,6 +60,7 @@ git am ../patch/0001-efi_loader-helper-functions-for-protocol-management.patch
 git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
 git am ../patch/0001-efi_loader-simplify-efi_search.patch
 git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
+git am ../patch/0001-efi_loader-simplify-efi_locate_protocol.patch
 git am ../patch/0001-efi_loader-refactor-efi_setup_loaded_image.patch
 git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
 exit
