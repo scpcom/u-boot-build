@@ -60,11 +60,11 @@ index 85b5391ed1..9feaf5d32e 100644
 -				   unsigned long sy, unsigned long dx,
 -				   unsigned long dy, unsigned long width,
 -				   unsigned long height, unsigned long delta)
-+efi_status_t EFIAPI gop_blt (struct efi_gop *this, void *buffer,
-+			     u32 operation, efi_uintn_t sx,
-+			     efi_uintn_t sy, efi_uintn_t dx,
-+			     efi_uintn_t dy, efi_uintn_t width,
-+			     efi_uintn_t height, efi_uintn_t delta)
++efi_status_t EFIAPI gop_blt(struct efi_gop *this, void *buffer,
++			    u32 operation, efi_uintn_t sx,
++			    efi_uintn_t sy, efi_uintn_t dx,
++			    efi_uintn_t dy, efi_uintn_t width,
++			    efi_uintn_t height, efi_uintn_t delta)
  {
  	struct efi_gop_obj *gopobj = container_of(this, struct efi_gop_obj, ops);
  	int i, j, line_len16, line_len32;

@@ -14,7 +14,7 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 41e4fe1183..bf296f6669 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1189,34 +1189,46 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
+@@ -1189,34 +1189,45 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
  			    struct efi_device_path *device_path,
  			    struct efi_device_path *file_path)
  {
@@ -27,7 +27,6 @@ index 41e4fe1183..bf296f6669 100644
 +		info->device_handle = efi_dp_find_obj(device_path, NULL);
 +
 +	list_add_tail(&obj->link, &efi_obj_list);
-+	INIT_LIST_HEAD(&obj->protocols);
  	/*
  	 * When asking for the device path interface, return
  	 * bootefi_device_path

@@ -42,7 +42,7 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 556a0b7e12..7381a7f6a0 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -703,6 +703,124 @@ struct efi_object *efi_search_obj(const void *handle)
+@@ -703,6 +703,125 @@ struct efi_object *efi_search_obj(const void *handle)
  }
  
  /*
@@ -146,7 +146,8 @@ index 556a0b7e12..7381a7f6a0 100644
 + * @handle			handle from which the protocols shall be deleted
 + * @return			status code
 + */
-+efi_status_t efi_remove_all_protocols(const void *handle) {
++efi_status_t efi_remove_all_protocols(const void *handle)
++{
 +	struct efi_object *efiobj;
 +	struct efi_handler *handler;
 +	size_t i;
