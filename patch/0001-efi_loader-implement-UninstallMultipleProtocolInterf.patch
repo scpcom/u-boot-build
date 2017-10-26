@@ -57,7 +57,7 @@ index d4571d6250..43b5973d24 100644
 +	for (; i; --i) {
 +		protocol = va_arg(argptr, efi_guid_t*);
 +		protocol_interface = va_arg(argptr, void*);
-+		EFI_CALL(efi_install_protocol_interface(handle, protocol,
++		EFI_CALL(efi_install_protocol_interface(&handle, protocol,
 +							EFI_NATIVE_INTERFACE,
 +							protocol_interface));
 +	}
