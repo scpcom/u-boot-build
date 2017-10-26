@@ -1,0 +1,52 @@
+From 77c7667406b40feee756654777d5abd6e447ae3f Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 22 Oct 2017 18:16:41 +0200
+Subject: [PATCH 1/1] efi_loader: simplify efi_search
+
+Use helper function efi_search_protocol in efi_search.
+Add missing comments.
+Put default handling into default branch of switch statement.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index f61324f165..d4571d6250 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -959,24 +959,21 @@ static int efi_search(enum efi_locate_search_type search_type,
+ 		      const efi_guid_t *protocol, void *search_key,
+ 		      struct efi_object *efiobj)
+ {
+-	int i;
++	efi_status_t ret;
+ 
+ 	switch (search_type) {
+ 	case ALL_HANDLES:
+ 		return 0;
+ 	case BY_REGISTER_NOTIFY:
+-		/* RegisterProtocolNotify is not implemented yet */
++		/* TODO: RegisterProtocolNotify is not implemented yet */
+ 		return -1;
+ 	case BY_PROTOCOL:
+-		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
+-			const efi_guid_t *guid = efiobj->protocols[i].guid;
+-			if (guid && !guidcmp(guid, protocol))
+-				return 0;
+-		}
++		ret = efi_search_protocol(efiobj->handle, protocol, NULL);
++		return (ret != EFI_SUCCESS);
++	default:
++		/* Invalid search type */
+ 		return -1;
+ 	}
+-
+-	return -1;
+ }
+ 
+ /*
+-- 
+2.11.0
+
