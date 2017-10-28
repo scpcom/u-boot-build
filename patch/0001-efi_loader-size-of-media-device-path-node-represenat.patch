@@ -1,0 +1,31 @@
+From 2add4c1022f634f53f37d35f4ba6966897f76f4f Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 28 Oct 2017 14:01:50 +0200
+Subject: [PATCH 1/1] efi_loader: size of media device path node represenation
+
+In the format specifier we want to specify the maximum width
+in case an ending \0 is missing.
+
+So slen must be used as precision and not as field width.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_device_path_to_text.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
+index 62771338f0..98617cf163 100644
+--- a/lib/efi_loader/efi_device_path_to_text.c
++++ b/lib/efi_loader/efi_device_path_to_text.c
+@@ -153,7 +153,7 @@ static char *dp_media(char *s, struct efi_device_path *dp)
+ 		struct efi_device_path_file_path *fp =
+ 			(struct efi_device_path_file_path *)dp;
+ 		int slen = (dp->length - sizeof(*dp)) / 2;
+-		s += sprintf(s, "/%-*ls", slen, fp->str);
++		s += sprintf(s, "/%-.*ls", slen, fp->str);
+ 		break;
+ 	}
+ 	default:
+-- 
+2.14.2
+

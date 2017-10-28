@@ -1,4 +1,4 @@
-From 0a6b0bacd6f0c0fd3231822653c4c0d7bb7dbe29 Mon Sep 17 00:00:00 2001
+From 99440ef2cbd319d040490bba6295315d7e4a619b Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 28 Oct 2017 12:27:14 +0200
 Subject: [PATCH 1/1] efi_selftest: test EFI_DEVICE_PATH_TO_TEXT_PROTOCOL
@@ -8,8 +8,8 @@ Provide a test for the EFI_DEVICE_PATH_TO_TEXT_PROTOCOL protocol.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                  |   3 +
- lib/efi_selftest/efi_selftest_devicepath.c | 284 +++++++++++++++++++++++++++++
- 2 files changed, 287 insertions(+)
+ lib/efi_selftest/efi_selftest_devicepath.c | 285 +++++++++++++++++++++++++++++
+ 2 files changed, 288 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_devicepath.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -35,10 +35,10 @@ index 1851c17db6..d280eca5c3 100644
  efi_selftest_gop.o \
 diff --git a/lib/efi_selftest/efi_selftest_devicepath.c b/lib/efi_selftest/efi_selftest_devicepath.c
 new file mode 100644
-index 0000000000..0244127a9a
+index 0000000000..d88819ecf1
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_devicepath.c
-@@ -0,0 +1,284 @@
+@@ -0,0 +1,285 @@
 +/*
 + * efi_selftest_devicepath
 + *
@@ -143,37 +143,34 @@ index 0000000000..0244127a9a
 +
 +	boottime->copy_mem(&vendor_node.guid, &guid_vendor1,
 +			   sizeof(efi_guid_t));
-+	boottime->copy_mem(&vendor_node, dp1, sizeof(struct efi_device_path_vendor));
-+	boottime->copy_mem(&vendor_node, dp2, sizeof(struct efi_device_path_vendor));
-+	boottime->copy_mem(&vendor_node, dp3, sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(dp1, &vendor_node,
++			   sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(dp2, &vendor_node,
++			   sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(dp3, &vendor_node,
++			   sizeof(struct efi_device_path_vendor));
 +
 +	boottime->copy_mem(&vendor_node.guid, &guid_vendor2,
 +			   sizeof(efi_guid_t));
-+	boottime->copy_mem(&vendor_node, dp2 +
-+			   sizeof(struct efi_device_path_vendor),
-+			   sizeof(struct efi_device_path_vendor));
-+	boottime->copy_mem(&vendor_node, dp2 +
-+			   sizeof(struct efi_device_path_vendor),
-+			   sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(dp2 + sizeof(struct efi_device_path_vendor),
++			   &vendor_node, sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(dp3 + sizeof(struct efi_device_path_vendor),
++			   &vendor_node, sizeof(struct efi_device_path_vendor));
 +
 +	boottime->copy_mem(&vendor_node.guid, &guid_vendor3,
 +			   sizeof(efi_guid_t));
-+	boottime->copy_mem(&vendor_node, dp3 +
-+			   2 * sizeof(struct efi_device_path_vendor),
-+			   sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(dp3 + 2 * sizeof(struct efi_device_path_vendor),
++			   &vendor_node, sizeof(struct efi_device_path_vendor));
 +
 +	end_node.type = DEVICE_PATH_TYPE_END;
 +	end_node.sub_type = DEVICE_PATH_SUB_TYPE_END;
 +	end_node.length = sizeof(struct efi_device_path);
-+	boottime->copy_mem(&end_node, dp1 +
-+			   sizeof(struct efi_device_path_vendor),
-+			   sizeof(struct efi_device_path));
-+	boottime->copy_mem(&end_node, dp2 +
-+			   2 * sizeof(struct efi_device_path_vendor),
-+			   sizeof(struct efi_device_path));
-+	boottime->copy_mem(&end_node, dp3 +
-+			   3 * sizeof(struct efi_device_path_vendor),
-+			   sizeof(struct efi_device_path));
++	boottime->copy_mem(dp1 + sizeof(struct efi_device_path_vendor),
++			   &end_node, sizeof(struct efi_device_path));
++	boottime->copy_mem(dp2 + 2 * sizeof(struct efi_device_path_vendor),
++			   &end_node,sizeof(struct efi_device_path));
++	boottime->copy_mem(dp3 + 3 * sizeof(struct efi_device_path_vendor),
++			   &end_node, sizeof(struct efi_device_path));
 +
 +	
 +	ret = boottime->install_protocol_interface(&handle1,
@@ -299,14 +296,18 @@ index 0000000000..0244127a9a
 +	u16 *string;
 +	efi_status_t ret;
 +
++	efi_st_printf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
 +	string = device_path_to_text->convert_device_path_to_text(
 +			(struct efi_device_path *)dp3, true, false);	
++	efi_st_printf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
 +	if (!string) {
 +		efi_st_error("DevicePathToText failed\n");
 +		return EFI_ST_FAILURE;
 +	}
++	efi_st_printf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
 +
 +	efi_st_printf("dp3: %ps\n", string);
++	efi_st_printf("%s(%u) %s\n", __FILE__, __LINE__, __func__);
 +
 +	ret = boottime->free_pool(string);	
 +	if (ret != EFI_SUCCESS) {
