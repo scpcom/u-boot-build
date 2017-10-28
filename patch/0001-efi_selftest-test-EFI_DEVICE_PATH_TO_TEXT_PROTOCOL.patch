@@ -1,0 +1,328 @@
+From 0a6b0bacd6f0c0fd3231822653c4c0d7bb7dbe29 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 28 Oct 2017 12:27:14 +0200
+Subject: [PATCH 1/1] efi_selftest: test EFI_DEVICE_PATH_TO_TEXT_PROTOCOL
+
+Provide a test for the EFI_DEVICE_PATH_TO_TEXT_PROTOCOL protocol.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/Makefile                  |   3 +
+ lib/efi_selftest/efi_selftest_devicepath.c | 284 +++++++++++++++++++++++++++++
+ 2 files changed, 287 insertions(+)
+ create mode 100644 lib/efi_selftest/efi_selftest_devicepath.c
+
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index 1851c17db6..d280eca5c3 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -11,6 +11,8 @@ CFLAGS_efi_selftest.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_console.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_console.o := $(CFLAGS_NON_EFI)
++CFLAGS_efi_selftest_devicepathe.o := $(CFLAGS_EFI)
++CFLAGS_REMOVE_efi_selftest_devicepath.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_events.o := $(CFLAGS_EFI)
+ CFLAGS_REMOVE_efi_selftest_events.o := $(CFLAGS_NON_EFI)
+ CFLAGS_efi_selftest_exitbootservices.o := $(CFLAGS_EFI)
+@@ -33,6 +35,7 @@ CFLAGS_REMOVE_efi_selftest_watchdog.o := $(CFLAGS_NON_EFI)
+ obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
+ efi_selftest.o \
+ efi_selftest_console.o \
++efi_selftest_devicepath.o \
+ efi_selftest_events.o \
+ efi_selftest_exitbootservices.o \
+ efi_selftest_gop.o \
+diff --git a/lib/efi_selftest/efi_selftest_devicepath.c b/lib/efi_selftest/efi_selftest_devicepath.c
+new file mode 100644
+index 0000000000..0244127a9a
+--- /dev/null
++++ b/lib/efi_selftest/efi_selftest_devicepath.c
+@@ -0,0 +1,284 @@
++/*
++ * efi_selftest_devicepath
++ *
++ * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ *
++ * This unit test checks the following protocol services:
++ * DevicePathToText
++ */
++
++#include <efi_selftest.h>
++
++static struct efi_boot_services *boottime;
++
++static efi_handle_t handle1;
++static efi_handle_t handle2;
++static efi_handle_t handle3;
++
++struct interface {
++	void (EFIAPI * inc)(void);
++} interface;
++
++static efi_guid_t guid_protocol =
++	EFI_GUID(0xdbca4c98, 0x6cb0, 0x694d,
++		 0x08, 0x72, 0x81, 0x9c, 0x65, 0x0c, 0xbb, 0x7d);
++
++static efi_guid_t guid_vendor1 =
++	EFI_GUID(0xdbca4c98, 0x6cb0, 0x694d,
++		 0x08, 0x72, 0x81, 0x9c, 0x65, 0x0c, 0xbb, 0xb1);
++
++static efi_guid_t guid_vendor2 =
++	EFI_GUID(0xdbca4c98, 0x6cb0, 0x694d,
++		 0x08, 0x72, 0x81, 0x9c, 0x65, 0x0c, 0xbb, 0xa2);
++
++static efi_guid_t guid_vendor3 =
++	EFI_GUID(0xdbca4c98, 0x6cb0, 0x694d,
++		 0x08, 0x72, 0x81, 0x9c, 0x65, 0x0c, 0xbb, 0xa3);
++
++static u8 *dp1;
++static u8 *dp2;
++static u8 *dp3;
++
++struct efi_device_path_to_text_protocol *device_path_to_text;
++
++/*
++ * Setup unit test.
++ *
++ * Create three handles. Install a new protocol on two of them and
++ * provice device paths.
++ *
++ * handle1
++ *   guid interface
++ * handle2
++ *   guid interface
++ * handle3
++ *
++ * @handle:	handle of the loaded image
++ * @systable:	system table
++ */
++static int setup(const efi_handle_t img_handle,
++		 const struct efi_system_table *systable)
++{
++	struct efi_device_path_vendor vendor_node;
++	struct efi_device_path end_node;
++	efi_status_t ret;
++
++	boottime = systable->boottime;
++
++	ret = boottime->locate_protocol(&efi_guid_device_path_to_text_protocol,
++					NULL, (void **)&device_path_to_text);
++	if (ret != EFI_SUCCESS) {
++		device_path_to_text = NULL;
++		efi_st_printf("Device path to text protocol is not available.\n");
++		return EFI_ST_FAILURE;
++	}
++
++	ret = boottime->allocate_pool(EFI_LOADER_DATA,
++				      sizeof(struct efi_device_path_vendor) +
++				      sizeof(struct efi_device_path),
++				      (void **)&dp1);
++	if (ret != EFI_SUCCESS)
++		goto out_of_memory;
++
++	ret = boottime->allocate_pool(EFI_LOADER_DATA, 2 *
++				      sizeof(struct efi_device_path_vendor) +
++				      sizeof(struct efi_device_path),
++				      (void **)&dp2);
++	if (ret != EFI_SUCCESS)
++		goto out_of_memory;
++
++	ret = boottime->allocate_pool(EFI_LOADER_DATA, 3 *
++				      sizeof(struct efi_device_path_vendor) +
++				      sizeof(struct efi_device_path),
++				      (void **)&dp3);
++	if (ret != EFI_SUCCESS)
++		goto out_of_memory;
++
++	vendor_node.dp.type = DEVICE_PATH_TYPE_HARDWARE_DEVICE;
++	vendor_node.dp.sub_type = DEVICE_PATH_SUB_TYPE_VENDOR;
++	vendor_node.dp.length = sizeof(struct efi_device_path_vendor);
++
++	boottime->copy_mem(&vendor_node.guid, &guid_vendor1,
++			   sizeof(efi_guid_t));
++	boottime->copy_mem(&vendor_node, dp1, sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(&vendor_node, dp2, sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(&vendor_node, dp3, sizeof(struct efi_device_path_vendor));
++
++	boottime->copy_mem(&vendor_node.guid, &guid_vendor2,
++			   sizeof(efi_guid_t));
++	boottime->copy_mem(&vendor_node, dp2 +
++			   sizeof(struct efi_device_path_vendor),
++			   sizeof(struct efi_device_path_vendor));
++	boottime->copy_mem(&vendor_node, dp2 +
++			   sizeof(struct efi_device_path_vendor),
++			   sizeof(struct efi_device_path_vendor));
++
++	boottime->copy_mem(&vendor_node.guid, &guid_vendor3,
++			   sizeof(efi_guid_t));
++	boottime->copy_mem(&vendor_node, dp3 +
++			   2 * sizeof(struct efi_device_path_vendor),
++			   sizeof(struct efi_device_path_vendor));
++
++	end_node.type = DEVICE_PATH_TYPE_END;
++	end_node.sub_type = DEVICE_PATH_SUB_TYPE_END;
++	end_node.length = sizeof(struct efi_device_path);
++	boottime->copy_mem(&end_node, dp1 +
++			   sizeof(struct efi_device_path_vendor),
++			   sizeof(struct efi_device_path));
++	boottime->copy_mem(&end_node, dp2 +
++			   2 * sizeof(struct efi_device_path_vendor),
++			   sizeof(struct efi_device_path));
++	boottime->copy_mem(&end_node, dp3 +
++			   3 * sizeof(struct efi_device_path_vendor),
++			   sizeof(struct efi_device_path));
++
++	
++	ret = boottime->install_protocol_interface(&handle1,
++						   &efi_guid_device_path,
++						   EFI_NATIVE_INTERFACE,
++						   &dp1);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("InstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->install_protocol_interface(&handle1,
++						   &guid_protocol,
++						   EFI_NATIVE_INTERFACE,
++						   &interface);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("InstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->install_protocol_interface(&handle2,
++						   &efi_guid_device_path,
++						   EFI_NATIVE_INTERFACE,
++						   dp2);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("InstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->install_protocol_interface(&handle2,
++						   &guid_protocol,
++						   EFI_NATIVE_INTERFACE,
++						   &interface);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("InstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->install_protocol_interface(&handle3,
++						   &efi_guid_device_path,
++						   EFI_NATIVE_INTERFACE,
++						   dp3);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("InstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	return EFI_ST_SUCCESS;
++
++out_of_memory:
++	efi_st_error("Out of memory\n");
++	return EFI_ST_FAILURE;
++}
++
++/*
++ * Tear down unit test.
++ *
++ */
++static int teardown(void)
++{
++	efi_status_t ret;
++
++	ret = boottime->uninstall_protocol_interface(&handle1,
++						     &efi_guid_device_path,
++						     dp1);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->uninstall_protocol_interface(&handle1,
++						     &guid_protocol,
++						     &interface);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->uninstall_protocol_interface(&handle2,
++						     &efi_guid_device_path,
++						     dp2);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->uninstall_protocol_interface(&handle2,
++						     &guid_protocol,
++						     &interface);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->uninstall_protocol_interface(&handle3,
++						     &efi_guid_device_path,
++						     dp3);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	if (dp1) {
++		ret = boottime->free_pool(dp1);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("FreePool failed\n");
++			return EFI_ST_FAILURE;
++		}
++	}
++	if (dp2) {
++		ret = boottime->free_pool(dp2);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("FreePool failed\n");
++			return EFI_ST_FAILURE;
++		}
++	}
++	if (dp3) {
++		ret = boottime->free_pool(dp3);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("FreePool failed\n");
++			return EFI_ST_FAILURE;
++		}
++	}
++	return EFI_ST_SUCCESS;
++}
++
++/*
++ * Execute unit test.
++ *
++ */
++static int execute(void)
++{
++	u16 *string;
++	efi_status_t ret;
++
++	string = device_path_to_text->convert_device_path_to_text(
++			(struct efi_device_path *)dp3, true, false);	
++	if (!string) {
++		efi_st_error("DevicePathToText failed\n");
++		return EFI_ST_FAILURE;
++	}
++
++	efi_st_printf("dp3: %ps\n", string);
++
++	ret = boottime->free_pool(string);	
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("FreePool failed\n");
++		return EFI_ST_FAILURE;
++	}
++	return EFI_ST_SUCCESS;
++}
++
++EFI_UNIT_TEST(devicepath) = {
++	.name = "device path",
++	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++	.teardown = teardown,
++};
+-- 
+2.14.2
+

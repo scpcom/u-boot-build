@@ -66,11 +66,14 @@ git am ../patch/0001-efi_loader-refactor-efi_setup_loaded_image.patch
 git am ../patch/0001-efi_loader-efi_console-use-helper-functions.patch
 # >>> end of protocol series 2
 # <<< start of protocol series 3
+git am ../patch/0001-efi_selftest-test-EFI_DEVICE_PATH_TO_TEXT_PROTOCOL.patch
+exit
 git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
 git am ../patch/0001-efi_loader-efi_disk-use-efi_add_protocol.patch
 git am ../patch/0001-efi_loader-efi_net-use-efi_add_protocol.patch
 git am ../patch/0001-efi_loader-efi_gop-use-efi_add_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_open_protocol.patch
+git am ../patch/0001-efi_loader-simplify-find_obj.patch
 exit
 #git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 #git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch.new
