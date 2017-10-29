@@ -78,9 +78,9 @@ git am ../patch/0001-efi_loader-efi_net-use-efi_add_protocol.patch
 git am ../patch/0001-efi_loader-efi_gop-use-efi_add_protocol.patch
 git am ../patch/0001-efi_loader-simplify-efi_open_protocol.patch
 git am ../patch/0001-efi_loader-simplify-find_obj.patch
+# git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
+git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch.new
 exit
-#git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
-#git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch.new
 # >>> end of protocol series 3
 exit
 # git am ../patch/0001-efi_loader-allow-creating-new-handles.patch

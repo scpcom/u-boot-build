@@ -1,4 +1,4 @@
-From 63d6ca6ced12afad4f99b5aaa460413da5c34711 Mon Sep 17 00:00:00 2001
+From 3bd741f4ff54df287f8005b0ab355ca2040d2f05 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 22 Oct 2017 10:16:41 +0200
 Subject: [PATCH 1/1] efi_loader: manage protocols in a linked list
@@ -6,8 +6,11 @@ Subject: [PATCH 1/1] efi_loader: manage protocols in a linked list
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |   6 ++-
- lib/efi_loader/efi_boottime.c | 104 +++++++++++++++++++-----------------------
- 2 files changed, 52 insertions(+), 58 deletions(-)
+ lib/efi_loader/efi_boottime.c | 106 ++++++++++++++++++++----------------------
+ lib/efi_loader/efi_disk.c     |   1 +
+ lib/efi_loader/efi_gop.c      |   1 +
+ lib/efi_loader/efi_net.c      |   1 +
+ 5 files changed, 57 insertions(+), 58 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index e1f0af3496..a73bbc1269 100644
@@ -34,10 +37,18 @@ index e1f0af3496..a73bbc1269 100644
  	void *handle;
  };
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 02ce7c8a5d..9e1256cec8 100644
+index b5b5512323..f2a74045e8 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -715,18 +715,17 @@ efi_status_t efi_search_protocol(const void *handle,
+@@ -339,6 +339,7 @@ efi_status_t efi_create_handle(void **handle)
+ 		return r;
+ 	memset(obj, 0, sizeof(struct efi_object));
+ 	obj->handle = obj;
++	INIT_LIST_HEAD(&obj->protocols);
+ 	list_add_tail(&obj->link, &efi_obj_list);
+ 	*handle = obj;
+ 	return r;
+@@ -715,18 +716,17 @@ efi_status_t efi_search_protocol(const void *handle,
  				 struct efi_handler **handler)
  {
  	struct efi_object *efiobj;
@@ -61,7 +72,7 @@ index 02ce7c8a5d..9e1256cec8 100644
  		if (!guidcmp(protocol->guid, protocol_guid)) {
  			if (handler)
  				*handler = protocol;
-@@ -750,7 +749,6 @@ efi_status_t efi_add_protocol(const void *handle, const efi_guid_t *protocol,
+@@ -750,7 +750,6 @@ efi_status_t efi_add_protocol(const void *handle, const efi_guid_t *protocol,
  	struct efi_object *efiobj;
  	struct efi_handler *handler;
  	efi_status_t ret;
@@ -69,7 +80,7 @@ index 02ce7c8a5d..9e1256cec8 100644
  
  	efiobj = efi_search_obj(handle);
  	if (!efiobj)
-@@ -761,16 +759,10 @@ efi_status_t efi_add_protocol(const void *handle, const efi_guid_t *protocol,
+@@ -761,16 +760,10 @@ efi_status_t efi_add_protocol(const void *handle, const efi_guid_t *protocol,
  	handler = calloc(1, sizeof(struct efi_handler));
  	if (!handler)
  		return EFI_OUT_OF_RESOURCES;
@@ -90,7 +101,7 @@ index 02ce7c8a5d..9e1256cec8 100644
  }
  
  /*
-@@ -790,10 +782,10 @@ efi_status_t efi_remove_protocol(const void *handle, const efi_guid_t *protocol,
+@@ -790,10 +783,10 @@ efi_status_t efi_remove_protocol(const void *handle, const efi_guid_t *protocol,
  	ret = efi_search_protocol(handle, protocol, &handler);
  	if (ret != EFI_SUCCESS)
  		return ret;
@@ -105,7 +116,7 @@ index 02ce7c8a5d..9e1256cec8 100644
  	return EFI_SUCCESS;
  }
  
-@@ -806,17 +798,22 @@ efi_status_t efi_remove_protocol(const void *handle, const efi_guid_t *protocol,
+@@ -806,17 +799,22 @@ efi_status_t efi_remove_protocol(const void *handle, const efi_guid_t *protocol,
  efi_status_t efi_remove_all_protocols(const void *handle)
  {
  	struct efi_object *efiobj;
@@ -134,7 +145,15 @@ index 02ce7c8a5d..9e1256cec8 100644
  	}
  	return EFI_SUCCESS;
  }
-@@ -1676,8 +1673,7 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
+@@ -1166,6 +1164,7 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
+ 	if (device_path)
+ 		info->device_handle = efi_dp_find_obj(device_path, NULL);
+ 
++	INIT_LIST_HEAD(&obj->protocols);
+ 	list_add_tail(&obj->link, &efi_obj_list);
+ 	/*
+ 	 * When asking for the device path interface, return
+@@ -1646,8 +1645,7 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
  {
  	unsigned long buffer_size;
  	struct efi_object *efiobj;
@@ -144,7 +163,7 @@ index 02ce7c8a5d..9e1256cec8 100644
  	efi_status_t r;
  
  	EFI_ENTRY("%p, %p, %p", handle, protocol_buffer,
-@@ -1688,36 +1684,32 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
+@@ -1658,36 +1656,32 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
  
  	*protocol_buffer = NULL;
  	*protocol_buffer_count = 0;
@@ -204,6 +223,42 @@ index 02ce7c8a5d..9e1256cec8 100644
  	}
  
  	return EFI_EXIT(EFI_SUCCESS);
+diff --git a/lib/efi_loader/efi_disk.c b/lib/efi_loader/efi_disk.c
+index 1d6cf3122f..af8db40e19 100644
+--- a/lib/efi_loader/efi_disk.c
++++ b/lib/efi_loader/efi_disk.c
+@@ -224,6 +224,7 @@ static void efi_disk_add_dev(const char *name,
+ 		goto out_of_memory;
+ 
+ 	/* Hook up to the device list */
++	INIT_LIST_HEAD(&diskobj->parent.protocols);
+ 	list_add_tail(&diskobj->parent.link, &efi_obj_list);
+ 
+ 	/* Fill in object data */
+diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
+index 7b74d6ef33..498184d754 100644
+--- a/lib/efi_loader/efi_gop.c
++++ b/lib/efi_loader/efi_gop.c
+@@ -180,6 +180,7 @@ int efi_gop_register(void)
+ 	}
+ 
+ 	/* Hook up to the device list */
++	INIT_LIST_HEAD(&gopobj->parent.protocols);
+ 	list_add_tail(&gopobj->parent.link, &efi_obj_list);
+ 
+ 	/* Fill in object data */
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index 8b2f682351..74a67c5365 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -296,6 +296,7 @@ int efi_net_register(void)
+ 		goto out_of_memory;
+ 
+ 	/* Hook net up to the device list */
++	INIT_LIST_HEAD(&netobj->parent.protocols);
+ 	list_add_tail(&netobj->parent.link, &efi_obj_list);
+ 
+ 	/* Fill in object data */
 -- 
 2.14.2
 
