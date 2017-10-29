@@ -33,7 +33,6 @@ git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
 # >>> end of watchdog series
 
 # EFI protocol services
-# git am ../patch/0001-DO-NOT-MERGE-let-uninstall-protocol-always-succeed.patch
 # <<< start of protocol series
 git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
 git am ../patch/0001-efi_selftest-test-protocol-management.patch
@@ -82,8 +81,6 @@ git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 exit
 # >>> end of protocol series 3
 exit
-# git am ../patch/0001-efi_loader-allow-creating-new-handles.patch
-# git am ../patch/0001-efi_loader-support-16-protocols-per-efi_object.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
 git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
@@ -94,8 +91,4 @@ git am ../patch/0001-efi_loader-implement-DisconnectController.patch
 
 # Work in progress
 # git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch
-
-# git am ../patch/0001-tools-elf2efi-add-tool-elf2efi.patch
-# git am ../patch/0001-elf2efi.c-ignore-R_ARM_V4BX.patch
 # git am ../patch/0001-efi_loader-allow-multiple-source-files-for-EFI-apps.patch
-# git am ../patch/0001-efi_selftest-provide-an-EFI-selftest-application.patch
