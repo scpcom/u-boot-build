@@ -1,0 +1,54 @@
+From 5081b84c21242d140e608ee39a68d2b6091ae2ad Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 30 Oct 2017 19:55:17 +0100
+Subject: [PATCH 1/1] efi_selftest: compile without special compiler flags
+
+As the selftest is not compiled as an EFI binary we do not
+need special compiler flags.
+
+This avoids the checkarmreloc error on vexpress_ca15_tc2.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/Makefile | 25 -------------------------
+ 1 file changed, 25 deletions(-)
+
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index d280eca5c3..837e86228e 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -7,31 +7,6 @@
+ # This file only gets included with CONFIG_EFI_LOADER set, so all
+ # object inclusion implicitly depends on it
+ 
+-CFLAGS_efi_selftest.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_console.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_console.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_devicepathe.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_devicepath.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_events.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_events.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_exitbootservices.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_exitbootservices.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_gop.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_gop.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_manageprotocols.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_manageprotocols.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_snp.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_snp.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_textoutput.o := $(CFLAGS_EFI)
+-CFLAGS_REVMOE_efi_selftest_textoutput.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_tpl.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_tpl.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_util.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_util.o := $(CFLAGS_NON_EFI)
+-CFLAGS_efi_selftest_watchdog.o := $(CFLAGS_EFI)
+-CFLAGS_REMOVE_efi_selftest_watchdog.o := $(CFLAGS_NON_EFI)
+-
+ obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
+ efi_selftest.o \
+ efi_selftest_console.o \
+-- 
+2.14.1
+
