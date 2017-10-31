@@ -124,7 +124,7 @@ index 3f23e6d638..411d202fa3 100644
 +	}
 +	if (len_best) {
 +		remainder = (u8 *)*device_path + len_best;
-+		*device_path = (struct efi_device_path *) remainder;
++		*device_path = (struct efi_device_path *)remainder;
 +		ret = EFI_SUCCESS;
 +	} else {
 +		ret = EFI_NOT_FOUND;
