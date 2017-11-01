@@ -1,4 +1,4 @@
-From 3bd741f4ff54df287f8005b0ab355ca2040d2f05 Mon Sep 17 00:00:00 2001
+From 8f6824951633841d3cbd8fad2f7f20d0282e7f61 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 22 Oct 2017 10:16:41 +0200
 Subject: [PATCH 1/1] efi_loader: manage protocols in a linked list
@@ -6,11 +6,11 @@ Subject: [PATCH 1/1] efi_loader: manage protocols in a linked list
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |   6 ++-
- lib/efi_loader/efi_boottime.c | 106 ++++++++++++++++++++----------------------
+ lib/efi_loader/efi_boottime.c | 107 ++++++++++++++++++++----------------------
  lib/efi_loader/efi_disk.c     |   1 +
  lib/efi_loader/efi_gop.c      |   1 +
  lib/efi_loader/efi_net.c      |   1 +
- 5 files changed, 57 insertions(+), 58 deletions(-)
+ 5 files changed, 58 insertions(+), 58 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index e1f0af3496..a73bbc1269 100644
@@ -37,7 +37,7 @@ index e1f0af3496..a73bbc1269 100644
  	void *handle;
  };
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index b5b5512323..f2a74045e8 100644
+index 2b3db162a1..cee0cb1390 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -339,6 +339,7 @@ efi_status_t efi_create_handle(void **handle)
@@ -131,13 +131,13 @@ index b5b5512323..f2a74045e8 100644
 +	list_for_each_safe(lhandle, pos, &efiobj->protocols) {
 +		struct efi_handler *protocol;
 +		efi_status_t ret;
-+
-+		protocol = list_entry(lhandle, struct efi_handler, link);
  
 -	for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
 -		handler = &efiobj->protocols[i];
 -		handler->guid = NULL;
 -		handler->protocol_interface = NULL;
++		protocol = list_entry(lhandle, struct efi_handler, link);
++
 +		ret = efi_remove_protocol(handle, protocol->guid,
 +					  protocol->protocol_interface);
 +		if (ret != EFI_SUCCESS)
@@ -145,7 +145,7 @@ index b5b5512323..f2a74045e8 100644
  	}
  	return EFI_SUCCESS;
  }
-@@ -1166,6 +1164,7 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
+@@ -1171,6 +1169,7 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
  	if (device_path)
  		info->device_handle = efi_dp_find_obj(device_path, NULL);
  
@@ -153,7 +153,7 @@ index b5b5512323..f2a74045e8 100644
  	list_add_tail(&obj->link, &efi_obj_list);
  	/*
  	 * When asking for the device path interface, return
-@@ -1646,8 +1645,7 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
+@@ -1648,8 +1647,7 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
  {
  	unsigned long buffer_size;
  	struct efi_object *efiobj;
@@ -163,7 +163,7 @@ index b5b5512323..f2a74045e8 100644
  	efi_status_t r;
  
  	EFI_ENTRY("%p, %p, %p", handle, protocol_buffer,
-@@ -1658,36 +1656,32 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
+@@ -1660,36 +1658,33 @@ static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
  
  	*protocol_buffer = NULL;
  	*protocol_buffer_count = 0;
@@ -199,8 +199,9 @@ index b5b5512323..f2a74045e8 100644
 -				}
 -			}
 +	/* Count protocols */
-+	list_for_each(protocol_handle, &efiobj->protocols)
++	list_for_each(protocol_handle, &efiobj->protocols) {
 +		++*protocol_buffer_count;
++	}
 +
 +	/* Copy guids */
 +	if (*protocol_buffer_count) {
