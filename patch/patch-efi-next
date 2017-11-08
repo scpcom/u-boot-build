@@ -10,6 +10,7 @@ git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # <<< start of protocol series 3
 git am ../patch/0001-efi_loader-efi_bootmgr-do-not-make-hidden-assignment.patch
+exit
 git am ../patch/0001-efi_loader-size-of-media-device-path-node-represenat.patch
 git am ../patch/0001-efi_loader-efi_dp_str-should-print-path-not-node.patch
 git am ../patch/0001-efi_loader-fix-efi_convert_device_node_to_text.patch
