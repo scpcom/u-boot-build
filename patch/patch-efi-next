@@ -1,5 +1,6 @@
 #!/bin/sh
 # git am ../patch/0001-x86-provide-CONFIG_BUILD_ROM.patch
+git am ../patch/0001-scripts-ld-version.sh-regular-expression-compile-fai.patch
 git am ../patch/0001-tpm-add-missing-va_end.patch
 git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
