@@ -8,63 +8,6 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
-# Implement Watchdog
-# <<< start of watchdog series
-git am ../patch/0001-efi_loader-move-efi_search_obj-up-in-code.patch
-git am ../patch/0001-efi_loader-implement-SetWatchdogTimer.patch
-git am ../patch/0001-efi_selftest-provide-test-for-watchdog-timer.patch
-git am ../patch/0001-efi_loader-new-function-utf8_to_utf16.patch
-git am ../patch/0001-efi_loader-guard-against-double-inclusion-of-efi_loa.patch
-git am ../patch/0001-efi_loader-consistently-use-efi_status_t-in-bootefi.patch
-git am ../patch/0001-efi_selftest-provide-a-dummy-device-path.patch
-git am ../patch/0001-efi_selftest-reformat-code.patch
-git am ../patch/0001-efi_selftest-efi_st_memcmp-should-return-0.patch
-git am ../patch/0001-efi_selftest-deduplicate-code.patch
-git am ../patch/0001-efi_selftest-allow-to-select-a-single-test-for-exexu.patch
-git am ../patch/0001-efi_selftest-correctly-cleanup-after-selftest.patch
-git am ../patch/0001-efi_loader-use-bootargs-as-load-options.patch
-git am ../patch/0001-efi_selftest-test-reboot-by-watchdog.patch
-git am ../patch/0001-test-py-test-reboot-by-EFI-watchdog.patch
-git am ../patch/0001-test-py-fix-typo-in-test_efi_loader.py.patch
-git am ../patch/0001-efi_selftest-provide-test-for-EFI_SIMPLE_TEXT_OUTPUT.patch
-
-# Image loading
-git am ../patch/0001-efi_loader-set-parent-handle-in-efi_load_image.patch
-# >>> end of watchdog series
-
-# EFI protocol services
-# <<< start of protocol series
-git am ../patch/0001-efi_loader-capitalize-EFI_LOCATE_SEARCH_TYPE-values.patch
-git am ../patch/0001-efi_selftest-test-protocol-management.patch
-exit
-git am ../patch/0001-efi_loader-eliminate-efi_install_protocol_interface_.patch
-git am ../patch/0001-efi_loader-eliminate-efi_uninstall_protocol_interfac.patch
-git am ../patch/0001-efi_loader-remove-unused-typedef-for-INTN.patch
-git am ../patch/0001-efi_loader-replace-UINTN-by-efi_uintn_t.patch
-git am ../patch/0001-efi_loader-consistently-use-efi_uintn_t-in-boot-serv.patch
-git am ../patch/0001-efi_loader-rework-efi_locate_handle.patch
-git am ../patch/0001-efi_loader-rework-efi_search_obj.patch
-# >>> end of protocol series
-# <<< start of protocol series 2
-git am ../patch/0001-efi_loader-fix-typo-efi_install_multiple_protocol_in.patch
-git am ../patch/0001-efi_loader-debug-output-efi_install_protocol_interfa.patch
-git am ../patch/0001-efi_loader-implement-UninstallMultipleProtocolInterf.patch
-git am ../patch/0001-efi_loader-efi_gop-check-calloc-return-value.patch
-git am ../patch/0001-efi_loader-efi_disk-check-return-value-of-calloc.patch
-git am ../patch/0001-efi_loader-efi_net-check-return-value-of-calloc.patch
-git am ../patch/0001-efi_loader-efi_dp_match-should-have-const-arguments.patch
-git am ../patch/0001-efi_loader-make-efi_create_handle-non-static.patch
-git am ../patch/0001-efi_loader-argument-of-efi_search_obj-should-be-cons.patch
-git am ../patch/0001-efi_loader-efi_gop-use-correct-types-for-parameters.patch
-git am ../patch/0001-efi_selftest-test-for-graphics-output-protocol.patch
-git am ../patch/0001-efi_loader-helper-functions-for-protocol-management.patch
-git am ../patch/0001-efi_loader-simplify-efi_install_protocol_interface.patch
-git am ../patch/0001-efi_loader-simplify-efi_search.patch
-git am ../patch/0001-efi_loader-simplify-efi_uninstall_protocol_interface.patch
-git am ../patch/0001-efi_loader-simplify-efi_locate_protocol.patch
-git am ../patch/0001-efi_loader-refactor-efi_setup_loaded_image.patch
-git am ../patch/0001-efi_loader-efi_console-use-helper-functions.patch
-# >>> end of protocol series 2
 # <<< start of protocol series 3
 git am ../patch/0001-efi_loader-efi_bootmgr-do-not-make-hidden-assignment.patch
 git am ../patch/0001-efi_loader-size-of-media-device-path-node-represenat.patch
