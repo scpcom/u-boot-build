@@ -1,5 +1,5 @@
 #!/bin/sh
-# git am ../patch/0001-x86-provide-CONFIG_BUILD_ROM.patch
+git am ../patch/0001-Move-Cache-As-RAM-memory-from-area-mapped-to-ROM-in-.patch
 git am ../patch/0001-scripts-ld-version.sh-regular-expression-compile-fai.patch
 git am ../patch/0001-tpm-add-missing-va_end.patch
 git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
@@ -11,7 +11,6 @@ git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
 # <<< start of protocol series 3
 git am ../patch/0001-efi_loader-efi_bootmgr-do-not-make-hidden-assignment.patch
-exit
 git am ../patch/0001-efi_loader-size-of-media-device-path-node-represenat.patch
 git am ../patch/0001-efi_loader-efi_dp_str-should-print-path-not-node.patch
 git am ../patch/0001-efi_loader-fix-efi_convert_device_node_to_text.patch
