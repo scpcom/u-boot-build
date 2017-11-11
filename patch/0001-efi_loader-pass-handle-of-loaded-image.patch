@@ -1,0 +1,63 @@
+From 0a237d16dcc3d081a5349901156bbf2695c49584 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 11 Nov 2017 13:08:10 +0100
+Subject: [PATCH 1/1] efi_loader: pass handle of loaded image
+
+The handle of a loaded imaged is the value of the handle
+member of the loaded image info object and not the
+address of the loaded image info.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c                 | 7 ++++---
+ lib/efi_loader/efi_boottime.c | 2 +-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 67855ba685..e6b8ec11d5 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -254,7 +254,8 @@ static efi_status_t do_bootefi_exec(void *efi, void *fdt,
+ 		dcache_disable();	/* flush cache before switch to EL2 */
+ 
+ 		/* Move into EL2 and keep running there */
+-		armv8_switch_to_el2((ulong)entry, (ulong)&loaded_image_info,
++		armv8_switch_to_el2((ulong)entry,
++				    (ulong)&loaded_image_info_obj.handle,
+ 				    (ulong)&systab, 0, (ulong)efi_run_in_el2,
+ 				    ES_TO_AARCH64);
+ 
+@@ -263,7 +264,7 @@ static efi_status_t do_bootefi_exec(void *efi, void *fdt,
+ 	}
+ #endif
+ 
+-	ret = efi_do_enter(&loaded_image_info, &systab, entry);
++	ret = efi_do_enter(loaded_image_info_obj.handle, &systab, entry);
+ 
+ exit:
+ 	/* image has returned, loaded-image obj goes *poof*: */
+@@ -350,7 +351,7 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ 		/* Transfer environment variable efi_selftest as load options */
+ 		set_load_options(&loaded_image_info, "efi_selftest");
+ 		/* Execute the test */
+-		r = efi_selftest(&loaded_image_info, &systab);
++		r = efi_selftest(loaded_image_info_obj.handle, &systab);
+ 		efi_restore_gd();
+ 		free(loaded_image_info.load_options);
+ 		list_del(&loaded_image_info_obj.link);
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index cee0cb1390..9218379a28 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1317,7 +1317,7 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
+ 
+ 	info->system_table = &systab;
+ 	info->parent_handle = parent_image;
+-	*image_handle = info;
++	*image_handle = obj->handle;
+ 
+ 	return EFI_EXIT(EFI_SUCCESS);
+ }
+-- 
+2.15.0
+

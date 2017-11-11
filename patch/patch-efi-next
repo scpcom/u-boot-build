@@ -25,6 +25,7 @@ git am ../patch/0001-efi_loader-simplify-find_obj.patch
 git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
 git am ../patch/0001-efi_selftest-compile-without-special-compiler-flags.patch
 git am ../patch/0001-efi_selftest-add-missing-line-feed.patch
+git am ../patch/0001-efi_loader-pass-handle-of-loaded-image.patch
 # >>> end of protocol series 3
 exit
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
