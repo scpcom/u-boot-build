@@ -40,7 +40,7 @@ index 77130a36dd..35bf560d4e 100644
 +	struct efi_loaded_image *loaded_image;
 +	efi_status_t ret;
 +
-+	con_out->output_string(con_out, L"Hello, world!\n\n");
++	con_out->output_string(con_out, L"Hello, world!\n");
 +
 +	/* Get the loaded image protocol */
 +	ret = boottime->handle_protocol(handle, &efi_loaded_image_guid,
