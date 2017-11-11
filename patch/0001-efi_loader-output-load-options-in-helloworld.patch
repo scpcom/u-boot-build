@@ -1,0 +1,73 @@
+From 62b5279a821351fb174c9238a4b533538efd7577 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 11 Nov 2017 13:47:22 +0100
+Subject: [PATCH 1/1] efi_loader: output load options in helloworld
+
+We need to test if we pass a valid image handle when loading
+and EFI application. This cannot be done in efi_selftest as
+it is not loaded as an image.
+
+So let's enhance helloworld a bit.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/helloworld.c | 33 ++++++++++++++++++++++++++++++---
+ 1 file changed, 30 insertions(+), 3 deletions(-)
+
+diff --git a/lib/efi_loader/helloworld.c b/lib/efi_loader/helloworld.c
+index 77130a36dd..35bf560d4e 100644
+--- a/lib/efi_loader/helloworld.c
++++ b/lib/efi_loader/helloworld.c
+@@ -5,19 +5,46 @@
+  * Written by Simon Glass <sjg@chromium.org>
+  *
+  * SPDX-License-Identifier:     GPL-2.0+
++ *
++ * This program demonstrates calling a boottime service.
++ * It writes a greeting and the load options to the console.
+  */
+ 
+ #include <common.h>
+ #include <efi_api.h>
+ 
++const efi_guid_t efi_loaded_image_guid = LOADED_IMAGE_GUID;
++
+ efi_status_t EFIAPI efi_main(efi_handle_t handle,
+ 			     struct efi_system_table *systable)
+ {
+ 	struct efi_simple_text_output_protocol *con_out = systable->con_out;
+ 	struct efi_boot_services *boottime = systable->boottime;
++	struct efi_loaded_image *loaded_image;
++	efi_status_t ret;
++
++	con_out->output_string(con_out, L"Hello, world!\n\n");
++
++	/* Get the loaded image protocol */
++	ret = boottime->handle_protocol(handle, &efi_loaded_image_guid,
++					(void **)&loaded_image);
++	if (ret != EFI_SUCCESS) {
++		con_out->output_string(con_out,
++				       L"Cannot open loaded image protocol\n");
++		goto out;
++	}
++	/* Output the load options */
++	con_out->output_string(con_out, L"Load options: ");
++	if (loaded_image->load_options)
++		con_out->output_string(con_out,
++				       (u16 *)loaded_image->load_options);
++	else
++		con_out->output_string(con_out, L"<none>");
++	con_out->output_string(con_out, L"\n");
+ 
+-	con_out->output_string(con_out, L"Hello, world!\n");
+-	boottime->exit(handle, 0, 0, NULL);
++out:
++	boottime->exit(handle, ret, 0, NULL);
+ 
+-	return EFI_SUCCESS;
++	/* We should never arrive here */
++	return ret;
+ }
+-- 
+2.15.0
+
