@@ -1,7 +1,8 @@
-From 47d8115577dad7d3984a2d2e7a53e4fb3dfb97cc Mon Sep 17 00:00:00 2001
+From 816ff2929ed15da3670e8316e14ed2a3116343d7 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 11 Nov 2017 13:11:29 +0100
-Subject: [PATCH 1/1] efi_loader: helper function to add EFI object to list
+Subject: [PATCH v2 18/18] efi_loader: helper function to add EFI object to
+ list
 
 To avoid duplicate coding provide a helper function that
 initializes an EFI object and adds it to the EFI object
@@ -12,6 +13,9 @@ to obtain a protocol interface. Add a comment to the function.
 
 Suggested-by: Alexander Graf <agraf@suse.de>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	new patch
 ---
  include/efi_loader.h          |  2 ++
  lib/efi_loader/efi_boottime.c | 39 ++++++++++++++++++++++++++++++++-------
@@ -37,7 +41,7 @@ diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
 index 9218379a28..ce38619831 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -321,6 +321,22 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
+@@ -321,6 +321,23 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
  	return EFI_EXIT(r);
  }
  
@@ -49,7 +53,8 @@ index 9218379a28..ce38619831 100644
 + *
 + * @obj	object to be added
 + */
-+void efi_add_handle(struct efi_object *obj) {
++void efi_add_handle(struct efi_object *obj)
++{
 +	if (!obj)
 +		return;
 +	INIT_LIST_HEAD(&obj->protocols);
