@@ -1,0 +1,33 @@
+From ac683cf6e0f90fc98a4c7563731fd946eeb539ac Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 26 Oct 2017 18:43:53 +0200
+Subject: [PATCH 1/1] QUIRK: make UninstallProtocolInterface succeed.
+
+Do not check controllers.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 70099c39b1..48c5d4eab3 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -919,12 +921,7 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(
+ 	r = efi_search_protocol(handle, protocol, &handler);
+ 	if (r != EFI_SUCCESS)
+ 		goto out;
+-	if (handler->protocol_interface) {
+-		/* TODO disconnect controllers */
+-		r =  EFI_ACCESS_DENIED;
+-	} else {
+-		r = efi_remove_protocol(handle, protocol, protocol_interface);
+-	}
++	r = efi_remove_protocol(handle, protocol, protocol_interface);
+ out:
+ 	return EFI_EXIT(r);
+ }
+-- 
+2.11.0
+

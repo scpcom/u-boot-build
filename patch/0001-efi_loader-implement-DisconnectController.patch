@@ -97,7 +97,7 @@ index c24c57dd78..916f91923e 100644
 +	return EFI_EXIT(r);
  }
  
- efi_status_t EFIAPI efi_close_protocol(void *handle, const efi_guid_t *protocol,
+ /*
 -- 
 2.14.1
 

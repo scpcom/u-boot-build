@@ -1,0 +1,173 @@
+From 816ff2929ed15da3670e8316e14ed2a3116343d7 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 11 Nov 2017 13:11:29 +0100
+Subject: [PATCH v2 18/18] efi_loader: helper function to add EFI object to
+ list
+
+To avoid duplicate coding provide a helper function that
+initializes an EFI object and adds it to the EFI object
+list.
+
+efi_exit() is the only place where we dereference a handle
+to obtain a protocol interface. Add a comment to the function.
+
+Suggested-by: Alexander Graf <agraf@suse.de>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	new patch
+---
+ include/efi_loader.h          |  2 ++
+ lib/efi_loader/efi_boottime.c | 39 ++++++++++++++++++++++++++++++++-------
+ lib/efi_loader/efi_disk.c     |  4 +---
+ lib/efi_loader/efi_gop.c      |  4 +---
+ lib/efi_loader/efi_net.c      |  4 +---
+ 5 files changed, 37 insertions(+), 16 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index a73bbc1269..c0caabddb1 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -186,6 +186,8 @@ void efi_restore_gd(void);
+ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map);
+ /* Call this to set the current device name */
+ void efi_set_bootdev(const char *dev, const char *devnr, const char *path);
++/* Add a new object to the object list. */
++void efi_add_handle(struct efi_object *obj);
+ /* Create handle */
+ efi_status_t efi_create_handle(void **handle);
+ /* Call this to validate a handle and find the EFI object for it */
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 9218379a28..ce38619831 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -321,6 +321,23 @@ static efi_status_t EFIAPI efi_free_pool_ext(void *buffer)
+ 	return EFI_EXIT(r);
+ }
+ 
++/*
++ * Add a new object to the object list.
++ *
++ * The protocols list is initialized.
++ * The object handle is set.
++ *
++ * @obj	object to be added
++ */
++void efi_add_handle(struct efi_object *obj)
++{
++	if (!obj)
++		return;
++	INIT_LIST_HEAD(&obj->protocols);
++	obj->handle = obj;
++	list_add_tail(&obj->link, &efi_obj_list);
++}
++
+ /*
+  * Create handle.
+  *
+@@ -337,11 +353,8 @@ efi_status_t efi_create_handle(void **handle)
+ 			      (void **)&obj);
+ 	if (r != EFI_SUCCESS)
+ 		return r;
+-	memset(obj, 0, sizeof(struct efi_object));
+-	obj->handle = obj;
+-	INIT_LIST_HEAD(&obj->protocols);
+-	list_add_tail(&obj->link, &efi_obj_list);
+-	*handle = obj;
++	efi_add_handle(obj);
++	*handle = obj->handle;
+ 	return r;
+ }
+ 
+@@ -1163,14 +1176,15 @@ void efi_setup_loaded_image(struct efi_loaded_image *info, struct efi_object *ob
+ {
+ 	efi_status_t ret;
+ 
++	/* Add internal object to object list */
++	efi_add_handle(obj);
++	/* efi_exit() assumes that the handle points to the info */
+ 	obj->handle = info;
+ 
+ 	info->file_path = file_path;
+ 	if (device_path)
+ 		info->device_handle = efi_dp_find_obj(device_path, NULL);
+ 
+-	INIT_LIST_HEAD(&obj->protocols);
+-	list_add_tail(&obj->link, &efi_obj_list);
+ 	/*
+ 	 * When asking for the device path interface, return
+ 	 * bootefi_device_path
+@@ -1379,6 +1393,17 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
+ 			efi_status_t exit_status, unsigned long exit_data_size,
+ 			int16_t *exit_data)
+ {
++	/*
++	 * We require that the handle points to the original loaded
++	 * image protocol interface.
++	 *
++	 * For getting the longjmp address this is safer than locating
++	 * the protocol because the protocol may have been reinstalled
++	 * pointing to another memory location.
++	 *
++	 * TODO: We should call the unload procedure of the loaded
++	 *	 image protocol.
++	 */
+ 	struct efi_loaded_image *loaded_image_info = (void*)image_handle;
+ 
+ 	EFI_ENTRY("%p, %ld, %ld, %p", image_handle, exit_status,
+diff --git a/lib/efi_loader/efi_disk.c b/lib/efi_loader/efi_disk.c
+index af8db40e19..68ba2cf7b2 100644
+--- a/lib/efi_loader/efi_disk.c
++++ b/lib/efi_loader/efi_disk.c
+@@ -224,13 +224,11 @@ static void efi_disk_add_dev(const char *name,
+ 		goto out_of_memory;
+ 
+ 	/* Hook up to the device list */
+-	INIT_LIST_HEAD(&diskobj->parent.protocols);
+-	list_add_tail(&diskobj->parent.link, &efi_obj_list);
++	efi_add_handle(&diskobj->parent);
+ 
+ 	/* Fill in object data */
+ 	diskobj->dp = efi_dp_from_part(desc, part);
+ 	diskobj->part = part;
+-	diskobj->parent.handle = diskobj;
+ 	ret = efi_add_protocol(diskobj->parent.handle, &efi_block_io_guid,
+ 			       &diskobj->ops);
+ 	if (ret != EFI_SUCCESS)
+diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
+index 498184d754..3caddd5f84 100644
+--- a/lib/efi_loader/efi_gop.c
++++ b/lib/efi_loader/efi_gop.c
+@@ -180,11 +180,9 @@ int efi_gop_register(void)
+ 	}
+ 
+ 	/* Hook up to the device list */
+-	INIT_LIST_HEAD(&gopobj->parent.protocols);
+-	list_add_tail(&gopobj->parent.link, &efi_obj_list);
++	efi_add_handle(&gopobj->parent);
+ 
+ 	/* Fill in object data */
+-	gopobj->parent.handle = &gopobj->ops;
+ 	ret = efi_add_protocol(gopobj->parent.handle, &efi_gop_guid,
+ 			       &gopobj->ops);
+ 	if (ret != EFI_SUCCESS) {
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index 74a67c5365..8c5d5b492c 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -296,11 +296,9 @@ int efi_net_register(void)
+ 		goto out_of_memory;
+ 
+ 	/* Hook net up to the device list */
+-	INIT_LIST_HEAD(&netobj->parent.protocols);
+-	list_add_tail(&netobj->parent.link, &efi_obj_list);
++	efi_add_handle(&netobj->parent);
+ 
+ 	/* Fill in object data */
+-	netobj->parent.handle = &netobj->net;
+ 	r = efi_add_protocol(netobj->parent.handle, &efi_net_guid,
+ 			     &netobj->net);
+ 	if (r != EFI_SUCCESS)
+-- 
+2.15.0
+

@@ -1,4 +1,4 @@
-From f02a6efba17c0648d07eb94d58a3b588a235803f Mon Sep 17 00:00:00 2001
+From 9d202e274f568c4266eeb21079ff7209e1e0020b Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 1 Aug 2017 08:00:01 +0200
 Subject: [PATCH 1/1] efi_loader: implement ConnectController
@@ -11,10 +11,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  3 files changed, 141 insertions(+), 1 deletion(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index aa7b66a254..d585166a5f 100644
+index b1e73f6789..e811a79e8f 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
-@@ -735,4 +735,26 @@ struct efi_file_info {
+@@ -745,4 +745,26 @@ struct efi_file_info {
  	s16 file_name[0];
  };
  
@@ -42,7 +42,7 @@ index aa7b66a254..d585166a5f 100644
 +
  #endif
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 7bd95f9866..26bc710fc3 100644
+index 51e7136ae0..8487eee9a5 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -85,6 +85,7 @@ uint16_t *efi_dp_str(struct efi_device_path *dp);
@@ -54,10 +54,10 @@ index 7bd95f9866..26bc710fc3 100644
  extern const efi_guid_t efi_guid_device_path_to_text_protocol;
  extern const efi_guid_t efi_simple_file_system_protocol_guid;
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 38e47e1b5c..a033fc93fc 100644
+index eff10d39a7..56aebc4c5c 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -19,6 +19,14 @@
+@@ -20,6 +20,14 @@
  
  DECLARE_GLOBAL_DATA_PTR;
  
@@ -72,7 +72,7 @@ index 38e47e1b5c..a033fc93fc 100644
  /* Task priority level */
  static size_t efi_tpl = TPL_APPLICATION;
  
-@@ -53,6 +61,9 @@ static struct efi_configuration_table __efi_runtime_data efi_conf_table[2];
+@@ -54,6 +62,9 @@ static struct efi_configuration_table __efi_runtime_data efi_conf_table[2];
  static volatile void *efi_gd, *app_gd;
  #endif
  
@@ -82,7 +82,7 @@ index 38e47e1b5c..a033fc93fc 100644
  static int entry_count;
  static int nesting_level;
  
-@@ -1085,15 +1096,121 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1493,6 +1504,94 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  	return efi_unsupported(__func__);
  }
  
@@ -174,9 +174,10 @@ index 38e47e1b5c..a033fc93fc 100644
 +	return EFI_SUCCESS;
 +}
 +
- static efi_status_t EFIAPI efi_connect_controller(
- 			efi_handle_t controller_handle,
- 			efi_handle_t *driver_image_handle,
+ /*
+  * Connect a controller to a driver.
+  *
+@@ -1512,9 +1611,27 @@ static efi_status_t EFIAPI efi_connect_controller(
  			struct efi_device_path *remain_device_path,
  			bool recursive)
  {
@@ -204,7 +205,7 @@ index 38e47e1b5c..a033fc93fc 100644
 +	return EFI_EXIT(r);
  }
  
- static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
+ /*
 -- 
 2.14.1
 

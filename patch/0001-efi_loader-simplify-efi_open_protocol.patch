@@ -1,0 +1,77 @@
+From c55cd7bf53a208611583b5cffa1cf77ca94a9fc3 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 22 Oct 2017 10:16:41 +0200
+Subject: [PATCH 1/1] efi_loader: simplify efi_open_protocol
+
+Use function efi_search_protocol.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 36 ++++++------------------------------
+ 1 file changed, 6 insertions(+), 30 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 9e1256cec8..8113cb5ac4 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1995,8 +1995,7 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 			void **protocol_interface, void *agent_handle,
+ 			void *controller_handle, uint32_t attributes)
+ {
+-	struct list_head *lhandle;
+-	int i;
++	struct efi_handler *handler;
+ 	efi_status_t r = EFI_INVALID_PARAMETER;
+ 
+ 	EFI_ENTRY("%p, %pUl, %p, %p, %p, 0x%x", handle, protocol,
+@@ -2009,8 +2008,6 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 		goto out;
+ 	}
+ 
+-	EFI_PRINT_GUID("protocol", protocol);
+-
+ 	switch (attributes) {
+ 	case EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL:
+ 	case EFI_OPEN_PROTOCOL_GET_PROTOCOL:
+@@ -2031,33 +2028,12 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 		goto out;
+ 	}
+ 
+-	list_for_each(lhandle, &efi_obj_list) {
+-		struct efi_object *efiobj;
+-		efiobj = list_entry(lhandle, struct efi_object, link);
+-
+-		if (efiobj->handle != handle)
+-			continue;
+-
+-		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
+-			struct efi_handler *handler = &efiobj->protocols[i];
+-			const efi_guid_t *hprotocol = handler->guid;
+-			if (!hprotocol)
+-				continue;
+-			if (!guidcmp(hprotocol, protocol)) {
+-				if (attributes !=
+-				    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
+-					*protocol_interface =
+-						handler->protocol_interface;
+-				}
+-				r = EFI_SUCCESS;
+-				goto out;
+-			}
+-		}
+-		goto unsupported;
+-	}
++	r = efi_search_protocol(handle, protocol, &handler);
++	if (r != EFI_SUCCESS)
++		goto out;
+ 
+-unsupported:
+-	r = EFI_UNSUPPORTED;
++	if (attributes != EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
++		*protocol_interface = handler->protocol_interface;
+ out:
+ 	return EFI_EXIT(r);
+ }
+-- 
+2.14.2
+

@@ -1,6 +1,6 @@
-From e435705354c95ea172ff3b9566e5623035bbe248 Mon Sep 17 00:00:00 2001
+From e1cf05675a52630bcc0c0c938106d1c2f65a9677 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Sat, 22 Jul 2017 09:22:54 +0200
+Date: Thu, 5 Oct 2017 00:38:13 +0200
 Subject: [PATCH 1/1] efi_loader: open_info in OpenProtocol
 
 efi_open_protocol and close_protocol have to keep track of
@@ -21,10 +21,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  2 files changed, 105 insertions(+), 32 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 6d87efdd33..5abdc02661 100644
+index e765129232..c4460c8986 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -98,6 +98,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
+@@ -100,6 +100,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
  struct efi_handler {
  	const efi_guid_t *guid;
  	void *protocol_interface;
@@ -33,11 +33,11 @@ index 6d87efdd33..5abdc02661 100644
  
  /*
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 3dba1532de..3d18e1cdf3 100644
+index e191b3202d..6708941a4f 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1213,24 +1213,111 @@ static void EFIAPI efi_set_mem(void *buffer, unsigned long size, uint8_t value)
- 	memset(buffer, value, size);
+@@ -1875,6 +1875,96 @@ static void EFIAPI efi_set_mem(void *buffer, size_t size, uint8_t value)
+ 	EFI_EXIT(EFI_SUCCESS);
  }
  
 +static efi_status_t efi_protocol_open(
@@ -130,8 +130,10 @@ index 3dba1532de..3d18e1cdf3 100644
 +	return EFI_SUCCESS;
 +}
 +
- static efi_status_t EFIAPI efi_open_protocol(
- 			void *handle, efi_guid_t *protocol,
+ /*
+  * Open protocol interface on a handle.
+  *
+@@ -1895,19 +1985,16 @@ static efi_status_t EFIAPI efi_open_protocol(
  			void **protocol_interface, void *agent_handle,
  			void *controller_handle, uint32_t attributes)
  {
@@ -154,7 +156,7 @@ index 3dba1532de..3d18e1cdf3 100644
  
  	EFI_PRINT_GUID("protocol", protocol);
  
-@@ -1254,33 +1341,18 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -1931,33 +2018,18 @@ static efi_status_t EFIAPI efi_open_protocol(
  		goto out;
  	}
  

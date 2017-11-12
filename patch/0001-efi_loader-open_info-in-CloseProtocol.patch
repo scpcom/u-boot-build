@@ -59,7 +59,7 @@ index 0733c6eba9..b13c1e0ad9 100644
 +	return EFI_EXIT(r);
  }
  
- static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
+ /*
 -- 
 2.14.1
 

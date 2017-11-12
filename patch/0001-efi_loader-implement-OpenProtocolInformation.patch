@@ -86,7 +86,7 @@ index a59db68a80..194a40d424 100644
 +	return EFI_EXIT(r);
  }
  
- static efi_status_t EFIAPI efi_protocols_per_handle(void *handle,
+ /*
 -- 
 2.14.1
 

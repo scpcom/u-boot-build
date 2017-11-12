@@ -1,0 +1,28 @@
+From 7e80bc98743c86428d6937ac6fec5279c92760b2 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 11 Nov 2017 12:30:22 +0100
+Subject: [PATCH 1/1] efi_selftest: add missing line feed
+
+Add a missing line feed for an error message.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/efi_selftest.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
+index 263b53f672..4e5a12c47c 100644
+--- a/lib/efi_selftest/efi_selftest.c
++++ b/lib/efi_selftest/efi_selftest.c
+@@ -239,7 +239,7 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+ 	ret = boottime->handle_protocol(image_handle, &efi_guid_loaded_image,
+ 					(void **)&loaded_image);
+ 	if (ret != EFI_SUCCESS) {
+-		efi_st_error("Cannot open loaded image protocol");
++		efi_st_error("Cannot open loaded image protocol\n");
+ 		return ret;
+ 	}
+ 
+-- 
+2.15.0
+
