@@ -1,206 +1,130 @@
-From e1cf05675a52630bcc0c0c938106d1c2f65a9677 Mon Sep 17 00:00:00 2001
+From 6f2cb2065826f3ccbd6189a85332298576d3790b Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Thu, 5 Oct 2017 00:38:13 +0200
+Date: Tue, 14 Nov 2017 18:23:47 +0100
 Subject: [PATCH 1/1] efi_loader: open_info in OpenProtocol
 
-efi_open_protocol and close_protocol have to keep track of
-opened protocols.
-
-So we add an array open_info to each protocol of each handle.
+efi_open_protocol has to keep track of opened protocols.
 
 OpenProtocol enters the agent and controller handle
-information into this array.
-
-If attributes takes the value TEST_PROTOCOL we shall neither
-update the open protocol information nor the parameter interface.
+information into this list.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/efi_loader.h          |   1 +
- lib/efi_loader/efi_boottime.c | 136 ++++++++++++++++++++++++++++++++----------
- 2 files changed, 105 insertions(+), 32 deletions(-)
+ lib/efi_loader/efi_boottime.c | 94 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 92 insertions(+), 2 deletions(-)
 
-diff --git a/include/efi_loader.h b/include/efi_loader.h
-index e765129232..c4460c8986 100644
---- a/include/efi_loader.h
-+++ b/include/efi_loader.h
-@@ -100,6 +100,7 @@ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
- struct efi_handler {
- 	const efi_guid_t *guid;
- 	void *protocol_interface;
-+	struct efi_open_protocol_info_entry open_info[4];
- };
- 
- /*
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index e191b3202d..6708941a4f 100644
+index 2edc045bd8..1aaeb404ec 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1875,6 +1875,96 @@ static void EFIAPI efi_set_mem(void *buffer, size_t size, uint8_t value)
- 	EFI_EXIT(EFI_SUCCESS);
- }
- 
+@@ -2076,6 +2076,96 @@ static struct efi_open_protocol_info_entry *efi_create_open_info(
+ /*
+  * Open protocol interface on a handle.
+  *
++ * @handler		handler of a protocol
++ * @protocol_interface	interface implementing the protocol
++ * @agent_handle	handle of the driver
++ * @controller_handle	handle of the controller
++ * @attributes		attributes indicating how to open the protocol
++ * @return		status code
++ */
 +static efi_status_t efi_protocol_open(
-+			struct efi_handler *protocol,
++			struct efi_handler *handler,
 +			void **protocol_interface, void *agent_handle,
 +			void *controller_handle, uint32_t attributes)
 +{
-+	bool opened_exclusive = false;
-+	bool opened_by_driver = false;
-+	int i;
-+	struct efi_open_protocol_info_entry *open_info;
++	struct efi_open_protocol_info_item *item;
 +	struct efi_open_protocol_info_entry *match = NULL;
++	bool opened_by_driver = false;
++	bool opened_exclusive = false;
 +
-+	if (attributes !=
-+	    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
++	/* For TEST_PROTOCOL ignore interface attribute. */
++	if (attributes != EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
 +		*protocol_interface = NULL;
-+	}
 +
-+	for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
-+		open_info = &protocol->open_info[i];
-+
-+		if (!open_info->open_count)
-+			continue;
-+		if (open_info->agent_handle == agent_handle) {
++	/*
++	 * Check if the protocol is already opened by a driver with the same
++	 * attributes or opened exclusively
++	 */
++	list_for_each_entry(item, &handler->open_infos, link) {
++		if (item->info.agent_handle == agent_handle) {
 +			if ((attributes & EFI_OPEN_PROTOCOL_BY_DRIVER) &&
-+			    (open_info->attributes == attributes))
++			    (item->info.attributes == attributes))
 +				return EFI_ALREADY_STARTED;
-+			if (open_info->controller_handle == controller_handle)
-+				match = open_info;
 +		}
-+		if (open_info->attributes & EFI_OPEN_PROTOCOL_EXCLUSIVE)
++		if (item->info.attributes & EFI_OPEN_PROTOCOL_EXCLUSIVE)
 +			opened_exclusive = true;
 +	}
 +
-+	if (attributes &
-+	    (EFI_OPEN_PROTOCOL_EXCLUSIVE | EFI_OPEN_PROTOCOL_BY_DRIVER) &&
-+	    opened_exclusive)
++	/* Only one controller can open the protocol exclusively. */
++	if (opened_exclusive && attributes &
++	    (EFI_OPEN_PROTOCOL_EXCLUSIVE | EFI_OPEN_PROTOCOL_BY_DRIVER))
 +		return EFI_ACCESS_DENIED;
 +
++	/* Prepare exclusive opening */
 +	if (attributes & EFI_OPEN_PROTOCOL_EXCLUSIVE) {
-+		for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
-+			open_info = &protocol->open_info[i];
-+
-+			if (!open_info->open_count)
-+				continue;
-+			if (open_info->attributes ==
++		/* Try to disconnect controllers */
++		list_for_each_entry(item, &handler->open_infos, link) {
++			if (item->info.attributes ==
 +					EFI_OPEN_PROTOCOL_BY_DRIVER)
 +				EFI_CALL(efi_disconnect_controller(
-+						open_info->controller_handle,
-+						open_info->agent_handle,
++						item->info.controller_handle,
++						item->info.agent_handle,
 +						NULL));
 +		}
 +		opened_by_driver = false;
-+		for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
-+			open_info = &protocol->open_info[i];
-+
-+			if (!open_info->open_count)
-+				continue;
-+			if (open_info->attributes & EFI_OPEN_PROTOCOL_BY_DRIVER)
++		/* Check if all controllers are disconnected */
++		list_for_each_entry(item, &handler->open_infos, link) {
++			if (item->info.attributes & EFI_OPEN_PROTOCOL_BY_DRIVER)
 +				opened_by_driver = true;
 +		}
++		/* Only one controller can be conncected */
 +		if (opened_by_driver)
 +			return EFI_ACCESS_DENIED;
-+		if (match && !match->open_count)
-+			match = NULL;
 +	}
 +
-+	/*
-+	 * Find an empty slot.
-+	 */
++	/* Find existing entry */
++	list_for_each_entry(item, &handler->open_infos, link) {
++		if (item->info.agent_handle == agent_handle &&
++		    item->info.controller_handle == controller_handle)
++			match = &item->info;
++	}
++	/* None found, create one */
 +	if (!match) {
-+		for (i = 0; i < ARRAY_SIZE(protocol->open_info); ++i) {
-+			open_info = &protocol->open_info[i];
-+
-+			if (!open_info->open_count) {
-+				match = open_info;
-+				break;
-+			}
-+		}
++		match = efi_create_open_info(handler);
++		if (!match)
++			return EFI_OUT_OF_RESOURCES;
 +	}
-+	if (!match)
-+		return EFI_OUT_OF_RESOURCES;
 +
 +	match->agent_handle = agent_handle;
 +	match->controller_handle = controller_handle;
 +	match->attributes = attributes;
 +	match->open_count++;
-+	*protocol_interface = protocol->protocol_interface;
++
++	/* For TEST_PROTOCOL ignore interface attribute. */
++	if (attributes != EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
++		*protocol_interface = handler->protocol_interface;
 +
 +	return EFI_SUCCESS;
 +}
 +
- /*
-  * Open protocol interface on a handle.
-  *
-@@ -1895,19 +1985,16 @@ static efi_status_t EFIAPI efi_open_protocol(
- 			void **protocol_interface, void *agent_handle,
- 			void *controller_handle, uint32_t attributes)
- {
--	struct list_head *lhandle;
--	int i;
-+	struct efi_handler *handler;
- 	efi_status_t r = EFI_INVALID_PARAMETER;
- 
- 	EFI_ENTRY("%p, %pUl, %p, %p, %p, 0x%x", handle, protocol,
- 		  protocol_interface, agent_handle, controller_handle,
- 		  attributes);
- 
--	if (!handle || !protocol ||
--	    (!protocol_interface && attributes !=
--	     EFI_OPEN_PROTOCOL_TEST_PROTOCOL)) {
-+	if (!protocol_interface && attributes !=
-+	    EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
++/*
++ * Open protocol interface on a handle.
++ *
+  * This function implements the OpenProtocol interface.
+  * See the Unified Extensible Firmware Interface (UEFI) specification
+  * for details.
+@@ -2130,8 +2220,8 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 	if (r != EFI_SUCCESS)
  		goto out;
--	}
  
- 	EFI_PRINT_GUID("protocol", protocol);
- 
-@@ -1931,33 +2018,18 @@ static efi_status_t EFIAPI efi_open_protocol(
- 		goto out;
- 	}
- 
--	list_for_each(lhandle, &efi_obj_list) {
--		struct efi_object *efiobj;
--		efiobj = list_entry(lhandle, struct efi_object, link);
--
--		if (efiobj->handle != handle)
--			continue;
--
--		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
--			struct efi_handler *handler = &efiobj->protocols[i];
--			const efi_guid_t *hprotocol = handler->guid;
--			if (!hprotocol)
--				continue;
--			if (!guidcmp(hprotocol, protocol)) {
--				if (attributes !=
--				    EFI_OPEN_PROTOCOL_TEST_PROTOCOL) {
--					*protocol_interface =
--						handler->protocol_interface;
--				}
--				r = EFI_SUCCESS;
--				goto out;
--			}
--		}
--		goto unsupported;
--	}
-+	r = efi_search_protocol(handle, protocol, &handler);
-+	if (r != EFI_SUCCESS)
-+		goto out;
-+	/*
-+	 * For TEST_PROTOCOL we shall neither update protocol_interface nor
-+	 * the open protocol information.
-+	 */
-+	if (attributes == EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
-+		goto out;
- 
--unsupported:
--	r = EFI_UNSUPPORTED;
+-	if (attributes != EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
+-		*protocol_interface = handler->protocol_interface;
 +	r = efi_protocol_open(handler, protocol_interface, agent_handle,
 +			      controller_handle, attributes);
  out:
  	return EFI_EXIT(r);
  }
 -- 
-2.14.1
+2.11.0
 
