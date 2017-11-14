@@ -30,6 +30,9 @@ git am ../patch/0001-test-py-check-return-code-of-helloworld.patch
 git am ../patch/0001-efi_loader-pass-handle-of-loaded-image.patch
 git am ../patch/0001-efi_loader-helper-function-to-add-EFI-object-to-list.patch
 # >>> end of protocol series 3
+# <<< start of protocol series 4
+git am ../patch/0001-efi_loader-list-of-open-protocol-infos.patch
+# >>> end of protocol series 4
 exit
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
