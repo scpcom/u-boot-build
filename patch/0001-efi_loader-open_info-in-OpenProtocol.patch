@@ -1,4 +1,4 @@
-From 6f2cb2065826f3ccbd6189a85332298576d3790b Mon Sep 17 00:00:00 2001
+From 8d8266547b4650cda3fc814f24f4b69c7f661dd5 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 14 Nov 2017 18:23:47 +0100
 Subject: [PATCH 1/1] efi_loader: open_info in OpenProtocol
@@ -14,10 +14,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 92 insertions(+), 2 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 2edc045bd8..1aaeb404ec 100644
+index 449b2ec0a3..09300a7545 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -2076,6 +2076,96 @@ static struct efi_open_protocol_info_entry *efi_create_open_info(
+@@ -2090,6 +2090,96 @@ static void EFIAPI efi_set_mem(void *buffer, size_t size, uint8_t value)
  /*
   * Open protocol interface on a handle.
   *
@@ -114,7 +114,7 @@ index 2edc045bd8..1aaeb404ec 100644
   * This function implements the OpenProtocol interface.
   * See the Unified Extensible Firmware Interface (UEFI) specification
   * for details.
-@@ -2130,8 +2220,8 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -2144,8 +2234,8 @@ static efi_status_t EFIAPI efi_open_protocol(
  	if (r != EFI_SUCCESS)
  		goto out;
  

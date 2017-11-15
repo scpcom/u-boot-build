@@ -1,4 +1,4 @@
-From 40c1fce9930814980dd4754c3c75a6de650bb281 Mon Sep 17 00:00:00 2001
+From e0bf12faea753ea70f21cfc60d21c26aee521db8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 14 Nov 2017 06:53:13 +0100
 Subject: [PATCH 1/1] efi_loader: list of open protocol infos
@@ -10,8 +10,8 @@ Provide helper functions to access the list items.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          | 15 ++++++++++++++-
- lib/efi_loader/efi_boottime.c | 21 +++++++++++++++++++++
- 2 files changed, 35 insertions(+), 1 deletion(-)
+ lib/efi_loader/efi_boottime.c | 35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index c0caabddb1..f409ef2f98 100644
@@ -47,7 +47,7 @@ index c0caabddb1..f409ef2f98 100644
  
  /*
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 47e632cc29..2edc045bd8 100644
+index 47e632cc29..449b2ec0a3 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -776,6 +776,7 @@ efi_status_t efi_add_protocol(const void *handle, const efi_guid_t *protocol,
@@ -58,14 +58,14 @@ index 47e632cc29..2edc045bd8 100644
  	list_add_tail(&handler->link, &efiobj->protocols);
  	return EFI_SUCCESS;
  }
-@@ -2053,6 +2054,26 @@ static void EFIAPI efi_set_mem(void *buffer, size_t size, uint8_t value)
+@@ -834,6 +835,40 @@ efi_status_t efi_remove_all_protocols(const void *handle)
  }
  
  /*
 + * Create open protocol info entry and add it to a protocol.
 + *
-+ * @handler		handler of a protocol
-+ * @return		open protocol info entry
++ * @handler	handler of a protocol
++ * @return	open protocol info entry
 + */
 +static struct efi_open_protocol_info_entry *efi_create_open_info(
 +			struct efi_handler *handler)
@@ -82,9 +82,23 @@ index 47e632cc29..2edc045bd8 100644
 +}
 +
 +/*
-  * Open protocol interface on a handle.
++ * Remove an open protocol info entry from a protocol.
++ *
++ * @handler	handler of a protocol
++ * @return	status code
++ */
++static efi_status_t efi_delete_open_info(
++			struct efi_open_protocol_info_item *item)
++{
++	list_del(&item->link);
++	free(item);
++	return EFI_SUCCESS;
++}
++
++/*
+  * Install protocol interface.
   *
-  * This function implements the OpenProtocol interface.
+  * This function implements the InstallProtocolInterface service.
 -- 
 2.11.0
 
