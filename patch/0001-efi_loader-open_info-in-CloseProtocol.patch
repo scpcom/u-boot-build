@@ -1,4 +1,4 @@
-From 6941211921409dd8ed9d1d805ccf307d0716a18c Mon Sep 17 00:00:00 2001
+From 43de1afc3de727d8a665334dc6b4ef046fa9a449 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 15 Nov 2017 17:12:49 +0100
 Subject: [PATCH 1/1] efi_loader: open_info in CloseProtocol
@@ -15,7 +15,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 28 insertions(+), 1 deletion(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 09300a7545..599a96ba41 100644
+index 4401b261bf..c12d7812de 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -1662,9 +1662,36 @@ static efi_status_t EFIAPI efi_close_protocol(void *handle,
@@ -42,7 +42,7 @@ index 09300a7545..599a96ba41 100644
 +	list_for_each_entry(item, &handler->open_infos, link) {
 +		if (item->info.agent_handle == agent_handle &&
 +		    item->info.controller_handle == controller_handle) {
-+		    	/* Decrement the open count. */
++			/* Decrement the open count. */
 +			item->info.open_count--;
 +			/* If the the open count is zero. remove the item. */
 +			if (!item->info.open_count)
@@ -57,5 +57,5 @@ index 09300a7545..599a96ba41 100644
  
  /*
 -- 
-2.11.0
+2.14.2
 
