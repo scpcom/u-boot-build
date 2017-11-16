@@ -34,9 +34,9 @@ git am ../patch/0001-efi_loader-helper-function-to-add-EFI-object-to-list.patch
 git am ../patch/0001-efi_loader-list-of-open-protocol-infos.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
+git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
 # >>> end of protocol series 4
 exit
-git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
 git am ../patch/0001-efi_loader-non-static-efi_open_protocol-efi_close_pr.patch
 git am ../patch/0001-efi_loader-implement-ConnectController.patch
 git am ../patch/0001-efi_loader-implement-DisconnectController.patch
