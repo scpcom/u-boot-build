@@ -19,7 +19,7 @@ index 857d88a879..a55f210f0b 100644
  	if (lo.attributes & LOAD_OPTION_ACTIVE) {
  		efi_status_t ret;
 -		u16 *str = NULL;
-+#ifdef _DEBUG
++#if _DEBUG
 +		u16 *str = efi_dp_str(lo.file_path);
  
  		debug("%s: trying to load \"%ls\" from: %ls\n", __func__,
