@@ -5,6 +5,10 @@ Subject: [PATCH 1/1] efi_loader: efi_bootmgr: do not make hidden assignments
 
 Assignments should not be made in the middle of nowhere.
 
+I deliberately check _DEBUG here and not DEBUG because this is what
+debug() does. Often I have been setting _DEBUG in the middle of C
+files to get only relevant debug messages.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_loader/efi_bootmgr.c | 6 ++++--
