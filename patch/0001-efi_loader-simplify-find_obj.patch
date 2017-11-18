@@ -3,7 +3,7 @@ From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 22 Oct 2017 10:16:41 +0200
 Subject: [PATCH 1/1] efi_loader: simplify find_obj
 
-Use function efi_search_protocol.
+Use function efi_search_protocol().
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---

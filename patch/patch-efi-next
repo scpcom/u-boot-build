@@ -9,6 +9,7 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
+git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
 # <<< start of protocol series 3
 # git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
 git am ../patch/0001-efi_loader-efi_bootmgr-do-not-make-hidden-assignment.patch
