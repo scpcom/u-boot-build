@@ -1,4 +1,5 @@
 #!/bin/sh
+git am ../patch/0001-dm-usb-ehci-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-x86-enable-DISTRO_DEFAULTS-for-qemu.patch
 git am ../patch/0001-common-command-tempory-buffer-should-have-size-of-co.patch
 git am ../patch/0001-Makefile-add-coccicheck-target.patch
