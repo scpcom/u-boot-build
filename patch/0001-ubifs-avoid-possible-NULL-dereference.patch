@@ -1,0 +1,52 @@
+From b49e48f21bb91bcd52d7aacf1719360d7abc5f09 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 21 Nov 2017 19:28:29 +0100
+Subject: [PATCH 1/1] ubifs: avoid possible NULL dereference
+
+If 'file' cannot be allocated due to an out of memory
+situation, do not dereference it.
+
+When debugging this patch also avoids a misleading message
+"cannot find next direntry, error %d" in case of an out of
+memory situation. It is sufficent to write
+"%s: Error, no memory for malloc!\n" in this case.
+
+Reported-by: Alex Sadovsky <nable.maininbox@googlemail.com>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ fs/ubifs/ubifs.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/fs/ubifs/ubifs.c b/fs/ubifs/ubifs.c
+index 4465523d5f..313dee0579 100644
+--- a/fs/ubifs/ubifs.c
++++ b/fs/ubifs/ubifs.c
+@@ -403,8 +403,7 @@ static int ubifs_finddir(struct super_block *sb, char *dirname,
+ 	dir = kzalloc(sizeof(struct inode), 0);
+ 	if (!file || !dentry || !dir) {
+ 		printf("%s: Error, no memory for malloc!\n", __func__);
+-		err = -ENOMEM;
+-		goto out;
++		goto out_nomem;
+ 	}
+ 
+ 	dir->i_sb = sb;
+@@ -424,7 +423,6 @@ static int ubifs_finddir(struct super_block *sb, char *dirname,
+ 		err = PTR_ERR(dent);
+ 		goto out;
+ 	}
+-
+ 	file->f_pos = key_hash_flash(c, &dent->key);
+ 	file->private_data = dent;
+ 
+@@ -463,6 +461,7 @@ out:
+ 
+ out_free:
+ 	kfree(file->private_data);
++out_nomem:
+ 	free(file);
+ 	free(dentry);
+ 	free(dir);
+-- 
+2.11.0
+
