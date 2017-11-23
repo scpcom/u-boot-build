@@ -15,7 +15,7 @@ git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 // git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
 
 git am ../patch/0001-efi_loader-handling-NULL-in-efi_convert_device_path_.patch
-
+git am ../patch/0001-efi_loader-comments-for-EFI_DEVICE_PATH_TO_TEXT_PROT.patch
 
 # <<< start of protocol series 3
 # git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
