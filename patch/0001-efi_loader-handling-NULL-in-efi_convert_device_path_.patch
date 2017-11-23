@@ -1,0 +1,45 @@
+From 30df13f996885d007ed433f8d58c84af6544a68d Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 23 Nov 2017 22:00:08 +0100
+Subject: [PATCH 1/1] efi_loader: handling NULL in
+ efi_convert_device_path_to_text
+
+According to the UEFI spec we have to return NULL if the device
+path argument is NULL.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_device_path_to_text.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
+index 3a9d5e4122..55007a527d 100644
+--- a/lib/efi_loader/efi_device_path_to_text.c
++++ b/lib/efi_loader/efi_device_path_to_text.c
+@@ -241,12 +241,14 @@ static uint16_t EFIAPI *efi_convert_device_path_to_text(
+ 		bool display_only,
+ 		bool allow_shortcuts)
+ {
+-	uint16_t *text;
++	uint16_t *text = NULL;
+ 	char buffer[MAX_PATH_LEN];
+ 	char *str = buffer;
+ 
+ 	EFI_ENTRY("%p, %d, %d", device_path, display_only, allow_shortcuts);
+ 
++	if (!device_path)
++		goto out;
+ 	while (device_path &&
+ 	       str + MAX_NODE_LEN < buffer + MAX_PATH_LEN) {
+ 		*str++ = '/';
+@@ -256,6 +258,7 @@ static uint16_t EFIAPI *efi_convert_device_path_to_text(
+ 
+ 	text = efi_str_to_u16(buffer);
+ 
++out:
+ 	EFI_EXIT(EFI_SUCCESS);
+ 	return text;
+ }
+-- 
+2.14.2
+
