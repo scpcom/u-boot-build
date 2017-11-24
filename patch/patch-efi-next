@@ -1,7 +1,10 @@
 #!/bin/sh
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-dm-usb-ehci-avoid-possible-NULL-dereference.patch
+
+git am ../patch/0001-distro-bootcmd-define-bootloader-name-for-x86.patch
 git am ../patch/0001-x86-enable-DISTRO_DEFAULTS-for-qemu.patch
+exit
 git am ../patch/0001-common-command-tempory-buffer-should-have-size-of-co.patch
 git am ../patch/0001-x86-don-t-compare-pointers-to-0.patch
 git am ../patch/0001-Move-Cache-As-RAM-memory-from-area-mapped-to-ROM-in-.patch
