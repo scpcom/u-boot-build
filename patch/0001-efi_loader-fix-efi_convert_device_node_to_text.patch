@@ -1,4 +1,4 @@
-From c36ded69eed37b86dd56684b2cb7f4b4e113e6ed Mon Sep 17 00:00:00 2001
+From 1de5120d8c258f049472eee6c5a5aa97347f0543 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 28 Oct 2017 14:52:30 +0200
 Subject: [PATCH 1/1] efi_loader: fix efi_convert_device_node_to_text
@@ -25,11 +25,16 @@ a follow-up patch.
 Fixes: adae4313cdd efi_loader: flesh out device-path to text
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_device_path_to_text.c | 148 +++++++++++++++++--------------
- 1 file changed, 82 insertions(+), 66 deletions(-)
+v3:
+	correcly handle NULL values for device path or node.
+v2:
+	no change
+---
+ lib/efi_loader/efi_device_path_to_text.c | 154 ++++++++++++++++++-------------
+ 1 file changed, 88 insertions(+), 66 deletions(-)
 
 diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
-index ad248cb492..627bff1ace 100644
+index ad248cb492..43af5dfd8d 100644
 --- a/lib/efi_loader/efi_device_path_to_text.c
 +++ b/lib/efi_loader/efi_device_path_to_text.c
 @@ -12,12 +12,31 @@
@@ -166,7 +171,7 @@ index ad248cb492..627bff1ace 100644
  		break;
  	}
  	default:
-@@ -163,65 +184,56 @@ static char *dp_media(char *s, struct efi_device_path *dp)
+@@ -163,65 +184,59 @@ static char *dp_media(char *s, struct efi_device_path *dp)
  	return s;
  }
  
@@ -251,28 +256,31 @@ index ad248cb492..627bff1ace 100644
  {
 -	uint16_t *buffer;
 +	char str[MAX_NODE_LEN];
-+	uint16_t *text;
++	uint16_t *text = NULL;
  
  	EFI_ENTRY("%p, %d, %d", device_node, display_only, allow_shortcuts);
  
 -	buffer = efi_convert_device_node_to_text(device_node, display_only,
 -						 allow_shortcuts);
++	if (!device_node)
++		goto out;
 +	efi_convert_single_device_node_to_text(str, device_node);
 +
 +	text = efi_str_to_u16(str);
  
++out:
  	EFI_EXIT(EFI_SUCCESS);
 -	return buffer;
 +	return text;
  }
  
  static uint16_t EFIAPI *efi_convert_device_path_to_text(
-@@ -229,19 +241,23 @@ static uint16_t EFIAPI *efi_convert_device_path_to_text(
+@@ -229,19 +244,26 @@ static uint16_t EFIAPI *efi_convert_device_path_to_text(
  		bool display_only,
  		bool allow_shortcuts)
  {
 -	uint16_t *buffer;
-+	uint16_t *text;
++	uint16_t *text = NULL;
 +	char buffer[MAX_PATH_LEN];
 +	char *str = buffer;
  
@@ -284,6 +292,8 @@ index ad248cb492..627bff1ace 100644
 -	 */
 -	buffer = efi_convert_device_node_to_text(device_path, display_only,
 -						 allow_shortcuts);
++	if (!device_path)
++		goto out;
 +	while (device_path &&
 +	       str + MAX_NODE_LEN < buffer + MAX_PATH_LEN) {
 +		*str++ = '/';
@@ -293,13 +303,14 @@ index ad248cb492..627bff1ace 100644
 +
 +	text = efi_str_to_u16(buffer);
  
++out:
  	EFI_EXIT(EFI_SUCCESS);
 -	return buffer;
 +	return text;
  }
  
  /* helper for debug prints.. efi_free_pool() the result. */
-@@ -251,6 +267,6 @@ uint16_t *efi_dp_str(struct efi_device_path *dp)
+@@ -251,6 +273,6 @@ uint16_t *efi_dp_str(struct efi_device_path *dp)
  }
  
  const struct efi_device_path_to_text_protocol efi_device_path_to_text = {
@@ -308,5 +319,5 @@ index ad248cb492..627bff1ace 100644
  	.convert_device_path_to_text = efi_convert_device_path_to_text,
  };
 -- 
-2.14.2
+2.11.0
 
