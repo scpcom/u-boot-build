@@ -1,4 +1,4 @@
-From cb1980d6387886fc8fea1778e2997e315e273501 Mon Sep 17 00:00:00 2001
+From e8522ff3c29de3b9dda0619338267aebb1552f9f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 28 Oct 2017 12:27:14 +0200
 Subject: [PATCH 1/1] efi_selftest: test EFI_DEVICE_PATH_TO_TEXT_PROTOCOL
@@ -8,8 +8,8 @@ Provide a test for the EFI_DEVICE_PATH_TO_TEXT_PROTOCOL protocol.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                  |   3 +
- lib/efi_selftest/efi_selftest_devicepath.c | 340 +++++++++++++++++++++++++++++
- 2 files changed, 343 insertions(+)
+ lib/efi_selftest/efi_selftest_devicepath.c | 391 +++++++++++++++++++++++++++++
+ 2 files changed, 394 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_devicepath.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -35,10 +35,10 @@ index 1851c17db6..d280eca5c3 100644
  efi_selftest_gop.o \
 diff --git a/lib/efi_selftest/efi_selftest_devicepath.c b/lib/efi_selftest/efi_selftest_devicepath.c
 new file mode 100644
-index 0000000000..6c6185c050
+index 0000000000..7dd2319f22
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_devicepath.c
-@@ -0,0 +1,340 @@
+@@ -0,0 +1,391 @@
 +/*
 + * efi_selftest_devicepath
 + *
@@ -61,6 +61,11 @@ index 0000000000..6c6185c050
 +struct interface {
 +	void (EFIAPI * inc)(void);
 +} interface;
++
++static efi_guid_t guid_device_path = DEVICE_PATH_GUID;
++
++static efi_guid_t guid_device_path_to_text_protocol =
++	EFI_DEVICE_PATH_TO_TEXT_PROTOCOL_GUID;
 +
 +static efi_guid_t guid_protocol =
 +	EFI_GUID(0xdbca4c98, 0x6cb0, 0x694d,
@@ -108,11 +113,11 @@ index 0000000000..6c6185c050
 +
 +	boottime = systable->boottime;
 +
-+	ret = boottime->locate_protocol(&efi_guid_device_path_to_text_protocol,
++	ret = boottime->locate_protocol(&guid_device_path_to_text_protocol,
 +					NULL, (void **)&device_path_to_text);
 +	if (ret != EFI_SUCCESS) {
 +		device_path_to_text = NULL;
-+		efi_st_printf(
++		efi_st_error(
 +			"Device path to text protocol is not available.\n");
 +		return EFI_ST_FAILURE;
 +	}
@@ -174,7 +179,7 @@ index 0000000000..6c6185c050
 +			   &end_node, sizeof(struct efi_device_path));
 +
 +	ret = boottime->install_protocol_interface(&handle1,
-+						   &efi_guid_device_path,
++						   &guid_device_path,
 +						   EFI_NATIVE_INTERFACE,
 +						   dp1);
 +	if (ret != EFI_SUCCESS) {
@@ -190,7 +195,7 @@ index 0000000000..6c6185c050
 +		return EFI_ST_FAILURE;
 +	}
 +	ret = boottime->install_protocol_interface(&handle2,
-+						   &efi_guid_device_path,
++						   &guid_device_path,
 +						   EFI_NATIVE_INTERFACE,
 +						   dp2);
 +	if (ret != EFI_SUCCESS) {
@@ -206,7 +211,7 @@ index 0000000000..6c6185c050
 +		return EFI_ST_FAILURE;
 +	}
 +	ret = boottime->install_protocol_interface(&handle3,
-+						   &efi_guid_device_path,
++						   &guid_device_path,
 +						   EFI_NATIVE_INTERFACE,
 +						   dp3);
 +	if (ret != EFI_SUCCESS) {
@@ -229,7 +234,7 @@ index 0000000000..6c6185c050
 +	efi_status_t ret;
 +
 +	ret = boottime->uninstall_protocol_interface(&handle1,
-+						     &efi_guid_device_path,
++						     &guid_device_path,
 +						     dp1);
 +	if (ret != EFI_SUCCESS)
 +		efi_st_todo("UninstallProtocolInterface failed\n");
@@ -239,7 +244,7 @@ index 0000000000..6c6185c050
 +	if (ret != EFI_SUCCESS)
 +		efi_st_todo("UninstallProtocolInterface failed\n");
 +	ret = boottime->uninstall_protocol_interface(&handle2,
-+						     &efi_guid_device_path,
++						     &guid_device_path,
 +						     dp2);
 +	if (ret != EFI_SUCCESS)
 +		efi_st_todo("UninstallProtocolInterface failed\n");
@@ -249,7 +254,7 @@ index 0000000000..6c6185c050
 +	if (ret != EFI_SUCCESS)
 +		efi_st_todo("UninstallProtocolInterface failed\n");
 +	ret = boottime->uninstall_protocol_interface(&handle3,
-+						     &efi_guid_device_path,
++						     &guid_device_path,
 +						     dp3);
 +	if (ret != EFI_SUCCESS)
 +		efi_st_todo("UninstallProtocolInterface failed\n");
@@ -301,6 +306,52 @@ index 0000000000..6c6185c050
 +		};
 +	u16 *string;
 +	efi_status_t ret;
++	efi_uintn_t i, no_handles;
++	efi_handle_t *handles;
++	struct efi_device_path *dp;
++
++	/* Display all available device paths */
++	ret = boottime->locate_handle_buffer(BY_PROTOCOL,
++					     &guid_device_path,
++					     NULL, &no_handles, &handles);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Cannot retrieve device path protocols.\n");
++		return EFI_ST_FAILURE;
++	}
++
++	efi_st_printf("Installed device path protocols:\n");
++	for (i = 0; i < no_handles; ++i) {
++		ret = boottime->open_protocol(handles[i], &guid_device_path,
++					      (void **)&dp, NULL, NULL,
++					      EFI_OPEN_PROTOCOL_GET_PROTOCOL);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Cannot open device path protocol.\n");
++			return EFI_ST_FAILURE;
++		}
++		string = device_path_to_text->convert_device_path_to_text(
++					dp, true, false);
++		if (!string) {
++			efi_st_error("ConvertDevicePathToText failed\n");
++			return EFI_ST_FAILURE;
++		}
++		efi_st_printf("%p: %ps\n", handles[i], string);
++		ret = boottime->free_pool(string);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("FreePool failed\n");
++			return EFI_ST_FAILURE;
++		}
++		ret = boottime->close_protocol(handles[i], &guid_device_path,
++					       NULL, NULL);
++		if (ret != EFI_SUCCESS) {
++			efi_st_todo("Cannot close device path protocol.\n");
++		}
++	}
++	ret = boottime->free_pool(handles);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("FreePool failed\n");
++		return EFI_ST_FAILURE;
++	}
++	efi_st_printf("\n");
 +
 +	/* Test ConvertDevicePathToText */
 +	string = device_path_to_text->convert_device_path_to_text(
@@ -380,5 +431,5 @@ index 0000000000..6c6185c050
 +	.teardown = teardown,
 +};
 -- 
-2.14.2
+2.11.0
 
