@@ -3,8 +3,14 @@ From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 24 Nov 2017 21:33:21 +0100
 Subject: [PATCH 1/1] distro bootcmd: define bootloader name for x86
 
-If we want to use distro boot on x86 we need to define the
-name of the bootloader EFI application.
+Currently X86 does not properly support distro defaults.
+This patch is only a partial fix.
+
+It provides the name of the bootloader EFI application
+for the X86 architecture.
+
+The architecture dependent file names are defined in the UEFI
+specification.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
@@ -20,9 +26,9 @@ index e0d0034ed3..eb2bdfa39d 100644
  #elif defined(CONFIG_ARM)
  #define BOOTEFI_NAME "bootarm.efi"
 +#elif defined(CONFIG_X86_RUN_32BIT)
-+#define BOOTEFI_NAME "grubia32.efi"
++#define BOOTEFI_NAME "bootia32.efi"
 +#elif defined(CONFIG_X86_RUN_64BIT)
-+#define BOOTEFI_NAME "grubx64.efi"
++#define BOOTEFI_NAME "bootx64.efi"
  #endif
  #endif
  
