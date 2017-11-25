@@ -334,7 +334,7 @@ index 0000000000..7dd2319f22
 +			efi_st_error("ConvertDevicePathToText failed\n");
 +			return EFI_ST_FAILURE;
 +		}
-+		efi_st_printf("%p: %ps\n", handles[i], string);
++		efi_st_printf("%ps\n", string);
 +		ret = boottime->free_pool(string);
 +		if (ret != EFI_SUCCESS) {
 +			efi_st_error("FreePool failed\n");
