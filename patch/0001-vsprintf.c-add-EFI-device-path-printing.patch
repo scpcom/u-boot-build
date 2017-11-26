@@ -1,4 +1,4 @@
-From e73872490cc1552278a7f4de614bb460a05a8d6e Mon Sep 17 00:00:00 2001
+From 4e64844e462feb660a9cb82db4447aecbf024368 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 26 Nov 2017 13:11:56 +0100
 Subject: [PATCH 1/1] vsprintf.c: add EFI device path printing
@@ -26,11 +26,11 @@ v2:
 	Wolfgang suggested not to silently ignore an out of memory
 	situation.
 ---
- lib/vsprintf.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ lib/vsprintf.c | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
 diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index dd572d2868..1c7f561632 100644
+index dd572d2868..b6dba28c4c 100644
 --- a/lib/vsprintf.c
 +++ b/lib/vsprintf.c
 @@ -12,12 +12,14 @@
@@ -48,7 +48,7 @@ index dd572d2868..1c7f561632 100644
  #include <uuid.h>
  
  #include <div64.h>
-@@ -292,6 +294,22 @@ static char *string16(char *buf, char *end, u16 *s, int field_width,
+@@ -292,6 +294,25 @@ static char *string16(char *buf, char *end, u16 *s, int field_width,
  	return buf;
  }
  
@@ -56,10 +56,13 @@ index dd572d2868..1c7f561632 100644
 +static char *device_path_string(char *buf, char *end, void *dp, int field_width,
 +				int precision, int flags)
 +{
-+	u16 *str = efi_dp_str((struct efi_device_path *)dp);
++	u16 *str;
 +
-+	/* Do not silently ignore out of memory situation */
-+	if (!str && dp)
++	if (!dp)
++		return "<NULL>";
++
++	str = efi_dp_str((struct efi_device_path *)dp);
++	if (!str)
 +		return ERR_PTR(-ENOMEM);
 +
 +	buf = string16(buf, end, str, field_width, precision, flags);
@@ -71,7 +74,7 @@ index dd572d2868..1c7f561632 100644
  #ifdef CONFIG_CMD_NET
  static const char hex_asc[] = "0123456789abcdef";
  #define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
-@@ -435,6 +453,11 @@ static char *pointer(const char *fmt, char *buf, char *end, void *ptr,
+@@ -435,6 +456,11 @@ static char *pointer(const char *fmt, char *buf, char *end, void *ptr,
  #endif
  
  	switch (*fmt) {
@@ -83,7 +86,7 @@ index dd572d2868..1c7f561632 100644
  #ifdef CONFIG_CMD_NET
  	case 'a':
  		flags |= SPECIAL | ZEROPAD;
-@@ -604,6 +627,8 @@ repeat:
+@@ -604,6 +630,8 @@ repeat:
  			str = pointer(fmt + 1, str, end,
  					va_arg(args, void *),
  					field_width, precision, flags);
@@ -92,7 +95,7 @@ index dd572d2868..1c7f561632 100644
  			/* Skip all alphanumeric pointer suffixes */
  			while (isalnum(fmt[1]))
  				fmt++;
-@@ -768,6 +793,9 @@ int printf(const char *fmt, ...)
+@@ -768,6 +796,9 @@ int printf(const char *fmt, ...)
  	i = vscnprintf(printbuffer, sizeof(printbuffer), fmt, args);
  	va_end(args);
  
@@ -102,7 +105,7 @@ index dd572d2868..1c7f561632 100644
  	/* Print the string */
  	puts(printbuffer);
  	return i;
-@@ -784,6 +812,9 @@ int vprintf(const char *fmt, va_list args)
+@@ -784,6 +815,9 @@ int vprintf(const char *fmt, va_list args)
  	 */
  	i = vscnprintf(printbuffer, sizeof(printbuffer), fmt, args);
  
@@ -113,5 +116,5 @@ index dd572d2868..1c7f561632 100644
  	puts(printbuffer);
  	return i;
 -- 
-2.14.2
+2.15.0
 
