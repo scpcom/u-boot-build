@@ -9,7 +9,6 @@ git am ../patch/0001-distro-bootcmd-define-bootloader-name-for-x86.patch
 git am ../patch/0001-common-command-tempory-buffer-should-have-size-of-co.patch
 git am ../patch/0001-x86-don-t-compare-pointers-to-0.patch
 git am ../patch/0001-Move-Cache-As-RAM-memory-from-area-mapped-to-ROM-in-.patch
-git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
 # Fix building u-boot.rom for qemu-x86_64_defconfig
@@ -23,6 +22,7 @@ git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
 # <<< start of protocol series 3
 # git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
 # git am ../patch/0001-efi_loader-efi_bootmgr-do-not-make-hidden-assignment.patch
+git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
 git am ../patch/0001-efi_loader-size-of-media-device-path-node-represenat.patch
 git am ../patch/0001-efi_loader-efi_dp_str-should-print-path-not-node.patch
 git am ../patch/0001-efi_loader-fix-efi_convert_device_node_to_text.patch
