@@ -1,4 +1,4 @@
-From a6d22890f3c76a16676248ebf3c671ced61972ba Mon Sep 17 00:00:00 2001
+From 8d46c71b4bee17e70b2c7765bcf17ea54c3ad9db Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 23 Nov 2017 22:59:01 +0100
 Subject: [PATCH 1/1] vsprintf.c: add EFI device path printing
@@ -13,14 +13,24 @@ A possible output would be
     device path: /MemoryMapped(0x0,0x3ff93a82,0x3ff93a82)
 
 Cc: Wolfgang Denk <wd@denx.de>
+Cc: Simon Glass <sjg@chromium.org>
 Suggested-by: Rob Clark <robdclark@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/vsprintf.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+I propose Alex picks up this patch for the EFI tree.
+
+v3:
+	Do not panic but return the error code.
+v2:
+	Panic if out of memory.
+	Wolfgang suggested not to silently ignore an out of memory
+	situation.
+---
+ lib/vsprintf.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
 diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index dd572d2868..6468f4795c 100644
+index dd572d2868..5e78a77678 100644
 --- a/lib/vsprintf.c
 +++ b/lib/vsprintf.c
 @@ -18,6 +18,7 @@
@@ -32,7 +42,7 @@ index dd572d2868..6468f4795c 100644
  
  #include <div64.h>
 @@ -292,6 +293,22 @@ static char *string16(char *buf, char *end, u16 *s, int field_width,
- 	return buf;
+	return buf;
  }
  
 +#ifdef CONFIG_EFI_LOADER
@@ -43,7 +53,7 @@ index dd572d2868..6468f4795c 100644
 +
 +	/* Do not silently ignore out of memory situation */
 +	if (!str && dp)
-+		panic("efi_dp_str: out of memory");
++		return ERR_PTR(-ENOMEM);
 +
 +	buf = string16(buf, end, str, field_width, precision, flags);
 +	efi_free_pool(str);
@@ -57,15 +67,34 @@ index dd572d2868..6468f4795c 100644
 @@ -435,6 +452,11 @@ static char *pointer(const char *fmt, char *buf, char *end, void *ptr,
  #endif
  
- 	switch (*fmt) {
+	switch (*fmt) {
 +#ifdef CONFIG_EFI_LOADER
 +	case 'D':
 +		return device_path_string(buf, end, ptr, field_width,
 +					  precision, flags);
 +#endif
  #ifdef CONFIG_CMD_NET
- 	case 'a':
- 		flags |= SPECIAL | ZEROPAD;
+	case 'a':
+		flags |= SPECIAL | ZEROPAD;
+@@ -604,6 +626,8 @@ repeat:
+			str = pointer(fmt + 1, str, end,
+					va_arg(args, void *),
+					field_width, precision, flags);
++			if IS_ERR(str)
++				return PTR_ERR(str);
+			/* Skip all alphanumeric pointer suffixes */
+			while (isalnum(fmt[1]))
+				fmt++;
+@@ -768,6 +792,9 @@ int printf(const char *fmt, ...)
+	i = vscnprintf(printbuffer, sizeof(printbuffer), fmt, args);
+	va_end(args);
+ 
++	/* Handle error */
++	if (i <= 0)
++		return i;
+	/* Print the string */
+	puts(printbuffer);
+	return i;
 -- 
-2.15.0
+2.11.0
 
