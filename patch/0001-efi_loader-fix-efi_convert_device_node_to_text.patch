@@ -1,7 +1,7 @@
-From 1de5120d8c258f049472eee6c5a5aa97347f0543 Mon Sep 17 00:00:00 2001
+From 83842b16222d8550f11d5e47a9bc5cae67d9dc67 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 28 Oct 2017 14:52:30 +0200
-Subject: [PATCH 1/1] efi_loader: fix efi_convert_device_node_to_text
+Subject: [PATCH v3 04/18] efi_loader: fix efi_convert_device_node_to_text
 
 We need to implement to different functions for the
 EFI_DEVICE_PATH_TO_TEXT_PROTOCOL:
@@ -25,9 +25,9 @@ a follow-up patch.
 Fixes: adae4313cdd efi_loader: flesh out device-path to text
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
-v3:
-	correcly handle NULL values for device path or node.
-v2:
+v3
+	Correctly handle NULL values.
+v2
 	no change
 ---
  lib/efi_loader/efi_device_path_to_text.c | 154 ++++++++++++++++++-------------
@@ -319,5 +319,5 @@ index ad248cb492..43af5dfd8d 100644
  	.convert_device_path_to_text = efi_convert_device_path_to_text,
  };
 -- 
-2.11.0
+2.14.2
 
