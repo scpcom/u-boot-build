@@ -1,20 +1,22 @@
-From 9d202e274f568c4266eeb21079ff7209e1e0020b Mon Sep 17 00:00:00 2001
+From 38ffaf17d0944e51b0fcd40cc1a4289e9a2cbdda Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Tue, 1 Aug 2017 08:00:01 +0200
+Date: Wed, 29 Nov 2017 20:26:31 +0100
 Subject: [PATCH 1/1] efi_loader: implement ConnectController
+
+Implement the ConnectController boot service.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/efi_api.h             |  22 ++++++++
- include/efi_loader.h          |   1 +
- lib/efi_loader/efi_boottime.c | 119 +++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 141 insertions(+), 1 deletion(-)
+ include/efi_api.h             |  22 ++++++
+ include/efi_loader.h          |   2 +
+ lib/efi_loader/efi_boottime.c | 156 +++++++++++++++++++++++++++++++++++-------
+ 3 files changed, 156 insertions(+), 24 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index b1e73f6789..e811a79e8f 100644
+index 584016dc30..9a66efde45 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
-@@ -745,4 +745,26 @@ struct efi_file_info {
+@@ -790,4 +790,26 @@ struct efi_file_info {
  	s16 file_name[0];
  };
  
@@ -42,48 +44,65 @@ index b1e73f6789..e811a79e8f 100644
 +
  #endif
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 51e7136ae0..8487eee9a5 100644
+index f409ef2f98..7577d5f827 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -85,6 +85,7 @@ uint16_t *efi_dp_str(struct efi_device_path *dp);
+@@ -88,6 +88,8 @@ uint16_t *efi_dp_str(struct efi_device_path *dp);
  extern const efi_guid_t efi_global_variable_guid;
  extern const efi_guid_t efi_guid_console_control;
  extern const efi_guid_t efi_guid_device_path;
++/* GUID of the EFI_DRIVER_BINDING_PROTOCOL */
 +extern const efi_guid_t efi_guid_driver_binding_protocol;
  extern const efi_guid_t efi_guid_loaded_image;
  extern const efi_guid_t efi_guid_device_path_to_text_protocol;
  extern const efi_guid_t efi_simple_file_system_protocol_guid;
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index eff10d39a7..56aebc4c5c 100644
+index 3a202f7ca1..514d6a28a3 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -20,6 +20,14 @@
+@@ -56,6 +56,9 @@ static volatile void *efi_gd, *app_gd;
  
- DECLARE_GLOBAL_DATA_PTR;
- 
-+static efi_status_t EFIAPI efi_locate_protocol(const efi_guid_t *protocol,
-+					       void *registration,
-+					       void **protocol_interface);
-+static efi_status_t EFIAPI efi_locate_handle_buffer(
-+			enum efi_locate_search_type search_type,
-+			const efi_guid_t *protocol, void *search_key,
-+			size_t *no_handles, efi_handle_t **buffer);
-+
- /* Task priority level */
- static size_t efi_tpl = TPL_APPLICATION;
- 
-@@ -54,6 +62,9 @@ static struct efi_configuration_table __efi_runtime_data efi_conf_table[2];
- static volatile void *efi_gd, *app_gd;
- #endif
- 
-+const efi_guid_t efi_guid_driver_binding_protocol =
-+			EFI_DRIVER_BINDING_PROTOCOL_GUID;
-+
  static int entry_count;
  static int nesting_level;
++/* GUID of the EFI_DRIVER_BINDING_PROTOCOL */
++const efi_guid_t efi_guid_driver_binding_protocol =
++			EFI_DRIVER_BINDING_PROTOCOL_GUID;
  
-@@ -1493,6 +1504,94 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
- 	return efi_unsupported(__func__);
+ /* Called on every callback entry */
+ int __efi_entry_check(void)
+@@ -1600,30 +1603,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+ }
+ 
+ /*
+- * Connect a controller to a driver.
+- *
+- * This function implements the ConnectController service.
+- * See the Unified Extensible Firmware Interface (UEFI) specification
+- * for details.
+- *
+- * @controller_handle	handle of the controller
+- * @driver_image_handle	handle of the driver
+- * @remain_device_path	device path of a child controller
+- * @recursive		true to connect all child controllers
+- * @return		status code
+- */
+-static efi_status_t EFIAPI efi_connect_controller(
+-			efi_handle_t controller_handle,
+-			efi_handle_t *driver_image_handle,
+-			struct efi_device_path *remain_device_path,
+-			bool recursive)
+-{
+-	EFI_ENTRY("%p, %p, %p, %d", controller_handle, driver_image_handle,
+-		  remain_device_path, recursive);
+-	return EFI_EXIT(EFI_NOT_FOUND);
+-}
+-
+-/*
+  * Disconnect a controller from a driver.
+  *
+  * This function implements the DisconnectController service.
+@@ -2327,6 +2306,135 @@ static efi_status_t EFIAPI efi_handle_protocol(void *handle,
+ 				 NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
  }
  
 +static efi_status_t efi_bind_controller(
@@ -174,18 +193,29 @@ index eff10d39a7..56aebc4c5c 100644
 +	return EFI_SUCCESS;
 +}
 +
- /*
-  * Connect a controller to a driver.
-  *
-@@ -1512,9 +1611,27 @@ static efi_status_t EFIAPI efi_connect_controller(
- 			struct efi_device_path *remain_device_path,
- 			bool recursive)
- {
++/*
++ * Connect a controller to a driver.
++ *
++ * This function implements the ConnectController service.
++ * See the Unified Extensible Firmware Interface (UEFI) specification
++ * for details.
++ *
++ * @controller_handle	handle of the controller
++ * @driver_image_handle	handle of the driver
++ * @remain_device_path	device path of a child controller
++ * @recursive		true to connect all child controllers
++ * @return		status code
++ */
++static efi_status_t EFIAPI efi_connect_controller(
++			efi_handle_t controller_handle,
++			efi_handle_t *driver_image_handle,
++			struct efi_device_path *remain_device_path,
++			bool recursive)
++{
 +	efi_status_t r;
 +
- 	EFI_ENTRY("%p, %p, %p, %d", controller_handle, driver_image_handle,
- 		  remain_device_path, recursive);
--	return EFI_EXIT(EFI_NOT_FOUND);
++	EFI_ENTRY("%p, %p, %p, %d", controller_handle, driver_image_handle,
++		  remain_device_path, recursive);
 +
 +	if (!controller_handle) {
 +		r = EFI_INVALID_PARAMETER;
@@ -200,12 +230,13 @@ index eff10d39a7..56aebc4c5c 100644
 +	r = efi_connect_single_controller(controller_handle,
 +					  driver_image_handle,
 +					  remain_device_path);
-+
 +out:
 +	return EFI_EXIT(r);
- }
- 
- /*
++}
++
+ static const struct efi_boot_services efi_boot_services = {
+ 	.hdr = {
+ 		.headersize = sizeof(struct efi_table_hdr),
 -- 
-2.14.1
+2.11.0
 

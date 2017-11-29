@@ -1,6 +1,6 @@
 #!/bin/sh
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
-git am ../patch/0001-dm-usb-ehci-avoid-possible-NULL-dereference.patch
+# git am ../patch/0001-dm-usb-ehci-avoid-possible-NULL-dereference.patch
 
 # Enable distro defaults on qemu
 git am ../patch/0001-distro-bootcmd-define-bootloader-name-for-x86.patch
@@ -18,7 +18,6 @@ git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 git am ../patch/0001-efi_loader-initialise-partition_signature-memory.patch
 
 git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
-exit
 
 # <<< start of protocol series 3
 # git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
@@ -41,7 +40,6 @@ git am ../patch/0001-efi_loader-output-load-options-in-helloworld.patch
 git am ../patch/0001-test-py-check-return-code-of-helloworld.patch
 git am ../patch/0001-efi_loader-pass-handle-of-loaded-image.patch
 git am ../patch/0001-efi_loader-helper-function-to-add-EFI-object-to-list.patch
-exit
 # >>> end of protocol series 3
 git am ../patch/0001-efi_loader-comments-for-EFI_DEVICE_PATH_TO_TEXT_PROT.patch
 # <<< start of protocol series 4
@@ -49,9 +47,9 @@ git am ../patch/0001-efi_loader-list-of-open-protocol-infos.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
 git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
+git am ../patch/0001-efi_loader-implement-ConnectController.patch
 # >>> end of protocol series 4
 exit
-git am ../patch/0001-efi_loader-implement-ConnectController.patch
 git am ../patch/0001-efi_loader-implement-DisconnectController.patch
 
 # Work in progress
