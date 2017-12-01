@@ -1,0 +1,80 @@
+From 6a897c98d1843b81532a31c6bddf3461cd18f9f9 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 1 Dec 2017 20:52:05 +0100
+Subject: [PATCH 1/1] efi_selftest: remove todo in device path test
+
+The installation of UninstallProtocol is functional now.
+So we do not expect errors when calling it.
+
+Call UninstallProtocol with correct level of indirection
+for parameter handle.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/efi_selftest_devicepath.c | 40 +++++++++++++++++++-----------
+ 1 file changed, 25 insertions(+), 15 deletions(-)
+
+diff --git a/lib/efi_selftest/efi_selftest_devicepath.c b/lib/efi_selftest/efi_selftest_devicepath.c
+index d9a6697892..2f8f3c7f15 100644
+--- a/lib/efi_selftest/efi_selftest_devicepath.c
++++ b/lib/efi_selftest/efi_selftest_devicepath.c
+@@ -192,31 +192,41 @@ static int teardown(void)
+ {
+ 	efi_status_t ret;
+ 
+-	ret = boottime->uninstall_protocol_interface(&handle1,
++	ret = boottime->uninstall_protocol_interface(handle1,
+ 						     &guid_device_path,
+ 						     dp1);
+-	if (ret != EFI_SUCCESS)
+-		efi_st_todo("UninstallProtocolInterface failed\n");
+-	ret = boottime->uninstall_protocol_interface(&handle1,
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->uninstall_protocol_interface(handle1,
+ 						     &guid_protocol,
+ 						     &interface);
+-	if (ret != EFI_SUCCESS)
+-		efi_st_todo("UninstallProtocolInterface failed\n");
+-	ret = boottime->uninstall_protocol_interface(&handle2,
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->uninstall_protocol_interface(handle2,
+ 						     &guid_device_path,
+ 						     dp2);
+-	if (ret != EFI_SUCCESS)
+-		efi_st_todo("UninstallProtocolInterface failed\n");
+-	ret = boottime->uninstall_protocol_interface(&handle2,
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->uninstall_protocol_interface(handle2,
+ 						     &guid_protocol,
+ 						     &interface);
+-	if (ret != EFI_SUCCESS)
+-		efi_st_todo("UninstallProtocolInterface failed\n");
+-	ret = boottime->uninstall_protocol_interface(&handle3,
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++	ret = boottime->uninstall_protocol_interface(handle3,
+ 						     &guid_device_path,
+ 						     dp3);
+-	if (ret != EFI_SUCCESS)
+-		efi_st_todo("UninstallProtocolInterface failed\n");
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("UninstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
+ 	if (dp1) {
+ 		ret = boottime->free_pool(dp1);
+ 		if (ret != EFI_SUCCESS) {
+-- 
+2.11.0
+
