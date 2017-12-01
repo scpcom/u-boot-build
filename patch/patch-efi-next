@@ -45,6 +45,7 @@ git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
 git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
 git am ../patch/0001-efi_loader-implement-ConnectController.patch
 git am ../patch/0001-efi_loader-implement-DisconnectController.patch
+git am ../patch/0001-efi_loader-disconnect-controllers-in-UninstallProtoc.patch
 # >>> end of protocol series 4
 
 # Work in progress

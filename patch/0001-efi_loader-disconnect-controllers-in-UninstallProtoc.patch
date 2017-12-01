@@ -1,0 +1,51 @@
+From 284d1764542d5476539c24209fb01e9cc3cf9450 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 1 Dec 2017 18:58:19 +0100
+Subject: [PATCH 1/1] efi_loader: disconnect controllers in  UninstallProtocol
+
+The UninstallProtocol boot service should first try to
+disconnect controllers that have been connected with
+EFI_OPEN_PROTOCOL_BY_DRIVER.
+
+If the protocol is still by an agent it should be
+closed.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 57e0b89dd5..94b9a2e1b6 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -961,6 +961,7 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(
+ 				void *protocol_interface)
+ {
+ 	struct efi_handler *handler;
++	struct efi_open_protocol_info_item *item;
+ 	efi_status_t r;
+ 
+ 	EFI_ENTRY("%p, %pUl, %p", handle, protocol, protocol_interface);
+@@ -974,12 +975,15 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(
+ 	r = efi_search_protocol(handle, protocol, &handler);
+ 	if (r != EFI_SUCCESS)
+ 		goto out;
+-	if (handler->protocol_interface) {
++	/* Disconnect controllers */
++	list_for_each_entry(item, &handler->open_infos, link) {
+ 		/* TODO disconnect controllers */
++	}
++	if (!list_empty(&handler->open_infos)) {
+ 		r =  EFI_ACCESS_DENIED;
+-	} else {
+-		r = efi_remove_protocol(handle, protocol, protocol_interface);
++		goto out;
+ 	}
++	r = efi_remove_protocol(handle, protocol, protocol_interface);
+ out:
+ 	return EFI_EXIT(r);
+ }
+-- 
+2.11.0
+
