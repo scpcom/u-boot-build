@@ -9,36 +9,37 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
 # Fix building u-boot.rom for qemu-x86_64_defconfig
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
-git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
+# git am ../patch/0001-efi_loader-fix-building-of-helloworld.efi-on-x86_64.patch
 
-git am ../patch/0001-efi_loader-initialise-partition_signature-memory.patch
+# git am ../patch/0001-efi_loader-initialise-partition_signature-memory.patch
 
 git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
 
 # <<< start of protocol series 3
 # git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
 # git am ../patch/0001-efi_loader-efi_bootmgr-do-not-make-hidden-assignment.patch
-git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
-git am ../patch/0001-efi_loader-size-of-media-device-path-node-represenat.patch
-git am ../patch/0001-efi_loader-efi_dp_str-should-print-path-not-node.patch
-git am ../patch/0001-efi_loader-fix-efi_convert_device_node_to_text.patch
-git am ../patch/0001-efi_loader-reimplement-LocateDevicePath.patch
-git am ../patch/0001-efi_selftest-test-EFI_DEVICE_PATH_TO_TEXT_PROTOCOL.patch
-git am ../patch/0001-efi_loader-efi_disk-use-efi_add_protocol.patch
-git am ../patch/0001-efi_loader-efi_net-use-efi_add_protocol.patch
-git am ../patch/0001-efi_loader-efi_gop-use-efi_add_protocol.patch
-git am ../patch/0001-efi_loader-simplify-efi_open_protocol.patch
-git am ../patch/0001-efi_loader-simplify-find_obj.patch
-git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
-git am ../patch/0001-efi_selftest-compile-without-special-compiler-flags.patch
-git am ../patch/0001-efi_selftest-add-missing-line-feed.patch
-git am ../patch/0001-efi_loader-output-load-options-in-helloworld.patch
-git am ../patch/0001-test-py-check-return-code-of-helloworld.patch
-git am ../patch/0001-efi_loader-pass-handle-of-loaded-image.patch
-git am ../patch/0001-efi_loader-helper-function-to-add-EFI-object-to-list.patch
+# git am ../patch/0001-efi_loader-helloworld.c-remove-superfluous-include.patch
+# git am ../patch/0001-efi_loader-size-of-media-device-path-node-represenat.patch
+# git am ../patch/0001-efi_loader-efi_dp_str-should-print-path-not-node.patch
+# git am ../patch/0001-efi_loader-fix-efi_convert_device_node_to_text.patch
+# git am ../patch/0001-efi_loader-reimplement-LocateDevicePath.patch
+# git am ../patch/0001-efi_selftest-test-EFI_DEVICE_PATH_TO_TEXT_PROTOCOL.patch
+# git am ../patch/0001-efi_loader-efi_disk-use-efi_add_protocol.patch
+# git am ../patch/0001-efi_loader-efi_net-use-efi_add_protocol.patch
+# git am ../patch/0001-efi_loader-efi_gop-use-efi_add_protocol.patch
+# git am ../patch/0001-efi_loader-simplify-efi_open_protocol.patch
+# git am ../patch/0001-efi_loader-simplify-find_obj.patch
+# git am ../patch/0001-efi_loader-manage-protocols-in-a-linked-list.patch
+# git am ../patch/0001-efi_selftest-compile-without-special-compiler-flags.patch
+# git am ../patch/0001-efi_selftest-add-missing-line-feed.patch
+# git am ../patch/0001-efi_loader-output-load-options-in-helloworld.patch
+# git am ../patch/0001-test-py-check-return-code-of-helloworld.patch
+# git am ../patch/0001-efi_loader-pass-handle-of-loaded-image.patch
+# git am ../patch/0001-efi_loader-helper-function-to-add-EFI-object-to-list.patch
 # >>> end of protocol series 3
-git am ../patch/0001-efi_loader-comments-for-EFI_DEVICE_PATH_TO_TEXT_PROT.patch
+# git am ../patch/0001-efi_loader-comments-for-EFI_DEVICE_PATH_TO_TEXT_PROT.patch
 # <<< start of protocol series 4
+git am ../patch/0001-efi_selftest-do-not-try-to-close-device-path-protoco.patch
 git am ../patch/0001-efi_loader-list-of-open-protocol-infos.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
