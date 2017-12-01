@@ -759,7 +759,7 @@ CONFIG_DM_SPI=y
 # CONFIG_SOFT_SPI is not set
 # CONFIG_FSL_ESPI is not set
 # CONFIG_FSL_QSPI is not set
-# CONFIG_NDS_AE3XX_SPI is not set
+# CONFIG_ATCSPI200_SPI is not set
 # CONFIG_TI_QSPI is not set
 # CONFIG_OMAP3_SPI is not set
 
@@ -787,6 +787,7 @@ CONFIG_X86_TSC_TIMER=y
 # CONFIG_OMAP_TIMER is not set
 # CONFIG_AST_TIMER is not set
 # CONFIG_STI_TIMER is not set
+# CONFIG_ATCPIT100_TIMER is not set
 # CONFIG_ROCKCHIP_TIMER is not set
 
 #
