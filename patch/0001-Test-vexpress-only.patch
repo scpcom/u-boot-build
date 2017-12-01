@@ -1,22 +1,21 @@
-From ad123d2a6c9d2df6541ae489ccf823b5254d7a54 Mon Sep 17 00:00:00 2001
+From 5d2d357e8273168275c14d8755f806a2258f57ef Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Fri, 1 Sep 2017 21:00:56 +0200
-Subject: [PATCH 6/6] Test vexpress only
+Date: Fri, 1 Dec 2017 19:01:20 +0100
+Subject: [PATCH 1/1] Test vexpress only
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- .travis.yml | 196 ------------------------------------------------------------
- 1 file changed, 196 deletions(-)
+ .travis.yml | 227 ------------------------------------------------------------
+ 1 file changed, 227 deletions(-)
 
 diff --git a/.travis.yml b/.travis.yml
-index ea560b9360..5a7af71735 100644
+index 0b7a0622bf..0bf7bb220e 100644
 --- a/.travis.yml
 +++ b/.travis.yml
-@@ -122,157 +122,9 @@ matrix:
-   include:
+@@ -120,235 +120,8 @@ matrix:
    # we need to build by vendor due to 50min time limit for builds
    # each env setting here is a dedicated build
--    - env:
+     - env:
 -        - BUILDMAN="arc"
 -          TOOLCHAIN="arc"
 -    - env:
@@ -35,6 +34,12 @@ index ea560b9360..5a7af71735 100644
 -    - env:
 -        - BUILDMAN="aries"
 -    - env:
+-        - JOB="Boundary Devices"
+-          BUILDMAN="boundary"
+-    - env:
+-        - JOB="engicam"
+-          BUILDMAN="engicam"
+-    - env:
 -        - JOB="Freescale ARM32"
 -          BUILDMAN="freescale -x powerpc,m68k,aarch64"
 -    - env:
@@ -42,12 +47,16 @@ index ea560b9360..5a7af71735 100644
 -          BUILDMAN="freescale&aarch64"
 -    - env:
 -        - JOB="i.MX6 (non-Freescale)"
--          BUILDMAN="mx6 -x freescale"
+-          BUILDMAN="mx6 -x freescale,toradex,boundary,engicam"
 -    - env:
 -        - JOB="i.MX (non-Freescale, non-i.MX6)"
--          BUILDMAN="mx -x freescale,mx6"
+-          BUILDMAN="mx -x freescale,mx6,toradex"
+-    - env:
+-        - BUILDMAN="k2"
 -    - env:
 -        - BUILDMAN="samsung"
+-    - env:
+-        - BUILDMAN="socfpga"
 -    - env:
 -        - BUILDMAN="sun4i"
 -    - env:
@@ -64,16 +73,19 @@ index ea560b9360..5a7af71735 100644
 -        - BUILDMAN="sun50i"
 -    - env:
 -        - JOB="Catch-all ARM"
--          BUILDMAN="arm -x arm11,arm7,arm9,aarch64,atmel,aries,freescale,kirkwood,mvebu,siemens,tegra,uniphier,mx,samsung,sunxi,am33xx,omap3,omap4,omap5,pxa,rockchip"
+-          BUILDMAN="arm -x arm11,arm7,arm9,aarch64,atmel,aries,freescale,kirkwood,mvebu,siemens,tegra,uniphier,mx,samsung,sunxi,am33xx,omap3,omap4,omap5,pxa,rockchip,toradex,socfpga,k2,xilinx"
 -    - env:
 -        - BUILDMAN="sandbox x86"
 -          TOOLCHAIN="x86_64"
+-    - env:
+-        - BUILDMAN="toradex"
 -    - env:
 -        - BUILDMAN="kirkwood"
 -    - env:
 -        - BUILDMAN="mvebu"
 -    - env:
--        - BUILDMAN="pxa"
+-        - JOB="PXA"
+-        - BUILDMAN="pxa -x toradex"
 -    - env:
 -        - BUILDMAN="m68k"
 -          TOOLCHAIN="m68k"
@@ -104,7 +116,8 @@ index ea560b9360..5a7af71735 100644
 -    - env:
 -        - BUILDMAN="siemens"
 -    - env:
--        - BUILDMAN="tegra"
+-        - JOB="tegra"
+-          BUILDMAN="tegra -x toradex"
 -    - env:
 -        - JOB="am33xx"
 -          BUILDMAN="am33xx -x siemens"
@@ -117,12 +130,16 @@ index ea560b9360..5a7af71735 100644
 -    - env:
 -        - BUILDMAN="uniphier"
 -    - env:
--        - BUILDMAN="aarch64 -x tegra,freescale,mvebu,uniphier,sunxi,samsung,rockchip"
+-        - JOB="aarch64"
+-          BUILDMAN="aarch64 -x tegra,freescale,mvebu,uniphier,sunxi,samsung,rockchip"
 -    - env:
 -        - BUILDMAN="rockchip"
 -    - env:
 -        - BUILDMAN="sh4"
 -          TOOLCHAIN="sh4"
+-    - env:
+-        - JOB="Xilinx (ARM)"
+-          BUILDMAN="xilinx -x microblaze"
 -    - env:
 -        - BUILDMAN="xtensa"
 -          TOOLCHAIN="xtensa"
@@ -151,9 +168,9 @@ index ea560b9360..5a7af71735 100644
 -        - JOB="sloccount"
 -      script:
 -        - sloccount .
- 
-     # test/py
-     - env:
+-
+-    # test/py
+-    - env:
 -        - TEST_PY_BD="sandbox"
 -          BUILDMAN="^sandbox$"
 -          TOOLCHAIN="x86_64"
@@ -170,16 +187,23 @@ index ea560b9360..5a7af71735 100644
          - TEST_PY_BD="vexpress_ca15_tc2"
            TEST_PY_ID="--id qemu"
            QEMU_TARGET="arm-softmmu"
-@@ -282,53 +134,5 @@ matrix:
-           TEST_PY_ID="--id qemu"
-           QEMU_TARGET="arm-softmmu"
-           BUILDMAN="^vexpress_ca9x4$"
+           BUILDMAN="^vexpress_ca15_tc2$"
+-    - env:
+-        - TEST_PY_BD="vexpress_ca9x4"
+-          TEST_PY_ID="--id qemu"
+-          QEMU_TARGET="arm-softmmu"
+-          BUILDMAN="^vexpress_ca9x4$"
 -    - env:
 -        - TEST_PY_BD="integratorcp_cm926ejs"
 -          TEST_PY_TEST_SPEC="not sleep"
 -          TEST_PY_ID="--id qemu"
 -          QEMU_TARGET="arm-softmmu"
 -          BUILDMAN="^integratorcp_cm926ejs$"
+-    - env:
+-        - TEST_PY_BD="qemu_arm"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="arm-softmmu"
+-          BUILDMAN="^qemu_arm$"
 -    - env:
 -        - TEST_PY_BD="qemu_mips"
 -          TEST_PY_TEST_SPEC="not sleep"
@@ -222,7 +246,7 @@ index ea560b9360..5a7af71735 100644
 -          QEMU_TARGET="arm-softmmu"
 -          TEST_PY_ID="--id qemu"
 -          BUILDMAN="^zynq_zc702$"
- 
+-
  # TODO make it perfect ;-r
 -- 
 2.11.0
