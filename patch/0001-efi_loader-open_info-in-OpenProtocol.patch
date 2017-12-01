@@ -1,4 +1,4 @@
-From 8d8266547b4650cda3fc814f24f4b69c7f661dd5 Mon Sep 17 00:00:00 2001
+From 3a313f60babea40ae9411c688a3ab176b8da393c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 14 Nov 2017 18:23:47 +0100
 Subject: [PATCH 1/1] efi_loader: open_info in OpenProtocol
@@ -10,14 +10,14 @@ information into this list.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 94 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 92 insertions(+), 2 deletions(-)
+ lib/efi_loader/efi_boottime.c | 107 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 103 insertions(+), 4 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 449b2ec0a3..09300a7545 100644
+index 701592241f..b47211290f 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -2090,6 +2090,96 @@ static void EFIAPI efi_set_mem(void *buffer, size_t size, uint8_t value)
+@@ -2090,6 +2090,101 @@ static void EFIAPI efi_set_mem(void *buffer, size_t size, uint8_t value)
  /*
   * Open protocol interface on a handle.
   *
@@ -38,7 +38,11 @@ index 449b2ec0a3..09300a7545 100644
 +	bool opened_by_driver = false;
 +	bool opened_exclusive = false;
 +
-+	/* For TEST_PROTOCOL ignore interface attribute. */
++	/* If there is no agent, only return the interface */
++	if (!agent_handle)
++		goto out;
++
++	/* For TEST_PROTOCOL ignore interface attribute */
 +	if (attributes != EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
 +		*protocol_interface = NULL;
 +
@@ -56,7 +60,7 @@ index 449b2ec0a3..09300a7545 100644
 +			opened_exclusive = true;
 +	}
 +
-+	/* Only one controller can open the protocol exclusively. */
++	/* Only one controller can open the protocol exclusively */
 +	if (opened_exclusive && attributes &
 +	    (EFI_OPEN_PROTOCOL_EXCLUSIVE | EFI_OPEN_PROTOCOL_BY_DRIVER))
 +		return EFI_ACCESS_DENIED;
@@ -101,6 +105,7 @@ index 449b2ec0a3..09300a7545 100644
 +	match->attributes = attributes;
 +	match->open_count++;
 +
++out:
 +	/* For TEST_PROTOCOL ignore interface attribute. */
 +	if (attributes != EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
 +		*protocol_interface = handler->protocol_interface;
@@ -114,7 +119,26 @@ index 449b2ec0a3..09300a7545 100644
   * This function implements the OpenProtocol interface.
   * See the Unified Extensible Firmware Interface (UEFI) specification
   * for details.
-@@ -2144,8 +2234,8 @@ static efi_status_t EFIAPI efi_open_protocol(
+@@ -2128,12 +2223,16 @@ static efi_status_t EFIAPI efi_open_protocol(
+ 	case EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER:
+ 		if (controller_handle == handle)
+ 			goto out;
++		/* fall-through */
+ 	case EFI_OPEN_PROTOCOL_BY_DRIVER:
+ 	case EFI_OPEN_PROTOCOL_BY_DRIVER | EFI_OPEN_PROTOCOL_EXCLUSIVE:
+-		if (controller_handle == NULL)
++		/* Check that the controller handle is valid */
++		if (!efi_search_obj(controller_handle))
+ 			goto out;
++		/* fall-through */
+ 	case EFI_OPEN_PROTOCOL_EXCLUSIVE:
+-		if (agent_handle == NULL)
++		/* Check that the agent handle is valid */
++		if (!efi_search_obj(agent_handle))
+ 			goto out;
+ 		break;
+ 	default:
+@@ -2144,8 +2243,8 @@ static efi_status_t EFIAPI efi_open_protocol(
  	if (r != EFI_SUCCESS)
  		goto out;
  
