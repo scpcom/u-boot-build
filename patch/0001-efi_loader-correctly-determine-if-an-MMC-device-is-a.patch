@@ -1,0 +1,59 @@
+From 1504fc86d3afb1fe8cdb0cb3a9f2f90ddb1cb35d Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 2 Dec 2017 11:25:55 +0100
+Subject: [PATCH] efi_loader: correctly determine if an MMC device is an
+ SD-card
+
+The SD cards and eMMC devices have different device nodes.
+The current coding interpretes all MMC devices as eMMC.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_device_path.c | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/lib/efi_loader/efi_device_path.c b/lib/efi_loader/efi_device_path.c
+index b4e2f933cb..42fe6e1185 100644
+--- a/lib/efi_loader/efi_device_path.c
++++ b/lib/efi_loader/efi_device_path.c
+@@ -36,6 +36,24 @@ static const struct efi_device_path_vendor ROOT = {
+ 	.guid = U_BOOT_GUID,
+ };
+ 
++#if defined(CONFIG_DM_MMC) && defined(CONFIG_MMC)
++/*
++ * Determine if an MMC device is an SD card.
++ *
++ * @desc	block device descriptor
++ * @return	true if the device is an SD card
++ */
++static bool is_sd(struct blk_desc *desc)
++{
++	struct mmc *mmc = find_mmc_device(desc->devnum);
++
++	if (!mmc)
++		return false;
++
++	return IS_SD(mmc) != 0U;
++}
++#endif
++
+ static void *dp_alloc(size_t sz)
+ {
+ 	void *buf;
+@@ -298,9 +316,9 @@ static void *dp_fill(void *buf, struct udevice *dev)
+ 		struct blk_desc *desc = mmc_get_blk_desc(mmc);
+ 
+ 		sddp->dp.type     = DEVICE_PATH_TYPE_MESSAGING_DEVICE;
+-		sddp->dp.sub_type = (desc->if_type == IF_TYPE_MMC) ?
+-			DEVICE_PATH_SUB_TYPE_MSG_MMC :
+-			DEVICE_PATH_SUB_TYPE_MSG_SD;
++		sddp->dp.sub_type = is_sd(desc) ?
++			DEVICE_PATH_SUB_TYPE_MSG_SD :
++			DEVICE_PATH_SUB_TYPE_MSG_MMC;
+ 		sddp->dp.length   = sizeof(*sddp);
+ 		sddp->slot_number = dev->seq;
+ 
+-- 
+2.15.0
+
