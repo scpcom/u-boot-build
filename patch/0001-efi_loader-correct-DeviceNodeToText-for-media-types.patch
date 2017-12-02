@@ -1,0 +1,77 @@
+From 217ce3c3bc9b9f02d6739d093515a67fd05d940a Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 2 Dec 2017 13:12:04 +0100
+Subject: [PATCH 1/1] efi_loader: correct DeviceNodeToText for media types
+
+When converting device nodes and paths to text we should
+stick to the UEFI spec.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_device_path_to_text.c | 30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
+
+diff --git a/lib/efi_loader/efi_device_path_to_text.c b/lib/efi_loader/efi_device_path_to_text.c
+index 7159c974d4..703f83c75b 100644
+--- a/lib/efi_loader/efi_device_path_to_text.c
++++ b/lib/efi_loader/efi_device_path_to_text.c
+@@ -90,7 +90,7 @@ static char *dp_msging(char *s, struct efi_device_path *dp)
+ 	case DEVICE_PATH_SUB_TYPE_MSG_USB: {
+ 		struct efi_device_path_usb *udp =
+ 			(struct efi_device_path_usb *)dp;
+-		s += sprintf(s, "Usb(0x%x,0x%x)", udp->parent_port_number,
++		s += sprintf(s, "USB(0x%x,0x%x)", udp->parent_port_number,
+ 			     udp->usb_interface);
+ 		break;
+ 	}
+@@ -124,10 +124,10 @@ static char *dp_msging(char *s, struct efi_device_path *dp)
+ 	case DEVICE_PATH_SUB_TYPE_MSG_MMC: {
+ 		const char *typename =
+ 			(dp->sub_type == DEVICE_PATH_SUB_TYPE_MSG_SD) ?
+-					"SDCard" : "MMC";
++					"SD" : "eMMC";
+ 		struct efi_device_path_sd_mmc_path *sddp =
+ 			(struct efi_device_path_sd_mmc_path *)dp;
+-		s += sprintf(s, "%s(Slot%u)", typename, sddp->slot_number);
++		s += sprintf(s, "%s(%u)", typename, sddp->slot_number);
+ 		break;
+ 	}
+ 	default:
+@@ -147,18 +147,26 @@ static char *dp_media(char *s, struct efi_device_path *dp)
+ 
+ 		switch (hddp->signature_type) {
+ 		case SIG_TYPE_MBR:
+-			s += sprintf(s, "HD(Part%d,Sig%08x)",
+-				     hddp->partition_number,
+-				     *(uint32_t *)sig);
++			s += sprintf(
++				s, "HD(%d,MBR,0x%08x,0x%llx,0x%llx)",
++				hddp->partition_number,
++				*(uint32_t *)sig,
++				(long long unsigned int)hddp->partition_start,
++				(long long unsigned int)hddp->partition_end);
+ 			break;
+ 		case SIG_TYPE_GUID:
+-			s += sprintf(s, "HD(Part%d,Sig%pUl)",
+-				     hddp->partition_number, sig);
++			s += sprintf(
++				s, "HD(%d,GPT,%pUl,0x%llx,0x%llx)",
++				hddp->partition_number, sig,
++				(long long unsigned int)hddp->partition_start,
++				(long long unsigned int)hddp->partition_end);
+ 			break;
+ 		default:
+-			s += sprintf(s, "HD(Part%d,MBRType=%02x,SigType=%02x)",
+-				     hddp->partition_number, hddp->partmap_type,
+-				     hddp->signature_type);
++			s += sprintf(
++				s, "HD(%d,0x%02x,0,0x%llx,0x%llx)",
++				hddp->partition_number, hddp->partmap_type,
++				(long long unsigned int)hddp->partition_start,
++				(long long unsigned int)hddp->partition_end);
+ 			break;
+ 		}
+ 
+-- 
+2.15.0
+
