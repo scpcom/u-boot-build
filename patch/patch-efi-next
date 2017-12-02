@@ -14,7 +14,7 @@ git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
 # git am ../patch/0001-efi_loader-initialise-partition_signature-memory.patch
 
-git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
+# git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
 
 # <<< start of protocol series 3
 # git am ../patch/0001-QUIRK-make-UninstallProtocolInterface-succeed.patch
