@@ -5,6 +5,7 @@ git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 # Enable distro defaults on qemu
 # git am ../patch/0001-x86-enable-DISTRO_DEFAULTS-for-qemu.patch
 
+git am ../patch/patch/0001-Test-vexpress-only.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
 # Fix building u-boot.rom for qemu-x86_64_defconfig
@@ -42,7 +43,7 @@ git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
 git am ../patch/0001-efi_loader-correctly-determine-if-an-MMC-device-is-a.patch
 git am ../patch/0001-efi_loader-correctly-setup-device-paths-for-block-de.patch
 git am ../patch/0001-efi_loader-correct-DeviceNodeToText-for-media-types.patch
-
+exit
 # <<< start of protocol series 4
 git am ../patch/0001-efi_selftest-do-not-try-to-close-device-path-protoco.patch
 git am ../patch/0001-efi_loader-list-of-open-protocol-infos.patch
