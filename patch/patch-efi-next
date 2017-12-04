@@ -48,7 +48,8 @@ git am ../patch/0001-efi_loader-comments-for-dp_part_fill.patch
 git am ../patch/0001-efi_loader-return-status-from-efi_setup_loaded_image.patch
 git am ../patch/0001-efi_loader-new-function-efi_delete_handle.patch
 git am ../patch/0001-efi_loader-error-handling-in-efi_load_image.patch
-exit
+
+git am ../patch/0001-efi_loader-add-comments-to-memory-functions.patch
 # <<< start of protocol series 4
 git am ../patch/0001-efi_selftest-do-not-try-to-close-device-path-protoco.patch
 git am ../patch/0001-efi_loader-list-of-open-protocol-infos.patch
