@@ -1,0 +1,44 @@
+From b5225308f6180c50886af6427af8baa1bfd1bf7c Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 6 Dec 2017 16:07:30 +0100
+Subject: [PATCH 1/1] Debug boottime
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index d294d9879c..d4f85118a1 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
++
+ #include <common.h>
+ #include <div64.h>
+ #include <efi_loader.h>
+@@ -149,6 +151,8 @@ const char *__efi_nesting_dec(void)
+  *
+  * @event	event to signal
+  */
++#undef _DEBUG
++#define _DEBUG 0
+ void efi_signal_event(struct efi_event *event)
+ {
+ 	if (event->notify_function) {
+@@ -161,6 +165,8 @@ void efi_signal_event(struct efi_event *event)
+ 	}
+ 	event->is_queued = false;
+ }
++#undef _DEBUG
++#define _DEBUG 1
+ 
+ /*
+  * Raise the task priority level.
+-- 
+2.11.0
+
