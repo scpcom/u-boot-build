@@ -1,15 +1,15 @@
-From b5225308f6180c50886af6427af8baa1bfd1bf7c Mon Sep 17 00:00:00 2001
+From 873b8dc1a305a7e15fea707c1f4183d68db78ff7 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 6 Dec 2017 16:07:30 +0100
 Subject: [PATCH 1/1] Debug boottime
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/efi_loader/efi_boottime.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index d294d9879c..d4f85118a1 100644
+index 22b5ca3d64..a2d6859616 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -6,6 +6,8 @@
@@ -39,6 +39,42 @@ index d294d9879c..d4f85118a1 100644
  
  /*
   * Raise the task priority level.
+@@ -783,6 +789,8 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
+  * @event	event to check
+  * @return	status code
+  */
++#undef _DEBUG
++#define _DEBUG 0
+ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+ {
+ 	int i;
+@@ -802,6 +810,8 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+ 	}
+ 	return EFI_EXIT(EFI_INVALID_PARAMETER);
+ }
++#undef _DEBUG
++#define _DEBUG 1
+ 
+ /*
+  * Find the internal EFI object for a handle.
+@@ -1613,6 +1623,8 @@ static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
+  * @watchdog_data	buffer with data describing the reset reason
+  * @return		status code
+  */
++#undef _DEBUG
++#define _DEBUG 0
+ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+ 						  uint64_t watchdog_code,
+ 						  unsigned long data_size,
+@@ -1622,6 +1634,8 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+ 		  data_size, watchdog_data);
+ 	return EFI_EXIT(efi_set_watchdog(timeout));
+ }
++#undef _DEBUG
++#define _DEBUG 1
+ 
+ /*
+  * Close a protocol.
 -- 
-2.11.0
+2.14.2
 
