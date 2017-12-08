@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2017.11 Configuration
+# U-Boot 2018.01-rc1 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
@@ -177,6 +177,12 @@ CONFIG_SYS_CONSOLE_IS_IN_ENV=y
 # CONFIG_SYS_CONSOLE_ENV_OVERWRITE is not set
 CONFIG_SYS_CONSOLE_INFO_QUIET=y
 CONFIG_SYS_STDIO_DEREGISTER=y
+
+#
+# Logging
+#
+# CONFIG_LOG is not set
+# CONFIG_SPL_LOG is not set
 CONFIG_DEFAULT_FDT_FILE=""
 # CONFIG_VERSION_VARIABLE is not set
 CONFIG_DISPLAY_CPUINFO=y
@@ -414,6 +420,7 @@ CONFIG_CMD_FS_GENERIC=y
 # CONFIG_CMD_DIAG is not set
 CONFIG_CMD_IRQ=y
 # CONFIG_CMD_KGDB is not set
+# CONFIG_CMD_LOG is not set
 # CONFIG_CMD_TRACE is not set
 # CONFIG_CMD_UBI is not set
 
