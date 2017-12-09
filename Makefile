@@ -103,6 +103,20 @@ luv:
 	user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
 	-device e1000,netdev=eth0,mac=12:A1:00:12:34:13 -machine pc-i440fx-2.8 -hda img
 
+sata:	
+	cp denx/lib/efi_loader/*.efi tftp
+	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
+	-netdev \
+	user,id=eth0,tftp=tftp,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
+	-device e1000,netdev=eth0,mac=12:A1:00:12:34:13 -machine pc-i440fx-2.8 \
+	-hda img \
+	-drive file=img.gps,if=none,id=Disk2 \
+	-device ich9-ahci,id=ahcj \
+	-device ide-drive,drive=Disk2,bus=ahcj.0 \
+	-drive file=img.gpt,if=none,id=Disk1 \
+	-device ich9-ahci,id=ahci \
+	-device ide-drive,drive=Disk1,bus=ahci.0
+
 check:
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \
 	-netdev \

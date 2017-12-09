@@ -410,7 +410,7 @@ CONFIG_CMD_FS_GENERIC=y
 # CONFIG_CMD_JFFS2 is not set
 # CONFIG_CMD_MTDPARTS is not set
 # CONFIG_CMD_REISER is not set
-# CONFIG_CMD_SCSI is not set
+CONFIG_CMD_SCSI=y
 # CONFIG_CMD_ZFS is not set
 
 #
@@ -716,7 +716,7 @@ CONFIG_DM_RTC=y
 # CONFIG_RTC_PCF2127 is not set
 # CONFIG_RTC_DS1307 is not set
 # CONFIG_RTC_S35392A is not set
-# CONFIG_SCSI is not set
+CONFIG_SCSI=y
 CONFIG_DM_SCSI=y
 
 #
