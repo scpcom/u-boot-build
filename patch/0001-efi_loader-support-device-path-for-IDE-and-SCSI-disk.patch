@@ -126,7 +126,7 @@ index 492a7643e6..ed30f1cabf 100644
 +#endif
 +		default:
 +			printf("unhandled parent class: %s (%u)\n",
-+			dev->name, dev->driver->id);
++			       dev->name, dev->driver->id);
 +			return dp_fill(buf, dev->parent);
 +		}
 +#endif
