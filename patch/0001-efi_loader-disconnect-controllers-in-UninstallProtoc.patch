@@ -1,4 +1,4 @@
-From 5bae4b49c9d343cb9d0294f8b9684b0405ef99e6 Mon Sep 17 00:00:00 2001
+From 55680e9dcbf6abf4502f117530749e9e6e173b80 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 1 Dec 2017 18:58:19 +0100
 Subject: [PATCH 1/1] efi_loader: disconnect controllers in UninstallProtocol
@@ -16,7 +16,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 18 insertions(+), 4 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 648857b8fb..48b29aecba 100644
+index 648857b8fb..94b7205a5e 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -972,6 +972,8 @@ static efi_status_t EFIAPI efi_uninstall_protocol_interface(
@@ -45,7 +45,7 @@ index 648857b8fb..48b29aecba 100644
 +			EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL ||
 +		    item->info.attributes == EFI_OPEN_PROTOCOL_GET_PROTOCOL ||
 +		    item->info.attributes == EFI_OPEN_PROTOCOL_TEST_PROTOCOL)
-+		    	list_del(&item->link);
++			list_del(&item->link);
 +	}
 +	if (!list_empty(&handler->open_infos)) {
  		r =  EFI_ACCESS_DENIED;
@@ -58,5 +58,5 @@ index 648857b8fb..48b29aecba 100644
  	return EFI_EXIT(r);
  }
 -- 
-2.11.0
+2.15.1
 
