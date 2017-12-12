@@ -1,4 +1,4 @@
-From 9246120b421d58b999012366b50483d1bbd026b2 Mon Sep 17 00:00:00 2001
+From 0ba4ea315e1391dfc6417de8d80137e81444716b Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 29 Nov 2017 20:26:31 +0100
 Subject: [PATCH 1/1] efi_loader: implement ConnectController
@@ -9,8 +9,8 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_api.h             |  22 ++++++
  include/efi_loader.h          |   2 +
- lib/efi_loader/efi_boottime.c | 155 +++++++++++++++++++++++++++++++++++-------
- 3 files changed, 155 insertions(+), 24 deletions(-)
+ lib/efi_loader/efi_boottime.c | 180 ++++++++++++++++++++++++++++++++++++------
+ 3 files changed, 180 insertions(+), 24 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
 index 46963f2891..4afbbd0469 100644
@@ -57,7 +57,7 @@ index 637e6e166d..9e1ae8866b 100644
  extern const efi_guid_t efi_guid_device_path_to_text_protocol;
  extern const efi_guid_t efi_simple_file_system_protocol_guid;
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 25e2d175c4..0070e08d80 100644
+index 25e2d175c4..4c0a6840f3 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -56,6 +56,9 @@ static volatile void *efi_gd, *app_gd;
@@ -101,7 +101,7 @@ index 25e2d175c4..0070e08d80 100644
  /*
   * Disconnect a controller from a driver.
   *
-@@ -2346,6 +2325,134 @@ static efi_status_t EFIAPI efi_handle_protocol(void *handle,
+@@ -2346,6 +2325,159 @@ static efi_status_t EFIAPI efi_handle_protocol(void *handle,
  				 NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
  }
  
@@ -212,25 +212,50 @@ index 25e2d175c4..0070e08d80 100644
 +			bool recursive)
 +{
 +	efi_status_t r;
++	efi_status_t ret = EFI_NOT_FOUND;
++	struct efi_object *efiobj;
 +
 +	EFI_ENTRY("%p, %p, %p, %d", controller_handle, driver_image_handle,
 +		  remain_device_path, recursive);
 +
-+	if (!controller_handle) {
-+		r = EFI_INVALID_PARAMETER;
-+		goto out;
-+	}
-+
-+	if (recursive) {
-+		r = EFI_UNSUPPORTED;
++	efiobj = efi_search_obj(controller_handle);
++	if (!efiobj) {
++		ret = EFI_INVALID_PARAMETER;
 +		goto out;
 +	}
 +
 +	r = efi_connect_single_controller(controller_handle,
 +					  driver_image_handle,
 +					  remain_device_path);
++	if (r == EFI_SUCCESS)
++		ret = EFI_SUCCESS;
++	if (recursive) {
++		struct efi_handler *handler;
++		struct efi_open_protocol_info_item *item;
++
++		list_for_each_entry(handler, &efiobj->protocols, link) {
++			list_for_each_entry(item, &handler->open_infos, link) {
++				if (item->info.attributes &
++				    EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER) {
++					r = EFI_CALL(
++						efi_connect_controller(
++							item->
++							info.controller_handle,
++							driver_image_handle,
++							remain_device_path,
++							recursive));
++					if (r == EFI_SUCCESS)
++						ret = EFI_SUCCESS;
++				}
++			}
++		}
++	}
++	/*  Check for child controller specified by end node */
++	if (ret != EFI_SUCCESS && remain_device_path &&
++	    remain_device_path->type == DEVICE_PATH_TYPE_END)
++		ret = EFI_SUCCESS;
 +out:
-+	return EFI_EXIT(r);
++	return EFI_EXIT(ret);
 +}
 +
  static const struct efi_boot_services efi_boot_services = {

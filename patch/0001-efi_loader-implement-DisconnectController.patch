@@ -56,7 +56,7 @@ index 514d6a28a3..6259a81654 100644
   *
   * This function implements the CloseProtocol service.
 @@ -2435,6 +2418,102 @@ out:
- 	return EFI_EXIT(r);
+ 	return EFI_EXIT(ret);
  }
  
 +/*
