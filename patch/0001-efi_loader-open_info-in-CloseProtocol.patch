@@ -9,7 +9,7 @@ opened protocols.
 Check if the protocol was opened for the same agent and
 controller.
 
-Remove all open protocol informations for this pair.
+Remove all open protocol information for this pair.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
