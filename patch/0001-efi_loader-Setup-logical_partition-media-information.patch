@@ -1,0 +1,30 @@
+From fe1001c91727b97d5f1ff1fd9441423d5597ae00 Mon Sep 17 00:00:00 2001
+From: Emmanuel Vadot <manu@freebsd.org>
+Date: Mon, 11 Dec 2017 19:22:33 +0100
+Subject: [PATCH 1/1] efi_loader: Setup logical_partition media information
+
+When adding a partition, set the logical_partition member in the media
+structure as mandated by the UEFI spec.
+
+Signed-off-by: Emmanuel Vadot <manu@freebsd.org>
+Reviewed-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_disk.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/efi_loader/efi_disk.c b/lib/efi_loader/efi_disk.c
+index 4e457a841b..d299fc8dea 100644
+--- a/lib/efi_loader/efi_disk.c
++++ b/lib/efi_loader/efi_disk.c
+@@ -258,6 +258,8 @@ static void efi_disk_add_dev(const char *name,
+ 	diskobj->media.block_size = desc->blksz;
+ 	diskobj->media.io_align = desc->blksz;
+ 	diskobj->media.last_block = desc->lba - offset;
++	if (part != 0)
++		diskobj->media.logical_partition = 1;
+ 	diskobj->ops.media = &diskobj->media;
+ 	return;
+ out_of_memory:
+-- 
+2.14.2
+

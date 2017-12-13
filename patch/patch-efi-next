@@ -26,9 +26,10 @@ git am ../patch/0001-efi_loader-add-comments-to-memory-functions.patch
 
 git am ../patch/0001-efi_loader-use-wide-string-do-define-firmware-vendor.patch
 
-git am ../patch/0001-simplify-efi_remove_all_protocols.patch
+git am ../patch/0001-efi_loader-Setup-logical_partition-media-information.patch
 
 # <<< start of protocol series 4
+git am ../patch/0001-simplify-efi_remove_all_protocols.patch
 git am ../patch/0001-efi_selftest-do-not-try-to-close-device-path-protoco.patch
 git am ../patch/0001-efi_loader-list-of-open-protocol-infos.patch
 git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
