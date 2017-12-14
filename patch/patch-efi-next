@@ -41,9 +41,9 @@ git am ../patch/0001-efi_loader-implement-DisconnectController.patch
 git am ../patch/0001-efi_loader-disconnect-controllers-in-UninstallProtoc.patch
 git am ../patch/0001-efi_selftest-remove-todo-in-manage-protocols.patch
 git am ../patch/0001-efi_selftest-remove-todo-in-device-path-test.patch
+git am ../patch/0001-Debug-boottime.patch
 git am ../patch/0001-efi_selftest-test-for-Dis-ConnectController.patch
 # >>> end of protocol series 4
-git am ../patch/0001-Debug-boottime.patch
 
 # Work in progress
 # git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch

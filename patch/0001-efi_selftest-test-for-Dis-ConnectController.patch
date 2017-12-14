@@ -1,4 +1,4 @@
-From 2fa3409e525ef7094531ed53fbc902073bc5c072 Mon Sep 17 00:00:00 2001
+From db48dca46ea64633db98535d9df41029be9ba152 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Dec 2017 07:06:29 +0100
 Subject: [PATCH] efi_selftest: test for (Dis)ConnectController
@@ -6,8 +6,8 @@ Subject: [PATCH] efi_selftest: test for (Dis)ConnectController
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                   |  1 +
- lib/efi_selftest/efi_selftest_controllers.c | 65 +++++++++++++++++++++++++++++
- 2 files changed, 66 insertions(+)
+ lib/efi_selftest/efi_selftest_controllers.c | 93 +++++++++++++++++++++++++++++
+ 2 files changed, 94 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_controllers.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -24,10 +24,10 @@ index 837e86228e..e549553c82 100644
  efi_selftest_events.o \
 diff --git a/lib/efi_selftest/efi_selftest_controllers.c b/lib/efi_selftest/efi_selftest_controllers.c
 new file mode 100644
-index 0000000000..4f4c5c38a1
+index 0000000000..801d3944b9
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_controllers.c
-@@ -0,0 +1,65 @@
+@@ -0,0 +1,93 @@
 +/*
 + * efi_selftest_controllers
 + *
@@ -55,6 +55,7 @@ index 0000000000..4f4c5c38a1
 +static efi_handle_t handle_controller;
 +static efi_handle_t handle_child_controller;
 +static efi_handle_t handle_driver;
++static struct interface interface;
 +
 +/*
 + * Setup unit test.
@@ -65,6 +66,19 @@ index 0000000000..4f4c5c38a1
 +static int setup(const efi_handle_t img_handle,
 +		 const struct efi_system_table *systable)
 +{
++	efi_status_t ret;
++
++	boottime = systable->boottime;
++
++	ret = boottime->install_protocol_interface(&handle_controller,
++						   &guid_capable,
++						   EFI_NATIVE_INTERFACE,
++						   NULL);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("InstallProtocolInterface failed\n");
++		return EFI_ST_FAILURE;
++	}
++
 +	return EFI_ST_SUCCESS;
 +}
 +
@@ -83,6 +97,20 @@ index 0000000000..4f4c5c38a1
 + */
 +static int execute(void)
 +{
++	efi_status_t ret;
++
++	/*
++	 * Uninstall protocols.
++	 */
++	ret = boottime->uninstall_multiple_protocol_interfaces(
++						handle_controller,
++						&guid_capable, NULL,
++						&guid_service, &interface,
++						NULL);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to uninstall protocols\n");
++		return EFI_ST_FAILURE;
++	}
 +	return EFI_ST_SUCCESS;
 +}
 +
