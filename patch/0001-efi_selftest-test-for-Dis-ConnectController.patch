@@ -1,0 +1,98 @@
+From 2fa3409e525ef7094531ed53fbc902073bc5c072 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 14 Dec 2017 07:06:29 +0100
+Subject: [PATCH] efi_selftest: test for (Dis)ConnectController
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/Makefile                   |  1 +
+ lib/efi_selftest/efi_selftest_controllers.c | 65 +++++++++++++++++++++++++++++
+ 2 files changed, 66 insertions(+)
+ create mode 100644 lib/efi_selftest/efi_selftest_controllers.c
+
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index 837e86228e..e549553c82 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -9,6 +9,7 @@
+ 
+ obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
+ efi_selftest.o \
++efi_selftest_controllers.o \
+ efi_selftest_console.o \
+ efi_selftest_devicepath.o \
+ efi_selftest_events.o \
+diff --git a/lib/efi_selftest/efi_selftest_controllers.c b/lib/efi_selftest/efi_selftest_controllers.c
+new file mode 100644
+index 0000000000..4f4c5c38a1
+--- /dev/null
++++ b/lib/efi_selftest/efi_selftest_controllers.c
+@@ -0,0 +1,65 @@
++/*
++ * efi_selftest_controllers
++ *
++ * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ *
++ * This unit test checks the following protocol services:
++ * ConnectController, DisconnectController
++ */
++
++#include <efi_selftest.h>
++
++struct interface {
++	void (EFIAPI * inc)(void);
++};
++
++static struct efi_boot_services *boottime;
++static efi_guid_t guid_capable =
++	EFI_GUID(0xe6ab1d96, 0x6bff, 0xdb42,
++		 0xaa, 0x05, 0xc8, 0x1f, 0x7f, 0x45, 0x26, 0x34);
++static efi_guid_t guid_service =
++	EFI_GUID(0x417e437e, 0x23c4, 0x2dce,
++		 0x33, 0xdb, 0x7a, 0x92, 0x8f, 0x00, 0xd5, 0x2b);
++static efi_handle_t handle_controller;
++static efi_handle_t handle_child_controller;
++static efi_handle_t handle_driver;
++
++/*
++ * Setup unit test.
++ *
++ * @handle:	handle of the loaded image
++ * @systable:	system table
++ */
++static int setup(const efi_handle_t img_handle,
++		 const struct efi_system_table *systable)
++{
++	return EFI_ST_SUCCESS;
++}
++
++/*
++ * Tear down unit test.
++ *
++ */
++static int teardown(void)
++{
++	return EFI_ST_SUCCESS;
++}
++
++/*
++ * Execute unit test.
++ *
++ */
++static int execute(void)
++{
++	return EFI_ST_SUCCESS;
++}
++
++EFI_UNIT_TEST(controllers) = {
++	.name = "controllers",
++	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++	.teardown = teardown,
++};
+-- 
+2.11.0
+
