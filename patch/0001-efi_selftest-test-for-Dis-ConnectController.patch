@@ -1,4 +1,4 @@
-From ca660d6458d7e8513240b8f1cc3d152aba1b11e4 Mon Sep 17 00:00:00 2001
+From c728030e266548a1a4b7c8e14698a871af88e4b9 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Dec 2017 07:06:29 +0100
 Subject: [PATCH 1/1] efi_selftest: test for (Dis)ConnectController
@@ -6,8 +6,8 @@ Subject: [PATCH 1/1] efi_selftest: test for (Dis)ConnectController
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                   |   1 +
- lib/efi_selftest/efi_selftest_controllers.c | 161 ++++++++++++++++++++++++++++
- 2 files changed, 162 insertions(+)
+ lib/efi_selftest/efi_selftest_controllers.c | 188 ++++++++++++++++++++++++++++
+ 2 files changed, 189 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_controllers.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -24,10 +24,10 @@ index 837e86228e..e549553c82 100644
  efi_selftest_events.o \
 diff --git a/lib/efi_selftest/efi_selftest_controllers.c b/lib/efi_selftest/efi_selftest_controllers.c
 new file mode 100644
-index 0000000000..703b605c2a
+index 0000000000..eb2ece911c
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_controllers.c
-@@ -0,0 +1,161 @@
+@@ -0,0 +1,188 @@
 +/*
 + * efi_selftest_controllers
 + *
@@ -91,8 +91,22 @@ index 0000000000..703b605c2a
 +		efi_handle_t controller_handle,
 +		struct efi_device_path *remaining_device_path)
 +{
-+	efi_st_printf("%s(%u) %s:\n", __FILE__, __LINE__, __func__);
-+	return EFI_UNSUPPORTED;
++	efi_status_t ret;
++
++	ret = boottime->open_protocol(
++				controller_handle, &guid_supported_controller,
++				(void **)&interface, handle_driver,
++				controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER);
++	switch (ret) {
++	case EFI_ACCESS_DENIED:
++	case EFI_ALREADY_STARTED:
++		return ret;
++	case EFI_SUCCESS:
++		break;
++	default:
++		return EFI_UNSUPPORTED;
++	}
++	return ret;
 +}
 +
 +static efi_status_t EFIAPI stop(
@@ -101,8 +115,14 @@ index 0000000000..703b605c2a
 +		size_t number_of_children,
 +		efi_handle_t child_handle_buffer)
 +{
-+	efi_st_printf("%s(%u) %s:\n", __FILE__, __LINE__, __func__);
-+	return EFI_UNSUPPORTED;
++	efi_status_t ret;
++
++	ret = boottime->close_protocol(
++				controller_handle, &guid_supported_controller,
++				handle_driver, controller_handle);
++	if (ret != EFI_SUCCESS)
++		ret = EFI_UNSUPPORTED;
++	return ret;
 +}
 +
 +struct efi_driver_binding_protocol binding_interface = {
@@ -163,9 +183,16 @@ index 0000000000..703b605c2a
 +static int execute(void)
 +{
 +	efi_status_t ret;
++	/* Add child handles and connect controller to driver */
 +	ret = boottime->connect_controller(handle_controller, NULL, NULL, 1);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to connect controller\n");
++		return EFI_ST_FAILURE;
++	}
++	/* Destroy all child handles and disconnect controller */
++	ret = boottime->disconnect_controller(handle_controller, NULL, NULL);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to disconnect controller\n");
 +		return EFI_ST_FAILURE;
 +	}
 +
