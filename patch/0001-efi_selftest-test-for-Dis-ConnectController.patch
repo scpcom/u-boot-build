@@ -1,13 +1,13 @@
-From 7870ccace7cab025a37eee83316a318bb9f9bcc9 Mon Sep 17 00:00:00 2001
+From ca660d6458d7e8513240b8f1cc3d152aba1b11e4 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Dec 2017 07:06:29 +0100
-Subject: [PATCH] efi_selftest: test for (Dis)ConnectController
+Subject: [PATCH 1/1] efi_selftest: test for (Dis)ConnectController
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                   |   1 +
- lib/efi_selftest/efi_selftest_controllers.c | 136 ++++++++++++++++++++++++++++
- 2 files changed, 137 insertions(+)
+ lib/efi_selftest/efi_selftest_controllers.c | 161 ++++++++++++++++++++++++++++
+ 2 files changed, 162 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_controllers.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -24,10 +24,10 @@ index 837e86228e..e549553c82 100644
  efi_selftest_events.o \
 diff --git a/lib/efi_selftest/efi_selftest_controllers.c b/lib/efi_selftest/efi_selftest_controllers.c
 new file mode 100644
-index 0000000000..e028e20817
+index 0000000000..703b605c2a
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_controllers.c
-@@ -0,0 +1,136 @@
+@@ -0,0 +1,161 @@
 +/*
 + * efi_selftest_controllers
 + *
@@ -41,30 +41,49 @@ index 0000000000..e028e20817
 +
 +#include <efi_selftest.h>
 +
-+struct interface {
-+	void (EFIAPI * inc)(void);
-+};
-+
 +static struct efi_boot_services *boottime;
 +const efi_guid_t guid_driver_binding_protocol =
 +			EFI_DRIVER_BINDING_PROTOCOL_GUID;
-+static efi_guid_t guid_capable =
++static efi_guid_t guid_supported_controller =
 +	EFI_GUID(0xe6ab1d96, 0x6bff, 0xdb42,
 +		 0xaa, 0x05, 0xc8, 0x1f, 0x7f, 0x45, 0x26, 0x34);
-+static efi_guid_t guid_service =
++static efi_guid_t guid_supported_child_controller =
++	EFI_GUID(0x1d41f6f5, 0x2c41, 0xddfb,
++		 0xe2, 0x9b, 0xb8, 0x0e, 0x2e, 0xe8, 0x3a, 0x85);
++static efi_guid_t guid_driver =
 +	EFI_GUID(0x417e437e, 0x23c4, 0x2dce,
 +		 0x33, 0xdb, 0x7a, 0x92, 0x8f, 0x00, 0xd5, 0x2b);
 +static efi_handle_t handle_controller;
-+static efi_handle_t handle_child_controller;
 +static efi_handle_t handle_driver;
-+static struct interface interface;
++static struct interface {
++} interface;
 +
 +static efi_status_t EFIAPI supported(
 +		struct efi_driver_binding_protocol *this,
 +		efi_handle_t controller_handle,
 +		struct efi_device_path *remaining_device_path)
 +{
-+	return EFI_UNSUPPORTED;
++	efi_status_t ret;
++
++	ret = boottime->open_protocol(
++				controller_handle, &guid_supported_controller,
++				(void **)&interface, handle_driver,
++				controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER);
++	switch (ret) {
++	case EFI_ACCESS_DENIED:
++	case EFI_ALREADY_STARTED:
++		return ret;
++	case EFI_SUCCESS:
++		break;
++	default:
++		return EFI_UNSUPPORTED;
++	}
++	ret = boottime->close_protocol(
++				controller_handle, &guid_supported_controller,
++				handle_driver, controller_handle);
++	if (ret != EFI_SUCCESS)
++		ret = EFI_UNSUPPORTED;
++	return ret;
 +}
 +
 +static efi_status_t EFIAPI start(
@@ -72,6 +91,7 @@ index 0000000000..e028e20817
 +		efi_handle_t controller_handle,
 +		struct efi_device_path *remaining_device_path)
 +{
++	efi_st_printf("%s(%u) %s:\n", __FILE__, __LINE__, __func__);
 +	return EFI_UNSUPPORTED;
 +}
 +
@@ -81,6 +101,7 @@ index 0000000000..e028e20817
 +		size_t number_of_children,
 +		efi_handle_t child_handle_buffer)
 +{
++	efi_st_printf("%s(%u) %s:\n", __FILE__, __LINE__, __func__);
 +	return EFI_UNSUPPORTED;
 +}
 +
@@ -106,16 +127,17 @@ index 0000000000..e028e20817
 +
 +	boottime = systable->boottime;
 +
-+	ret = boottime->install_protocol_interface(&handle_controller,
-+						   &guid_capable,
-+						   EFI_NATIVE_INTERFACE,
-+						   NULL);
++	/* Create controller handle */
++	ret = boottime->install_protocol_interface(
++			&handle_controller, &guid_supported_controller,
++			EFI_NATIVE_INTERFACE, NULL);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("InstallProtocolInterface failed\n");
 +		return EFI_ST_FAILURE;
 +	}
++	/* Create driver handle */
 +	ret = boottime->install_protocol_interface(
-+			&handle_controller,  &guid_driver_binding_protocol,
++			&handle_driver,  &guid_driver_binding_protocol,
 +			EFI_NATIVE_INTERFACE, &binding_interface);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("InstallProtocolInterface failed\n");
@@ -141,15 +163,18 @@ index 0000000000..e028e20817
 +static int execute(void)
 +{
 +	efi_status_t ret;
++	ret = boottime->connect_controller(handle_controller, NULL, NULL, 1);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to connect controller\n");
++		return EFI_ST_FAILURE;
++	}
 +
 +	/*
 +	 * Uninstall protocols.
 +	 */
-+	ret = boottime->uninstall_multiple_protocol_interfaces(
-+						handle_controller,
-+						&guid_capable, NULL,
-+						&guid_service, &interface,
-+						NULL);
++	ret = boottime->uninstall_protocol_interface(
++					handle_controller,
++					&guid_supported_controller, NULL);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to uninstall protocols\n");
 +		return EFI_ST_FAILURE;
@@ -165,5 +190,5 @@ index 0000000000..e028e20817
 +	.teardown = teardown,
 +};
 -- 
-2.11.0
+2.15.1
 
