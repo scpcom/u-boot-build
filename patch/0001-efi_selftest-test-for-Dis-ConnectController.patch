@@ -1,4 +1,4 @@
-From e0957350693548f5685de6e4cb8a068dc8a4db17 Mon Sep 17 00:00:00 2001
+From d834c0f96f6d84f0182705a64f6eb7b247e416f9 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Dec 2017 07:06:29 +0100
 Subject: [PATCH 1/1] efi_selftest: test for (Dis)ConnectController
@@ -6,8 +6,8 @@ Subject: [PATCH 1/1] efi_selftest: test for (Dis)ConnectController
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                   |   1 +
- lib/efi_selftest/efi_selftest_controllers.c | 269 ++++++++++++++++++++++++++++
- 2 files changed, 270 insertions(+)
+ lib/efi_selftest/efi_selftest_controllers.c | 318 ++++++++++++++++++++++++++++
+ 2 files changed, 319 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_controllers.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -24,10 +24,10 @@ index 837e86228e..e549553c82 100644
  efi_selftest_events.o \
 diff --git a/lib/efi_selftest/efi_selftest_controllers.c b/lib/efi_selftest/efi_selftest_controllers.c
 new file mode 100644
-index 0000000000..91e5c14374
+index 0000000000..1b293b3839
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_controllers.c
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,318 @@
 +/*
 + * efi_selftest_controllers
 + *
@@ -41,54 +41,60 @@ index 0000000000..91e5c14374
 +
 +#include <efi_selftest.h>
 +
-+#define NUMBER_OF_CHILD_CONTROLLERS 2
-+#define PRINT_OPEN_INFO { \
-+	efi_st_printf("%s(%u) %s:\n", __FILE__, __LINE__, __func__); \
-+	print_open_info(handle_controller, &guid_supported_controller); \
-+	}
++#define NUMBER_OF_CHILD_CONTROLLERS 4
 +
 +static struct efi_boot_services *boottime;
 +const efi_guid_t guid_driver_binding_protocol =
 +			EFI_DRIVER_BINDING_PROTOCOL_GUID;
-+static efi_guid_t guid_supported_controller =
++static efi_guid_t guid_controller =
 +	EFI_GUID(0xe6ab1d96, 0x6bff, 0xdb42,
 +		 0xaa, 0x05, 0xc8, 0x1f, 0x7f, 0x45, 0x26, 0x34);
 +static efi_guid_t guid_child_controller =
 +	EFI_GUID(0x1d41f6f5, 0x2c41, 0xddfb,
 +		 0xe2, 0x9b, 0xb8, 0x0e, 0x2e, 0xe8, 0x3a, 0x85);
-+static efi_guid_t guid_driver =
-+	EFI_GUID(0x417e437e, 0x23c4, 0x2dce,
-+		 0x33, 0xdb, 0x7a, 0x92, 0x8f, 0x00, 0xd5, 0x2b);
 +static efi_handle_t handle_controller;
 +static efi_handle_t handle_child_controller[NUMBER_OF_CHILD_CONTROLLERS];
 +static efi_handle_t handle_driver;
 +
-+static efi_status_t print_open_info(efi_handle_t handle, efi_guid_t *guid)
++/*
++ * Count child controllers
++ *
++ * @handle	handle on which child controllers are installed
++ * @protocol	protocol for which the child controlles where installed
++ * @count	number of child controllers
++ * @return	status code
++ */
++static efi_status_t count_child_controllers(efi_handle_t handle,
++					    efi_guid_t *protocol,
++					    efi_uintn_t *count)
 +{
 +	efi_status_t ret;
-+	efi_uintn_t entry_count, i;
++	efi_uintn_t entry_count;
 +	struct efi_open_protocol_info_entry *entry_buffer;
 +
-+	ret = boottime->open_protocol_information(handle, guid, &entry_buffer,
-+						  &entry_count);
++	*count = 0;
++	ret = boottime->open_protocol_information(handle, protocol,
++						  &entry_buffer, &entry_count);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("OpenProtocolInformation failed\n");
-+		return EFI_ST_FAILURE;
++		return ret;
 +	}
-+	for (i = 0; i < entry_count; ++i) {
-+		efi_st_printf("agent %p, controller %p, attrib %u, open# %u\n",
-+			entry_buffer[i].agent_handle,
-+			entry_buffer[i].controller_handle,
-+			entry_buffer[i].attributes,
-+			entry_buffer[i].open_count);
++	while (entry_count) {
++		if (entry_buffer[--entry_count].attributes &
++		    EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER)
++			++*count;
 +	}
-+	if (entry_buffer)
-+		ret = efi_free_pool(entry_buffer);
-+	if (ret != EFI_SUCCESS)
-+		efi_st_error("FreePool failed\n");
 +	return ret;
 +}
 +
++/*
++ * Check if the driver supports the controller.
++ *
++ * @this			driver binding protocol
++ * @controller_handle		handle of the controller
++ * @remaining_device_path	path specifying the child controller
++ * @return			status code
++ */
 +static efi_status_t EFIAPI supported(
 +		struct efi_driver_binding_protocol *this,
 +		efi_handle_t controller_handle,
@@ -97,9 +103,8 @@ index 0000000000..91e5c14374
 +	efi_status_t ret;
 +	void *interface;
 +
-+	PRINT_OPEN_INFO;
 +	ret = boottime->open_protocol(
-+			controller_handle, &guid_supported_controller,
++			controller_handle, &guid_controller,
 +			&interface, handle_driver,
 +			controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER);
 +	switch (ret) {
@@ -112,14 +117,21 @@ index 0000000000..91e5c14374
 +		return EFI_UNSUPPORTED;
 +	}
 +	ret = boottime->close_protocol(
-+				controller_handle, &guid_supported_controller,
++				controller_handle, &guid_controller,
 +				handle_driver, controller_handle);
 +	if (ret != EFI_SUCCESS)
 +		ret = EFI_UNSUPPORTED;
-+	PRINT_OPEN_INFO;
 +	return ret;
 +}
 +
++/*
++ * Create child controllers and attach driver.
++ *
++ * @this			driver binding protocol
++ * @controller_handle		handle of the controller
++ * @remaining_device_path	path specifying the child controller
++ * @return			status code
++ */
 +static efi_status_t EFIAPI start(
 +		struct efi_driver_binding_protocol *this,
 +		efi_handle_t controller_handle,
@@ -129,9 +141,8 @@ index 0000000000..91e5c14374
 +	efi_status_t ret;
 +	void *interface;
 +
-+	PRINT_OPEN_INFO;
 +	ret = boottime->open_protocol(
-+			controller_handle, &guid_supported_controller,
++			controller_handle, &guid_controller,
 +			&interface, handle_driver,
 +			controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER);
 +	switch (ret) {
@@ -145,7 +156,6 @@ index 0000000000..91e5c14374
 +	}
 +
 +	/* Create child controllers */
-+	PRINT_OPEN_INFO;
 +	for (i = 0; i < NUMBER_OF_CHILD_CONTROLLERS; ++i) {
 +		ret = boottime->install_protocol_interface(
 +			&handle_child_controller[i], &guid_child_controller,
@@ -155,7 +165,7 @@ index 0000000000..91e5c14374
 +			return EFI_ST_FAILURE;
 +		}
 +		ret = boottime->open_protocol(
-+			controller_handle, &guid_supported_controller,
++			controller_handle, &guid_controller,
 +			&interface, handle_child_controller[i],
 +			handle_child_controller[i],
 +			EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER);
@@ -163,11 +173,19 @@ index 0000000000..91e5c14374
 +			efi_st_error("OpenProtocol failed\n");
 +			return EFI_ST_FAILURE;
 +		}
-+		PRINT_OPEN_INFO;
 +	}
 +	return ret;
 +}
 +
++/*
++ * Check if the driver supports the controller.
++ *
++ * @this			driver binding protocol
++ * @controller_handle		handle of the controller
++ * @number_of_children		number of child controllers to remove
++ * @child_handle_buffer		handels of the child controllers to remove 
++ * @return			status code
++ */
 +static efi_status_t EFIAPI stop(
 +		struct efi_driver_binding_protocol *this,
 +		efi_handle_t controller_handle,
@@ -177,13 +195,14 @@ index 0000000000..91e5c14374
 +	efi_status_t ret;
 +
 +	ret = boottime->close_protocol(
-+				controller_handle, &guid_supported_controller,
++				controller_handle, &guid_controller,
 +				handle_driver, controller_handle);
 +	if (ret != EFI_SUCCESS)
 +		ret = EFI_UNSUPPORTED;
 +	return ret;
 +}
 +
++/* Driver binding protocol interface */
 +struct efi_driver_binding_protocol binding_interface = {
 +	supported,
 +	start,
@@ -208,7 +227,7 @@ index 0000000000..91e5c14374
 +
 +	/* Create controller handle */
 +	ret = boottime->install_protocol_interface(
-+			&handle_controller, &guid_supported_controller,
++			&handle_controller, &guid_controller,
 +			EFI_NATIVE_INTERFACE, NULL);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("InstallProtocolInterface failed\n");
@@ -227,65 +246,96 @@ index 0000000000..91e5c14374
 +}
 +
 +/*
-+ * Tear down unit test.
-+ *
-+ */
-+static int teardown(void)
-+{
-+	return EFI_ST_SUCCESS;
-+}
-+
-+/*
 + * Execute unit test.
 + *
++ * The number of child controllers is checked after each of the following
++ * actions:
++ * Connect a controller to a driver.
++ * Disconnect and destroy a child controller.
++ * Disconnect and destroy the remaining child controllers.
++ * Connect a controller to a driver.
++ * Uninstall the driver protocol from the controller.
 + */
 +static int execute(void)
 +{
 +	efi_status_t ret;
-+	efi_uintn_t count = 0, entry_count, i;
-+	struct efi_open_protocol_info_entry *entry_buffer;
++	efi_uintn_t count = 0;
 +
-+	PRINT_OPEN_INFO;
-+	/* Add child handles and connect controller to driver */
++	/* Connect controller to driver */
 +	ret = boottime->connect_controller(handle_controller, NULL, NULL, 1);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to connect controller\n");
 +		return EFI_ST_FAILURE;
 +	}
-+	PRINT_OPEN_INFO;
-+	/* Count child controllers */
-+	ret = boottime->open_protocol_information(
-+			handle_controller, &guid_supported_controller,
-+			&entry_buffer, &entry_count);
-+	if (ret != EFI_SUCCESS) {
-+		efi_st_error("OpenProtocolInformation failed\n");
-+		return EFI_ST_FAILURE;
-+	}
-+	for (i = 0; i < entry_count; ++i) {
-+		if (entry_buffer[i].attributes &
-+		    EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER)
-+			++count;
-+	}
++	/* Check number of child controllers */
++	ret = count_child_controllers(handle_controller, &guid_controller,
++				      &count);
++	if (ret != EFI_SUCCESS)
++		return ret;
 +	if (count != NUMBER_OF_CHILD_CONTROLLERS) {
 +		efi_st_error("Number of children %u != %u\n",
 +			     (unsigned int)count, NUMBER_OF_CHILD_CONTROLLERS);
 +	}
-+	/* Destroy all child handles and disconnect controller */
++	/* Destroy second child controller */
++	ret = boottime->disconnect_controller(handle_controller,
++					      &guid_controller,
++					      handle_child_controller[1]);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to disconnect child controller\n");
++		return EFI_ST_FAILURE;
++	}
++	/* Check number of child controllers */
++	ret = count_child_controllers(handle_controller, &guid_controller,
++				      &count);
++	if (ret != EFI_SUCCESS)
++		return ret;
++	if (count != NUMBER_OF_CHILD_CONTROLLERS - 1) {
++		efi_st_error("Destroying single child controller failed\n");
++	}
++	/* Destroy remaining child controllers and disconnect controller */
 +	ret = boottime->disconnect_controller(handle_controller, NULL, NULL);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to disconnect controller\n");
 +		return EFI_ST_FAILURE;
 +	}
++	/* Check number of child controllers */
++	ret = count_child_controllers(handle_controller, &guid_controller,
++				      &count);
++	if (ret != EFI_SUCCESS)
++		return ret;
++	if (count) {
++		efi_st_error("Destroying child controllers failed\n");
++	}
 +
-+	/*
-+	 * Uninstall protocols.
-+	 */
-+	ret = boottime->uninstall_protocol_interface(
-+					handle_controller,
-+					&guid_supported_controller, NULL);
++	/* Connect controller to driver */
++	ret = boottime->connect_controller(handle_controller, NULL, NULL, 1);
++	if (ret != EFI_SUCCESS) {
++		efi_st_error("Failed to connect controller\n");
++		return EFI_ST_FAILURE;
++	}
++	/* Check number of child controllers */
++	ret = count_child_controllers(handle_controller, &guid_controller,
++				      &count);
++	if (ret != EFI_SUCCESS)
++		return ret;
++	if (count != NUMBER_OF_CHILD_CONTROLLERS) {
++		efi_st_error("Number of children %u != %u\n",
++			     (unsigned int)count, NUMBER_OF_CHILD_CONTROLLERS);
++	}
++	/* Uninstall controller protocol */
++	ret = boottime->uninstall_protocol_interface(handle_controller,
++						     &guid_controller, NULL);
 +	if (ret != EFI_SUCCESS) {
 +		efi_st_error("Failed to uninstall protocols\n");
 +		return EFI_ST_FAILURE;
++	}
++	/* Check number of child controllers */
++	ret = count_child_controllers(handle_controller, &guid_controller,
++				      &count);
++	if (ret != EFI_SUCCESS)
++		return ret;
++	if (count) {
++		efi_st_error("Destroying child controllers failed\n");
 +	}
 +	return EFI_ST_SUCCESS;
 +}
@@ -295,7 +345,6 @@ index 0000000000..91e5c14374
 +	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
 +	.setup = setup,
 +	.execute = execute,
-+	.teardown = teardown,
 +};
 -- 
 2.15.1
