@@ -1,0 +1,205 @@
+From 46f0e9bff6135af584a29290b6c1de5b2eb80ced Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 16 Dec 2017 15:27:24 +0100
+Subject: [PATCH 1/1] efi_selftest: colored test output
+
+Add color coding to output:
+test section    blue
+success         green
+errors          red
+todo            yellow
+summary         white
+others          light gray
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_selftest.h                  | 28 ++++++++++++++++++----------
+ lib/efi_selftest/efi_selftest.c         | 22 +++++++++++-----------
+ lib/efi_selftest/efi_selftest_console.c | 13 +++++++++----
+ 3 files changed, 38 insertions(+), 25 deletions(-)
+
+diff --git a/include/efi_selftest.h b/include/efi_selftest.h
+index be5ba4bfa9..8d86deb850 100644
+--- a/include/efi_selftest.h
++++ b/include/efi_selftest.h
+@@ -18,14 +18,20 @@
+ #define EFI_ST_SUCCESS 0
+ #define EFI_ST_FAILURE 1
+ 
++/*
++ * Prints a message.
++ */
++#define efi_st_printf(...) \
++	(efi_st_printc(-1, __VA_ARGS__))
++
+ /*
+  * Prints an error message.
+  *
+  * @...	format string followed by fields to print
+  */
+ #define efi_st_error(...) \
+-	(efi_st_printf("%s(%u):\nERROR: ", __FILE__, __LINE__), \
+-	efi_st_printf(__VA_ARGS__)) \
++	(efi_st_printc(EFI_LIGHTRED,"%s(%u):\nERROR: ", __FILE__, __LINE__), \
++	efi_st_printc(EFI_LIGHTRED, __VA_ARGS__))
+ 
+ /*
+  * Prints a TODO message.
+@@ -33,8 +39,8 @@
+  * @...	format string followed by fields to print
+  */
+ #define efi_st_todo(...) \
+-	(efi_st_printf("%s(%u):\nTODO: ", __FILE__, __LINE__), \
+-	efi_st_printf(__VA_ARGS__)) \
++	(efi_st_printc(EFI_YELLOW, "%s(%u):\nTODO: ", __FILE__, __LINE__), \
++	efi_st_printc(EFI_YELLOW, __VA_ARGS__)) \
+ 
+ /*
+  * A test may be setup and executed at boottime,
+@@ -60,15 +66,17 @@ extern struct efi_simple_input_interface *con_in;
+  */
+ void efi_st_exit_boot_services(void);
+ 
++
+ /*
+- * Print a pointer to an u16 string
++ * Print a colored message
+  *
+- * @pointer: pointer
+- * @buf: pointer to buffer address
+- * on return position of terminating zero word
++ * @color	color
++ * @fmt		printf format
++ * @...		arguments to be printed
++ * 		on return position of terminating zero word
+  */
+-void efi_st_printf(const char *fmt, ...)
+-		 __attribute__ ((format (__printf__, 1, 2)));
++void efi_st_printc(int color, const char *fmt, ...)
++		 __attribute__ ((format (__printf__, 2, 3)));
+ 
+ /*
+  * Compare memory.
+diff --git a/lib/efi_selftest/efi_selftest.c b/lib/efi_selftest/efi_selftest.c
+index 4e5a12c47c..f91cfa5776 100644
+--- a/lib/efi_selftest/efi_selftest.c
++++ b/lib/efi_selftest/efi_selftest.c
+@@ -65,7 +65,7 @@ void efi_st_exit_boot_services(void)
+ 		efi_st_error("ExitBootServices did not return EFI_SUCCESS\n");
+ 		return;
+ 	}
+-	efi_st_printf("\nBoot services terminated\n");
++	efi_st_printc(EFI_WHITE, "\nBoot services terminated\n");
+ }
+ 
+ /*
+@@ -81,13 +81,13 @@ static int setup(struct efi_unit_test *test, unsigned int *failures)
+ 
+ 	if (!test->setup)
+ 		return EFI_ST_SUCCESS;
+-	efi_st_printf("\nSetting up '%s'\n", test->name);
++	efi_st_printc(EFI_LIGHTBLUE, "\nSetting up '%s'\n", test->name);
+ 	ret = test->setup(handle, systable);
+ 	if (ret != EFI_ST_SUCCESS) {
+ 		efi_st_error("Setting up '%s' failed\n", test->name);
+ 		++*failures;
+ 	} else {
+-		efi_st_printf("Setting up '%s' succeeded\n", test->name);
++		efi_st_printc(EFI_LIGHTGREEN, "Setting up '%s' succeeded\n", test->name);
+ 	}
+ 	return ret;
+ }
+@@ -105,13 +105,13 @@ static int execute(struct efi_unit_test *test, unsigned int *failures)
+ 
+ 	if (!test->execute)
+ 		return EFI_ST_SUCCESS;
+-	efi_st_printf("\nExecuting '%s'\n", test->name);
++	efi_st_printc(EFI_LIGHTBLUE, "\nExecuting '%s'\n", test->name);
+ 	ret = test->execute();
+ 	if (ret != EFI_ST_SUCCESS) {
+ 		efi_st_error("Executing '%s' failed\n", test->name);
+ 		++*failures;
+ 	} else {
+-		efi_st_printf("Executing '%s' succeeded\n", test->name);
++		efi_st_printc(EFI_LIGHTGREEN, "Executing '%s' succeeded\n", test->name);
+ 	}
+ 	return ret;
+ }
+@@ -129,13 +129,13 @@ static int teardown(struct efi_unit_test *test, unsigned int *failures)
+ 
+ 	if (!test->teardown)
+ 		return EFI_ST_SUCCESS;
+-	efi_st_printf("\nTearing down '%s'\n", test->name);
++	efi_st_printc(EFI_LIGHTBLUE, "\nTearing down '%s'\n", test->name);
+ 	ret = test->teardown();
+ 	if (ret != EFI_ST_SUCCESS) {
+ 		efi_st_error("Tearing down '%s' failed\n", test->name);
+ 		++*failures;
+ 	} else {
+-		efi_st_printf("Tearing down '%s' succeeded\n", test->name);
++		efi_st_printc(EFI_LIGHTGREEN, "Tearing down '%s' succeeded\n", test->name);
+ 	}
+ 	return ret;
+ }
+@@ -262,12 +262,12 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+ 		}
+ 	}
+ 
+-	efi_st_printf("\nTesting EFI API implementation\n");
++	efi_st_printc(EFI_WHITE, "\nTesting EFI API implementation\n");
+ 
+ 	if (testname)
+-		efi_st_printf("\nSelected test: '%ps'\n", testname);
++		efi_st_printc(EFI_WHITE, "\nSelected test: '%ps'\n", testname);
+ 	else
+-		efi_st_printf("\nNumber of tests to execute: %u\n",
++		efi_st_printc(EFI_WHITE, "\nNumber of tests to execute: %u\n",
+ 			      ll_entry_count(struct efi_unit_test,
+ 					     efi_unit_test));
+ 
+@@ -291,7 +291,7 @@ efi_status_t EFIAPI efi_selftest(efi_handle_t image_handle,
+ 			&failures);
+ 
+ 	/* Give feedback */
+-	efi_st_printf("\nSummary: %u failures\n\n", failures);
++	efi_st_printc(EFI_WHITE, "\nSummary: %u failures\n\n", failures);
+ 
+ 	/* Reset system */
+ 	efi_st_printf("Preparing for reset. Press any key.\n");
+diff --git a/lib/efi_selftest/efi_selftest_console.c b/lib/efi_selftest/efi_selftest_console.c
+index 6a7fd20da5..7920c961ba 100644
+--- a/lib/efi_selftest/efi_selftest_console.c
++++ b/lib/efi_selftest/efi_selftest_console.c
+@@ -130,12 +130,13 @@ static void int2dec(s32 value, u16 **buf)
+ }
+ 
+ /*
+- * Print a formatted string to the EFI console
++ * Print a colored formatted string to the EFI console
+  *
+- * @fmt: format string
+- * @...: optional arguments
++ * @color	color
++ * @fmt		format string
++ * @...		optional arguments
+  */
+-void efi_st_printf(const char *fmt, ...)
++void efi_st_printc(int color, const char *fmt, ...)
+ {
+ 	va_list args;
+ 	u16 buf[160];
+@@ -215,7 +216,11 @@ void efi_st_printf(const char *fmt, ...)
+ 	}
+ 	va_end(args);
+ 	*pos = 0;
++	if (color >= 0)
++		con_out->set_attribute(con_out, (unsigned long)color);
+ 	con_out->output_string(con_out, buf);
++	if (color >= 0)
++		con_out->set_attribute(con_out, EFI_LIGHTGRAY);
+ }
+ 
+ /*
+-- 
+2.14.2
+
