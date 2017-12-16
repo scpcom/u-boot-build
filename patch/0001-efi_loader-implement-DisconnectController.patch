@@ -1,4 +1,4 @@
-From f4999922a6c3184a5af7d5f063eb6edcea29ab1e Mon Sep 17 00:00:00 2001
+From 97b90308d7f68b314a385d37ee9f4af80f157806 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 22 Aug 2017 20:07:52 +0200
 Subject: [PATCH 1/1] efi_loader: implement DisconnectController
@@ -9,11 +9,11 @@ And DisconnectController calls both OpenProtcol and CloseProtocol.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 123 ++++++++++++++++++++++++++++++++++--------
- 1 file changed, 101 insertions(+), 22 deletions(-)
+ lib/efi_loader/efi_boottime.c | 128 ++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 106 insertions(+), 22 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index bd4800b812..436c6d35bd 100644
+index bd4800b812..289fd6122c 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -60,6 +60,10 @@ static int nesting_level;
@@ -56,7 +56,7 @@ index bd4800b812..436c6d35bd 100644
  /*
   * Close a protocol.
   *
-@@ -2485,6 +2467,103 @@ out:
+@@ -2485,6 +2467,108 @@ out:
  	return EFI_EXIT(ret);
  }
  
@@ -90,6 +90,11 @@ index bd4800b812..436c6d35bd 100644
 +		  child_handle);
 +
 +	if (!efi_search_obj(controller_handle)) {
++		r = EFI_INVALID_PARAMETER;
++		goto out;
++	}
++
++	if (child_handle && !efi_search_obj(child_handle)) {
 +		r = EFI_INVALID_PARAMETER;
 +		goto out;
 +	}

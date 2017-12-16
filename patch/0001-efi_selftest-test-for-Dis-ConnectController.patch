@@ -1,13 +1,18 @@
-From 37c166e6caf3bb0accd807e338b819d44b951fee Mon Sep 17 00:00:00 2001
+From f9a5f44374ea6654057c581fd19d8181f7f03d1a Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Dec 2017 07:06:29 +0100
 Subject: [PATCH 1/1] efi_selftest: test for (Dis)ConnectController
 
+This unit test checks the following protocol services:
+ConnectController, DisconnectController,
+InstallProtocol, UninstallProtocol,
+OpenProtocol, CloseProtcol, OpenProtocolInformation
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                   |   1 +
- lib/efi_selftest/efi_selftest_controllers.c | 392 ++++++++++++++++++++++++++++
- 2 files changed, 393 insertions(+)
+ lib/efi_selftest/efi_selftest_controllers.c | 385 ++++++++++++++++++++++++++++
+ 2 files changed, 386 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_controllers.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -24,10 +29,10 @@ index 837e86228e..e549553c82 100644
  efi_selftest_events.o \
 diff --git a/lib/efi_selftest/efi_selftest_controllers.c b/lib/efi_selftest/efi_selftest_controllers.c
 new file mode 100644
-index 0000000000..ae1599f30c
+index 0000000000..9908c85c44
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_controllers.c
-@@ -0,0 +1,392 @@
+@@ -0,0 +1,385 @@
 +/*
 + * efi_selftest_controllers
 + *
@@ -36,7 +41,9 @@ index 0000000000..ae1599f30c
 + * SPDX-License-Identifier:     GPL-2.0+
 + *
 + * This unit test checks the following protocol services:
-+ * ConnectController, DisconnectController
++ * ConnectController, DisconnectController,
++ * InstallProtocol, UninstallProtocol,
++ * OpenProtocol, CloseProtcol, OpenProtocolInformation
 + */
 +
 +#include <efi_selftest.h>
@@ -75,10 +82,10 @@ index 0000000000..ae1599f30c
 +	*count = 0;
 +	ret = boottime->open_protocol_information(handle, protocol,
 +						  &entry_buffer, &entry_count);
-+	if (ret != EFI_SUCCESS) {
-+		efi_st_error("OpenProtocolInformation failed\n");
++	if (ret != EFI_SUCCESS)
 +		return ret;
-+	}
++	if (!entry_count)
++		return EFI_SUCCESS;
 +	while (entry_count) {
 +		if (entry_buffer[--entry_count].attributes &
 +		    EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER)
@@ -144,6 +151,7 @@ index 0000000000..ae1599f30c
 +	efi_status_t ret;
 +	void *interface;
 +
++	/* Attach driver to controller */
 +	ret = boottime->open_protocol(
 +			controller_handle, &guid_controller,
 +			&interface, handle_driver,
@@ -176,20 +184,21 @@ index 0000000000..ae1599f30c
 +			efi_st_error("OpenProtocol failed\n");
 +			return EFI_ST_FAILURE;
 +		}
-+		efi_st_printc(EFI_LIGHTMAGENTA, "new child %p\n",
-+			      handle_child_controller[i]);
 +	}
 +	return ret;
 +}
 +
++/*
++ * Remove a single child controller from the parent controller.
++ *
++ * @controller_handle	parent controller
++ * @child_handle	child controller
++ * @return		status code
++ */
 +static efi_status_t disconnect_child(efi_handle_t controller_handle,
 +				     efi_handle_t child_handle)
 +{
 +	efi_status_t ret;
-+
-+	efi_st_printc(EFI_LIGHTMAGENTA,
-+		      "entry %s(%p, %p)\n", __func__,
-+		      controller_handle, child_handle);
 +
 +	ret = boottime->close_protocol(
 +				controller_handle, &guid_controller,
@@ -204,12 +213,8 @@ index 0000000000..ae1599f30c
 +		efi_st_error("Cannot uninstall protocol interface\n");
 +		return ret;
 +	}
-+	ret = boottime->free_pool(child_handle);
-+	if (ret != EFI_SUCCESS)
-+		efi_st_error("Cannot free handle\n");
 +	return ret;
 +}
-+
 +
 +/*
 + * Remove child controllers and disconnect the controller.
@@ -217,7 +222,7 @@ index 0000000000..ae1599f30c
 + * @this			driver binding protocol
 + * @controller_handle		handle of the controller
 + * @number_of_children		number of child controllers to remove
-+ * @child_handle_buffer		handles of the child controllers to remove 
++ * @child_handle_buffer		handles of the child controllers to remove
 + * @return			status code
 + */
 +static efi_status_t EFIAPI stop(
@@ -233,6 +238,7 @@ index 0000000000..ae1599f30c
 +	/* Destroy provided child controllers */
 +	if (number_of_children) {
 +		efi_uintn_t i;
++
 +		for (i = 0; i < number_of_children; ++i) {
 +			ret = disconnect_child(controller_handle,
 +					       child_handle_buffer[i]);
@@ -264,7 +270,7 @@ index 0000000000..ae1599f30c
 +	if (ret != EFI_SUCCESS)
 +		efi_st_error("Cannot free buffer\n");
 +
-+	/* Remove lock from controller handle */
++	/* Detach driver from controller */
 +	ret = boottime->close_protocol(
 +			controller_handle, &guid_controller,
 +			handle_driver, controller_handle);
@@ -288,8 +294,8 @@ index 0000000000..ae1599f30c
 +/*
 + * Setup unit test.
 + *
-+ * @handle:	handle of the loaded image
-+ * @systable:	system table
++ * @handle	handle of the loaded image
++ * @systable	system table
 + */
 +static int setup(const efi_handle_t img_handle,
 +		 const struct efi_system_table *systable)
@@ -323,16 +329,18 @@ index 0000000000..ae1599f30c
 + *
 + * The number of child controllers is checked after each of the following
 + * actions:
++ *
 + * Connect a controller to a driver.
 + * Disconnect and destroy a child controller.
 + * Disconnect and destroy the remaining child controllers.
++ *
 + * Connect a controller to a driver.
 + * Uninstall the driver protocol from the controller.
 + */
 +static int execute(void)
 +{
 +	efi_status_t ret;
-+	efi_uintn_t count = 0;
++	efi_uintn_t count;
 +
 +	/* Connect controller to driver */
 +	ret = boottime->connect_controller(handle_controller, NULL, NULL, 1);
@@ -343,9 +351,7 @@ index 0000000000..ae1599f30c
 +	/* Check number of child controllers */
 +	ret = count_child_controllers(handle_controller, &guid_controller,
 +				      &count);
-+	if (ret != EFI_SUCCESS)
-+		return ret;
-+	if (count != NUMBER_OF_CHILD_CONTROLLERS) {
++	if (ret != EFI_SUCCESS || count != NUMBER_OF_CHILD_CONTROLLERS) {
 +		efi_st_error("Number of children %u != %u\n",
 +			     (unsigned int)count, NUMBER_OF_CHILD_CONTROLLERS);
 +	}
@@ -360,9 +366,7 @@ index 0000000000..ae1599f30c
 +	/* Check number of child controllers */
 +	ret = count_child_controllers(handle_controller, &guid_controller,
 +				      &count);
-+	if (ret != EFI_SUCCESS)
-+		return ret;
-+	if (count != NUMBER_OF_CHILD_CONTROLLERS - 1) {
++	if (ret != EFI_SUCCESS || count != NUMBER_OF_CHILD_CONTROLLERS - 1) {
 +		efi_st_error("Destroying single child controller failed\n");
 +		return EFI_ST_FAILURE;
 +	}
@@ -375,10 +379,9 @@ index 0000000000..ae1599f30c
 +	/* Check number of child controllers */
 +	ret = count_child_controllers(handle_controller, &guid_controller,
 +				      &count);
-+	if (ret != EFI_SUCCESS)
-+		return ret;
-+	if (count) {
++	if (ret != EFI_SUCCESS || count) {
 +		efi_st_error("Destroying child controllers failed\n");
++		return EFI_ST_FAILURE;
 +	}
 +
 +	/* Connect controller to driver */
@@ -390,9 +393,7 @@ index 0000000000..ae1599f30c
 +	/* Check number of child controllers */
 +	ret = count_child_controllers(handle_controller, &guid_controller,
 +				      &count);
-+	if (ret != EFI_SUCCESS)
-+		return ret;
-+	if (count != NUMBER_OF_CHILD_CONTROLLERS) {
++	if (ret != EFI_SUCCESS || count != NUMBER_OF_CHILD_CONTROLLERS) {
 +		efi_st_error("Number of children %u != %u\n",
 +			     (unsigned int)count, NUMBER_OF_CHILD_CONTROLLERS);
 +	}
@@ -406,11 +407,8 @@ index 0000000000..ae1599f30c
 +	/* Check number of child controllers */
 +	ret = count_child_controllers(handle_controller, &guid_controller,
 +				      &count);
-+	if (ret != EFI_SUCCESS)
-+		return ret;
-+	if (count) {
-+		efi_st_error("Destroying child controllers failed\n");
-+	}
++	if (ret == EFI_SUCCESS)
++		efi_st_error("Uninstall failed\n");
 +	return EFI_ST_SUCCESS;
 +}
 +
