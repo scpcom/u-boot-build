@@ -1,4 +1,4 @@
-From 09adfa72e1c6063c00feb78e3ea63de5b8e47418 Mon Sep 17 00:00:00 2001
+From f4999922a6c3184a5af7d5f063eb6edcea29ab1e Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 22 Aug 2017 20:07:52 +0200
 Subject: [PATCH 1/1] efi_loader: implement DisconnectController
@@ -9,11 +9,11 @@ And DisconnectController calls both OpenProtcol and CloseProtocol.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 121 ++++++++++++++++++++++++++++++++++--------
- 1 file changed, 100 insertions(+), 21 deletions(-)
+ lib/efi_loader/efi_boottime.c | 123 ++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 101 insertions(+), 22 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 514d6a28a3..6259a81654 100644
+index bd4800b812..436c6d35bd 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -60,6 +60,10 @@ static int nesting_level;
@@ -27,10 +27,11 @@ index 514d6a28a3..6259a81654 100644
  /* Called on every callback entry */
  int __efi_entry_check(void)
  {
-@@ -1603,27 +1607,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1622,28 +1626,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+ 	return EFI_EXIT(efi_set_watchdog(timeout));
  }
  
- /*
+-/*
 - * Disconnect a controller from a driver.
 - *
 - * This function implements the DisconnectController service.
@@ -42,20 +43,20 @@ index 514d6a28a3..6259a81654 100644
 - * @child_handle	handle of the child to destroy
 - * @return		status code
 - */
--static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
--						     void *driver_image_handle,
--						     void *child_handle)
+-static efi_status_t EFIAPI efi_disconnect_controller(
+-				efi_handle_t controller_handle,
+-				efi_handle_t driver_image_handle,
+-				efi_handle_t child_handle)
 -{
 -	EFI_ENTRY("%p, %p, %p", controller_handle, driver_image_handle,
 -		  child_handle);
 -	return EFI_EXIT(EFI_INVALID_PARAMETER);
 -}
 -
--/*
+ /*
   * Close a protocol.
   *
-  * This function implements the CloseProtocol service.
-@@ -2435,6 +2418,102 @@ out:
+@@ -2485,6 +2467,103 @@ out:
  	return EFI_EXIT(ret);
  }
  
@@ -71,9 +72,10 @@ index 514d6a28a3..6259a81654 100644
 + * @child_handle	handle of the child to destroy
 + * @return		status code
 + */
-+static efi_status_t EFIAPI efi_disconnect_controller(void *controller_handle,
-+						     void *driver_image_handle,
-+						     void *child_handle)
++static efi_status_t EFIAPI efi_disconnect_controller(
++				efi_handle_t controller_handle,
++				efi_handle_t driver_image_handle,
++				efi_handle_t child_handle)
 +{
 +	struct efi_driver_binding_protocol *binding_protocol;
 +	efi_handle_t child_handle_buffer;
@@ -159,5 +161,5 @@ index 514d6a28a3..6259a81654 100644
  	.hdr = {
  		.headersize = sizeof(struct efi_table_hdr),
 -- 
-2.11.0
+2.14.2
 
