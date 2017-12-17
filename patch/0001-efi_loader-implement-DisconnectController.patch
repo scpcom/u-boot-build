@@ -1,4 +1,4 @@
-From 486ee9d89ca68dcd19b9df1728b644f8e7c9ba0b Mon Sep 17 00:00:00 2001
+From 088a72dafecff09686f842d097622f315e62d7db Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 22 Aug 2017 20:07:52 +0200
 Subject: [PATCH 1/1] efi_loader: implement DisconnectController
@@ -9,11 +9,11 @@ And DisconnectController calls both OpenProtcol and CloseProtocol.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 224 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 202 insertions(+), 22 deletions(-)
+ lib/efi_loader/efi_boottime.c | 283 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 261 insertions(+), 22 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index bd4800b812..6d8ad85c5d 100644
+index bd4800b812..f0f3dfdf34 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -60,6 +60,10 @@ static int nesting_level;
@@ -27,7 +27,116 @@ index bd4800b812..6d8ad85c5d 100644
  /* Called on every callback entry */
  int __efi_entry_check(void)
  {
-@@ -1622,28 +1626,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -958,6 +962,108 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
+ 	return EFI_EXIT(EFI_ACCESS_DENIED);
+ }
+ 
++/*
++ * Get all drivers associated to a controller.
++ * The allocated buffer has to be freed with free().
++ *
++ * @efiobj			handle of the controller
++ * @protocol			protocol guid (optional)
++ * @number_of_drivers		number of child controllers
++ * @driver_handle_buffer 	handles of the the drivers
++ * @return			status code
++ */
++static efi_status_t efi_get_drivers(struct efi_object *efiobj,
++				    const efi_guid_t *protocol,
++				    efi_uintn_t *number_of_drivers,
++				    efi_handle_t **driver_handle_buffer)
++{
++	struct efi_handler *handler;
++	struct efi_open_protocol_info_item *item;
++	efi_uintn_t count = 0, i;
++	bool duplicate;
++
++	/* Count all driver associations */
++	list_for_each_entry(handler, &efiobj->protocols, link) {
++		if (protocol && guidcmp(handler->guid, protocol))
++			continue;
++		list_for_each_entry(item, &handler->open_infos, link) {
++			if (item->info.attributes &
++			    EFI_OPEN_PROTOCOL_BY_DRIVER)
++				++count;
++		}
++	}
++	/*
++	 * Create buffer. In case of duplicate driver assignments the buffer
++	 * will be too large. But that does not harm.
++	 */
++	*number_of_drivers = 0;
++	*driver_handle_buffer = calloc(count, sizeof(efi_handle_t));
++	if (!*driver_handle_buffer)
++		return EFI_OUT_OF_RESOURCES;
++	/* Collect unique driver handles */
++	list_for_each_entry(handler, &efiobj->protocols, link) {
++		if (protocol && guidcmp(handler->guid, protocol))
++			continue;
++		list_for_each_entry(item, &handler->open_infos, link) {
++			if (item->info.attributes &
++			    EFI_OPEN_PROTOCOL_BY_DRIVER) {
++				/* Check this is a new driver */
++				duplicate = false;
++				for (i = 0; i < *number_of_drivers; ++i) {
++					if ((*driver_handle_buffer)[i] ==
++					    item->info.agent_handle)
++						duplicate = true;
++				}
++				/* Copy handle to buffer */
++				if (!duplicate) {
++					i = (*number_of_drivers)++;
++					(*driver_handle_buffer)[i] =
++						item->info.agent_handle;
++				}
++			}
++		}
++	}
++	return EFI_SUCCESS;
++}
++
++/*
++ * Disconnect all drivers from a controller.
++ *
++ * This function implements the DisconnectController service.
++ * See the Unified Extensible Firmware Interface (UEFI) specification
++ * for details.
++ *
++ * @efiobj		handle of the controller
++ * @protocol		protocol guid (optional)
++ * @child_handle	handle of the child to destroy
++ * @return		status code
++ */
++static efi_status_t efi_disconnect_all_drivers(
++				struct efi_object *efiobj,
++				const efi_guid_t *protocol,
++				efi_handle_t child_handle)
++{
++	efi_uintn_t number_of_drivers;
++	efi_handle_t *driver_handle_buffer;
++	efi_status_t r, ret = EFI_NOT_FOUND;
++
++	ret = efi_get_drivers(efiobj, protocol, &number_of_drivers,
++			      &driver_handle_buffer);
++	if (ret != EFI_SUCCESS)
++		return ret;
++
++	while(number_of_drivers) {
++		r = EFI_CALL(efi_disconnect_controller(
++				efiobj->handle,
++				driver_handle_buffer[--number_of_drivers],
++				child_handle));
++		if (r == EFI_SUCCESS)
++			ret = r;
++	}
++	free(driver_handle_buffer);
++	return ret;
++}
++
+ /*
+  * Uninstall protocol interface.
+  *
+@@ -1622,28 +1728,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  	return EFI_EXIT(efi_set_watchdog(timeout));
  }
  
@@ -56,7 +165,7 @@ index bd4800b812..6d8ad85c5d 100644
  /*
   * Close a protocol.
   *
-@@ -2485,6 +2467,204 @@ out:
+@@ -2485,6 +2569,161 @@ out:
  	return EFI_EXIT(ret);
  }
  
@@ -89,7 +198,10 @@ index bd4800b812..6d8ad85c5d 100644
 +				++count;
 +		}
 +	}
-+	/* Create buffer */
++	/*
++	 * Create buffer. In case of duplicate child controller assignments
++	 * the buffer will be too large. But that does not harm.
++	 */
 +	*number_of_children = 0;
 +	*child_handle_buffer = calloc(count, sizeof(efi_handle_t));
 +	if (!*child_handle_buffer)
@@ -109,7 +221,7 @@ index bd4800b812..6d8ad85c5d 100644
 +				}
 +				/* Copy handle to buffer */
 +				if (!duplicate) {
-+					i = ++*number_of_children;
++					i = (*number_of_children)++;
 +					(*child_handle_buffer)[i] =
 +						item->info.controller_handle;
 +				}
@@ -117,54 +229,6 @@ index bd4800b812..6d8ad85c5d 100644
 +		}
 +	}
 +	return EFI_SUCCESS;
-+}
-+
-+/*
-+ * Disconnect all drivers from a controller.
-+ *
-+ * This function implements the DisconnectController service.
-+ * See the Unified Extensible Firmware Interface (UEFI) specification
-+ * for details.
-+ *
-+ * @efiobj		handle of the controller
-+ * @child_handle	handle of the child to destroy
-+ * @return		status code
-+ */
-+static efi_status_t efi_disconnect_all_drivers(
-+				struct efi_object *efiobj,
-+				efi_handle_t child_handle)
-+{
-+	struct efi_handler *handler;
-+	struct efi_open_protocol_info_item *item;
-+	bool found;
-+	efi_status_t ret = EFI_NOT_FOUND;
-+
-+	/* Disconnect controllers */
-+	do {
-+		found = false;
-+		/*
-+		 * Multiple entries may be deleted by DisconnectController.
-+		 * list_for_each_entry_safe is not sufficient as safeguard.
-+		 */
-+		list_for_each_entry(handler, &efiobj->protocols, link) {
-+			list_for_each_entry(item, &handler->open_infos, link) {
-+				if (item->info.attributes &
-+				    EFI_OPEN_PROTOCOL_BY_DRIVER) {
-+					efi_status_t r;
-+
-+					r = EFI_CALL(efi_disconnect_controller(
-+						efiobj->handle,
-+						item->info.agent_handle,
-+						child_handle));
-+					found = true;
-+					if (r == EFI_SUCCESS)
-+						ret = r;
-+					break;
-+				}
-+			}
-+		}
-+	} while (found);
-+	return ret;
 +}
 +
 +/*
@@ -207,7 +271,7 @@ index bd4800b812..6d8ad85c5d 100644
 +
 +	/* If no driver handle is supplied, disconnect all drivers */
 +	if (!driver_image_handle) {
-+		r = efi_disconnect_all_drivers(efiobj, child_handle);
++		r = efi_disconnect_all_drivers(efiobj, NULL, child_handle);
 +		goto out;
 +	}
 +
@@ -240,8 +304,10 @@ index bd4800b812..6d8ad85c5d 100644
 +			++stop_count;
 +	}
 +	/* Remove the driver */
-+	r = EFI_CALL(binding_protocol->stop(binding_protocol, controller_handle,
-+					    0, NULL));
++	if (!child_handle)
++		r = EFI_CALL(binding_protocol->stop(binding_protocol,
++						    controller_handle,
++						    0, NULL));
 +	if (r == EFI_SUCCESS)
 +		++stop_count;
 +	EFI_CALL(efi_close_protocol(driver_image_handle,
