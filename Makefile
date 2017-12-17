@@ -17,8 +17,6 @@ export LOCALVERSION:=-P$(REVISION)
 export BUILD_ROM=y
 
 all:
-
-foo:
 	make prepare
 	make build
 
