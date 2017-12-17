@@ -548,10 +548,17 @@ CONFIG_DM_DEV_READ_INLINE=y
 # CONFIG_ADC_SANDBOX is not set
 # CONFIG_SARADC_ROCKCHIP is not set
 # CONFIG_SATA is not set
+# CONFIG_SCSI_AHCI is not set
 
 #
 # SATA/SCSI device support
 #
+# CONFIG_DWC_AHSATA is not set
+# CONFIG_FSL_SATA is not set
+# CONFIG_MVSATA_IDE is not set
+# CONFIG_SATA_MV is not set
+# CONFIG_SATA_SIL is not set
+# CONFIG_SATA_SIL3114 is not set
 CONFIG_BLK=y
 # CONFIG_BLOCK_CACHE is not set
 # CONFIG_IDE is not set
