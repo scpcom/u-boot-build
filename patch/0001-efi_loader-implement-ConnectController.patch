@@ -1,4 +1,4 @@
-From 0ba4ea315e1391dfc6417de8d80137e81444716b Mon Sep 17 00:00:00 2001
+From 0966e7eb200d97518cea88be3623514f930928e6 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 29 Nov 2017 20:26:31 +0100
 Subject: [PATCH 1/1] efi_loader: implement ConnectController
@@ -9,11 +9,11 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_api.h             |  22 ++++++
  include/efi_loader.h          |   2 +
- lib/efi_loader/efi_boottime.c | 180 ++++++++++++++++++++++++++++++++++++------
- 3 files changed, 180 insertions(+), 24 deletions(-)
+ lib/efi_loader/efi_boottime.c | 178 ++++++++++++++++++++++++++++++++++++------
+ 3 files changed, 178 insertions(+), 24 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index 46963f2891..4afbbd0469 100644
+index 46963f2891..81e580dbbc 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
 @@ -805,4 +805,26 @@ struct efi_file_info {
@@ -57,7 +57,7 @@ index 637e6e166d..9e1ae8866b 100644
  extern const efi_guid_t efi_guid_device_path_to_text_protocol;
  extern const efi_guid_t efi_simple_file_system_protocol_guid;
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 25e2d175c4..4c0a6840f3 100644
+index b5d6808bf7..6cc0659eb9 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -56,6 +56,9 @@ static volatile void *efi_gd, *app_gd;
@@ -70,7 +70,7 @@ index 25e2d175c4..4c0a6840f3 100644
  
  /* Called on every callback entry */
  int __efi_entry_check(void)
-@@ -1612,30 +1615,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1619,30 +1622,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  	return EFI_EXIT(efi_set_watchdog(timeout));
  }
  
@@ -101,7 +101,7 @@ index 25e2d175c4..4c0a6840f3 100644
  /*
   * Disconnect a controller from a driver.
   *
-@@ -2346,6 +2325,159 @@ static efi_status_t EFIAPI efi_handle_protocol(void *handle,
+@@ -2352,6 +2331,157 @@ static efi_status_t EFIAPI efi_handle_protocol(void *handle,
  				 NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
  }
  
@@ -237,13 +237,11 @@ index 25e2d175c4..4c0a6840f3 100644
 +			list_for_each_entry(item, &handler->open_infos, link) {
 +				if (item->info.attributes &
 +				    EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER) {
-+					r = EFI_CALL(
-+						efi_connect_controller(
-+							item->
-+							info.controller_handle,
-+							driver_image_handle,
-+							remain_device_path,
-+							recursive));
++					r = EFI_CALL(efi_connect_controller(
++						item->info.controller_handle,
++						driver_image_handle,
++						remain_device_path,
++						recursive));
 +					if (r == EFI_SUCCESS)
 +						ret = EFI_SUCCESS;
 +				}

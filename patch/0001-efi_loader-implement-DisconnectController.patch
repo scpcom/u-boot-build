@@ -1,4 +1,4 @@
-From 088a72dafecff09686f842d097622f315e62d7db Mon Sep 17 00:00:00 2001
+From cc82a009634b45e1a89475fac8ad94b614296285 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 22 Aug 2017 20:07:52 +0200
 Subject: [PATCH 1/1] efi_loader: implement DisconnectController
@@ -13,7 +13,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 261 insertions(+), 22 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index bd4800b812..f0f3dfdf34 100644
+index bd4800b812..4ba7900261 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -60,6 +60,10 @@ static int nesting_level;
@@ -38,7 +38,7 @@ index bd4800b812..f0f3dfdf34 100644
 + * @efiobj			handle of the controller
 + * @protocol			protocol guid (optional)
 + * @number_of_drivers		number of child controllers
-+ * @driver_handle_buffer 	handles of the the drivers
++ * @driver_handle_buffer	handles of the the drivers
 + * @return			status code
 + */
 +static efi_status_t efi_get_drivers(struct efi_object *efiobj,
@@ -121,7 +121,7 @@ index bd4800b812..f0f3dfdf34 100644
 +	if (ret != EFI_SUCCESS)
 +		return ret;
 +
-+	while(number_of_drivers) {
++	while (number_of_drivers) {
 +		r = EFI_CALL(efi_disconnect_controller(
 +				efiobj->handle,
 +				driver_handle_buffer[--number_of_drivers],
@@ -176,7 +176,7 @@ index bd4800b812..f0f3dfdf34 100644
 + * @efiobj			handle of the controller
 + * @driver_handle		handle of the driver
 + * @number_of_children		number of child controllers
-+ * @child_handle_buffer 	handles of the the child controllers
++ * @child_handle_buffer		handles of the the child controllers
 + */
 +static efi_status_t efi_get_child_controllers(
 +				struct efi_object *efiobj,
