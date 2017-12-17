@@ -1,7 +1,7 @@
-From 064a6d057ec3a093b835c9f6fe313c1154bb6a9a Mon Sep 17 00:00:00 2001
+From 81655a2c3d080edf4a9666a143059372143f1c81 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 7 Dec 2017 18:30:51 +0100
-Subject: [PATCH 1/1] simplify efi_remove_all_protocols
+Subject: [PATCH 1/1] efi_loader: simplify efi_remove_all_protocols
 
 Replace list_for_each_safe() and list_entry() by
 list_for_each_entry_safe().
@@ -12,7 +12,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 7c8f3134d1..b03a638266 100644
+index 02bc9fdcf0..99eb36c306 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -425,18 +425,15 @@ efi_status_t efi_remove_protocol(const void *handle, const efi_guid_t *protocol,
