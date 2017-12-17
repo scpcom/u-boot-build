@@ -1,4 +1,4 @@
-From afd2dc0c279a0cef406a81d5ad298de4f1925cac Mon Sep 17 00:00:00 2001
+From fdc48890c85197cd6db496d52df817cef7fa19ed Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -9,10 +9,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/dm/uclass-id.h            |  1 +
  include/efi_loader.h              |  2 ++
  lib/Makefile                      |  1 +
- lib/efi_driver/Makefile           | 10 ++++++++++
- lib/efi_driver/efi_block_device.c | 16 +++++++++++++++
- lib/efi_driver/efi_uclass.c       | 41 +++++++++++++++++++++++++++++++++++++++
- 7 files changed, 72 insertions(+)
+ lib/efi_driver/Makefile           | 10 ++++++++
+ lib/efi_driver/efi_block_device.c | 54 +++++++++++++++++++++++++++++++++++++++
+ lib/efi_driver/efi_uclass.c       | 54 +++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 123 insertions(+)
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
  create mode 100644 lib/efi_driver/efi_uclass.c
@@ -84,10 +84,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..1224902cc0
+index 0000000000..91f7e317c2
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,54 @@
 +/*
 + *  EFI drivers
 + *
@@ -99,17 +99,55 @@ index 0000000000..1224902cc0
 +#include <common.h>
 +#include <dm.h>
 +
++static int efi_blk_probe(struct udevice *udev)
++{
++	struct blk_desc *desc = dev_get_uclass_platdata(udev);
++
++	part_init(desc);
++
++	return 0;
++}
++
++ulong efi_read(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
++	       void *buffer)
++{
++	ulong n = 0;
++
++	return n;
++}
++
++ulong efi_write(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
++		const void *buffer)
++{
++	ulong n = 0;
++
++	return n;
++}
++
++static const struct blk_ops efi_blk_ops = {
++	.read	= efi_read,
++	.write	= efi_write,
++};
 +
 +U_BOOT_DRIVER(efi_blk) = {
 +	.name		= "efi_blk",
 +	.id		= UCLASS_BLK,
++	.ops		= &efi_blk_ops,
++	.probe		= efi_blk_probe,
 +};
++
++U_BOOT_DRIVER(efi_block) = {
++	.name		= "EFI block driver",
++	.id		= UCLASS_EFI,
++};
++
++
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..f6c0d4ef0b
+index 0000000000..c1e041eb97
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,54 @@
 +/*
 + *  EFI drivers
 + *
@@ -122,20 +160,33 @@ index 0000000000..f6c0d4ef0b
 +#include <dm.h>
 +#include <efi_loader.h>
 +
++static int efi_add_driver(struct driver *drv) {
++	printf("EFI: Adding driver %s\n", drv->name);
++
++	return 0;
++}
++
++/*
++ * Initialize the EFI drivers.
++ * Called by board_init_r().
++ *
++ * @return	0 = success, any other value will stop further execution
++ */
 +int efi_driver_init(void) {
-+	printf("%s(%u) %s:\n", __FILE__, __LINE__, __func__);
++	struct driver *drv;
++
++	printf("EFI: Initializing EFI driver framework\n");
++	for (drv = ll_entry_start(struct driver, driver);
++	     drv < ll_entry_end(struct driver, driver); ++drv) {
++		if (drv->id == UCLASS_EFI)
++			efi_add_driver(drv);
++	}
 +	return 0;
 +}
 +
 +static int efi_uc_init(struct uclass *class)
 +{
-+	struct driver *drv;
-+
-+	printf("Initializing UCLASS_EFI\n");
-+	for (drv = ll_entry_start(struct driver, driver);
-+	     drv < ll_entry_end(struct driver, driver); ++drv) {
-+	     	printf("driver %s, uclass %u\n", drv->name, drv->id);
-+	}
++	printf("EFI: Initializing UCLASS_EFI\n");
 +	return 0;
 +}
 +
