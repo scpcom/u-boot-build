@@ -1,4 +1,4 @@
-From fdc48890c85197cd6db496d52df817cef7fa19ed Mon Sep 17 00:00:00 2001
+From 5efb99a53ad390d1e2529f268f6be5a943aee37d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -7,12 +7,14 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  common/board_r.c                  |  1 +
  include/dm/uclass-id.h            |  1 +
+ include/efi_driver.h              | 20 ++++++++++++
  include/efi_loader.h              |  2 ++
  lib/Makefile                      |  1 +
- lib/efi_driver/Makefile           | 10 ++++++++
- lib/efi_driver/efi_block_device.c | 54 +++++++++++++++++++++++++++++++++++++++
- lib/efi_driver/efi_uclass.c       | 54 +++++++++++++++++++++++++++++++++++++++
- 7 files changed, 123 insertions(+)
+ lib/efi_driver/Makefile           | 10 ++++++
+ lib/efi_driver/efi_block_device.c | 55 ++++++++++++++++++++++++++++++++
+ lib/efi_driver/efi_uclass.c       | 67 +++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 157 insertions(+)
+ create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
  create mode 100644 lib/efi_driver/efi_uclass.c
@@ -41,6 +43,32 @@ index 3fc20834ae..07fabc3ce6 100644
  	UCLASS_ETH,		/* Ethernet device */
  	UCLASS_GPIO,		/* Bank of general-purpose I/O pins */
  	UCLASS_FIRMWARE,	/* Firmware */
+diff --git a/include/efi_driver.h b/include/efi_driver.h
+new file mode 100644
+index 0000000000..19d262a362
+--- /dev/null
++++ b/include/efi_driver.h
+@@ -0,0 +1,20 @@
++/*
++ *  EFI application loader
++ *
++ *  Copyright (c) 2017 Heinrich Schuchardt
++ *
++ *  SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#ifndef _EFI_DRIVER_H
++#define _EFI_DRIVER_H 1
++
++#include <common.h>
++#include <dm.h>
++#include <efi_loader.h>
++
++struct efi_driver_ops {
++	efi_handle_t	handle;
++};
++
++#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index 1411782879..36563f722f 100644
 --- a/include/efi_loader.h
@@ -84,10 +112,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..91f7e317c2
+index 0000000000..2cd22cff78
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,55 @@
 +/*
 + *  EFI drivers
 + *
@@ -96,8 +124,7 @@ index 0000000000..91f7e317c2
 + *  SPDX-License-Identifier:     GPL-2.0+
 + */
 +
-+#include <common.h>
-+#include <dm.h>
++#include <efi_driver.h>
 +
 +static int efi_blk_probe(struct udevice *udev)
 +{
@@ -136,18 +163,20 @@ index 0000000000..91f7e317c2
 +	.probe		= efi_blk_probe,
 +};
 +
++static const struct efi_driver_ops driver_ops = {
++};
++
 +U_BOOT_DRIVER(efi_block) = {
 +	.name		= "EFI block driver",
 +	.id		= UCLASS_EFI,
++	.ops		= &driver_ops,
 +};
-+
-+
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..c1e041eb97
+index 0000000000..869c81adeb
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,67 @@
 +/*
 + *  EFI drivers
 + *
@@ -156,14 +185,20 @@ index 0000000000..c1e041eb97
 + *  SPDX-License-Identifier:     GPL-2.0+
 + */
 +
-+#include <common.h>
-+#include <dm.h>
-+#include <efi_loader.h>
++#define DEBUG 1
++
++#include <efi_driver.h>
 +
 +static int efi_add_driver(struct driver *drv) {
-+	printf("EFI: Adding driver %s\n", drv->name);
++	int ret = 0;
++	const struct efi_driver_ops *ops = drv->ops;
 +
-+	return 0;
++	debug("EFI: Adding driver %s\n", drv->name);
++	ret = efi_create_handle(ops->handle);
++	if (ret)
++		goto out;
++out:
++	return ret;
 +}
 +
 +/*
@@ -174,14 +209,21 @@ index 0000000000..c1e041eb97
 + */
 +int efi_driver_init(void) {
 +	struct driver *drv;
++	int ret = 0;
 +
-+	printf("EFI: Initializing EFI driver framework\n");
++	debug("EFI: Initializing EFI driver framework\n");
 +	for (drv = ll_entry_start(struct driver, driver);
 +	     drv < ll_entry_end(struct driver, driver); ++drv) {
-+		if (drv->id == UCLASS_EFI)
-+			efi_add_driver(drv);
++		if (drv->id == UCLASS_EFI) {
++			ret = efi_add_driver(drv);
++			if (ret) {
++				printf("EFI: ERROR: failed to add driver %s\n",
++				       drv->name);
++				break;
++			}
++		}
 +	}
-+	return 0;
++	return ret;
 +}
 +
 +static int efi_uc_init(struct uclass *class)
