@@ -54,6 +54,7 @@ git am ../patch/0001-efi_loader-consistently-use-efi_handle_t-for-handles.patch
 git am ../patch/0001-efi_loader-provide-links-between-devices-EFI-handles.patch
 git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch
 git am ../patch/0001-efi_driver-EFI-block-driver.patch
+git am ../patch/0001-efi_selftest-provide-a-test-for-block-io.patch
 # >>> end of block driver series
 
 # Work in progress
