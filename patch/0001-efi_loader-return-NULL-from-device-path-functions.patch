@@ -1,4 +1,4 @@
-From a7927435686d23609436ebdf5943d6903008930c Mon Sep 17 00:00:00 2001
+From 19bc6aeaf9bb91f41a19ab20f14116eadd39d484 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 19 Dec 2017 19:44:34 +0100
 Subject: [PATCH 1/1] efi_loader: return NULL from device path functions
@@ -14,14 +14,15 @@ Additional patches will be needed to fix the callers.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_device_path.c | 38 ++++++++++++++++++++++++++++++++++----
- 1 file changed, 34 insertions(+), 4 deletions(-)
+ include/efi_loader.h             |  6 +++---
+ lib/efi_loader/efi_device_path.c | 42 ++++++++++++++++++++++++++++++++++------
+ 2 files changed, 39 insertions(+), 9 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index aff739979a..39fd81ab9e 100644
+index 1411782879..3e8d37138e 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -307,9 +307,9 @@ struct efi_device_path *efi_dp_from_eth(void);
+@@ -303,9 +303,9 @@ struct efi_device_path *efi_dp_from_eth(void);
  struct efi_device_path *efi_dp_from_mem(uint32_t mem_type,
  					uint64_t start_address,
  					uint64_t end_address);
@@ -35,7 +36,7 @@ index aff739979a..39fd81ab9e 100644
  #define EFI_DP_TYPE(_dp, _type, _subtype) \
  	(((_dp)->type == DEVICE_PATH_TYPE_##_type) && \
 diff --git a/lib/efi_loader/efi_device_path.c b/lib/efi_loader/efi_device_path.c
-index 2a8efea6e7..0937e40cd0 100644
+index 2a8efea6e7..c1ba54e6bd 100644
 --- a/lib/efi_loader/efi_device_path.c
 +++ b/lib/efi_loader/efi_device_path.c
 @@ -58,8 +58,11 @@ static void *dp_alloc(size_t sz)
@@ -137,9 +138,11 @@ index 2a8efea6e7..0937e40cd0 100644
   * parts) into it's constituent parts.
   */
 -void efi_dp_split_file_path(struct efi_device_path *full_path,
+-			    struct efi_device_path **device_path,
+-			    struct efi_device_path **file_path)
 +efi_status_t efi_dp_split_file_path(struct efi_device_path *full_path,
- 			    struct efi_device_path **device_path,
- 			    struct efi_device_path **file_path)
++				    struct efi_device_path **device_path,
++				    struct efi_device_path **file_path)
  {
  	struct efi_device_path *p, *dp, *fp;
  
@@ -168,5 +171,5 @@ index 2a8efea6e7..0937e40cd0 100644
 +	return EFI_SUCCESS;
  }
 -- 
-2.15.1
+2.14.2
 

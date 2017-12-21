@@ -1,4 +1,4 @@
-From 2415c4f0dfed6b8812ee992026e9be9a1214ea75 Mon Sep 17 00:00:00 2001
+From 45de3e33288666241830f697ffbd1db1fe5d9270 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 18 Dec 2017 22:43:04 +0100
 Subject: [PATCH 1/1] tools: provide a tool to convert a binary file to an
@@ -27,11 +27,24 @@ compression ratio can be attained.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+ MAINTAINERS          |   1 +
  tools/Makefile       |   3 ++
- tools/file2include.c | 104 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 107 insertions(+)
+ tools/file2include.c | 106 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 110 insertions(+)
  create mode 100644 tools/file2include.c
 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index e950267494..60960cb5de 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -290,6 +290,7 @@ F:	include/efi*
+ F:	lib/efi*
+ F:	test/py/tests/test_efi*
+ F:	cmd/bootefi.c
++F:	tools/file2include.c
+ 
+ FLATTENED DEVICE TREE
+ M:	Simon Glass <sjg@chromium.org>
 diff --git a/tools/Makefile b/tools/Makefile
 index 4d32fe5910..e661532639 100644
 --- a/tools/Makefile
@@ -55,14 +68,14 @@ index 4d32fe5910..e661532639 100644
  # Add CONFIG_MXS into host CFLAGS, so we can check whether or not register
 diff --git a/tools/file2include.c b/tools/file2include.c
 new file mode 100644
-index 0000000000..d38de98a8c
+index 0000000000..7867ba0586
 --- /dev/null
 +++ b/tools/file2include.c
-@@ -0,0 +1,104 @@
+@@ -0,0 +1,106 @@
 +/*
 + * Convert a file image to a C define
 + *
-+ * (c) Heinrich Schuchardt <xypron.glpk@gmx.de>
++ * Copyright (c) 2017 Heinrich Schuchardt <xypron.glpk@gmx.de>
 + *
 + * SPDX-License-Identifier:     GPL-2.0+
 + *
@@ -82,9 +95,11 @@ index 0000000000..d38de98a8c
 +#include <stdint.h>
 +#include <malloc.h>
 +
-+#define L 8
++/* Size of the blocks written to the compressed file */
++#define BLOCK_SIZE 8
 +
-+int main(int argc, char *argv[]) {
++int main(int argc, char *argv[])
++{
 +	FILE *file;
 +	int ret;
 +	unsigned char *buf;
@@ -92,7 +107,7 @@ index 0000000000..d38de98a8c
 +
 +	/* Provide usage help */
 +	if (argc != 2) {
-+		printf("Usage: \n%s FILENAME\n", argv[0]);
++		printf("Usage:\n%s FILENAME\n", argv[0]);
 +		return EXIT_FAILURE;
 +	}
 +	/* Open file */
@@ -123,28 +138,28 @@ index 0000000000..d38de98a8c
 +
 +	/* Generate output */
 +	printf("/*\n");
-+	printf(" *  Non-zero %u byte strings of a disk image\n", L);
++	printf(" *  Non-zero %u byte strings of a disk image\n", BLOCK_SIZE);
 +	printf(" *\n");
 +	printf(" *  Generated with tools/file2include\n");
 +	printf(" *\n");
-+	printf(" *  SPDX-License-Identifier:     GPL-2.0+\n");
++	printf(" *  SPDX-License-Identifier:	GPL-2.0+\n");
 +	printf(" */\n\n");
 +	printf("#define EFI_ST_DISK_IMG { 0x%08zx, { \\\n", count);
 +
-+	for (i = 0; i < count; i += L) {
++	for (i = 0; i < count; i += BLOCK_SIZE) {
 +		int c = 0;
-+		for (j = i; j < i + L && j < count; ++j) {
++
++		for (j = i; j < i + BLOCK_SIZE && j < count; ++j) {
 +			if (buf[j])
 +				c = 1;
 +		}
 +		if (!c)
 +			continue;
 +		printf("\t{0x%08zx, \"", i);
-+		for (j = i; j < i + L && j < count; ++j) {
++		for (j = i; j < i + BLOCK_SIZE && j < count; ++j)
 +			printf("\\x%02x", buf[j]);
-+		}
 +		printf("\"}, /* ");
-+		for (j = i; j < i + L && j < count; ++j) {
++		for (j = i; j < i + BLOCK_SIZE && j < count; ++j) {
 +			if (buf[j] >= 0x20 && buf[j] <= 0x7e)
 +				printf("%c", buf[j]);
 +			else
@@ -164,5 +179,5 @@ index 0000000000..d38de98a8c
 +	return EXIT_SUCCESS;
 +}
 -- 
-2.15.1
+2.14.2
 

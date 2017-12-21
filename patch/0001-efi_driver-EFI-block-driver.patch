@@ -1,4 +1,4 @@
-From 5efb99a53ad390d1e2529f268f6be5a943aee37d Mon Sep 17 00:00:00 2001
+From 23c512318fba6f354be31226076a76c3106866c7 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -11,9 +11,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |  2 ++
  lib/Makefile                      |  1 +
  lib/efi_driver/Makefile           | 10 ++++++
- lib/efi_driver/efi_block_device.c | 55 ++++++++++++++++++++++++++++++++
- lib/efi_driver/efi_uclass.c       | 67 +++++++++++++++++++++++++++++++++++++++
- 8 files changed, 157 insertions(+)
+ lib/efi_driver/efi_block_device.c | 55 +++++++++++++++++++++++++++++++
+ lib/efi_driver/efi_uclass.c       | 69 +++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 159 insertions(+)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -70,10 +70,10 @@ index 0000000000..19d262a362
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 1411782879..36563f722f 100644
+index 61f824e22b..39fd81ab9e 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -264,6 +264,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+@@ -266,6 +266,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
  /* Adds a range into the EFI memory map */
  uint64_t efi_add_memory_map(uint64_t start, uint64_t pages, int memory_type,
  			    bool overlap_only_ram);
@@ -173,10 +173,10 @@ index 0000000000..2cd22cff78
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..869c81adeb
+index 0000000000..6af1328ace
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,69 @@
 +/*
 + *  EFI drivers
 + *
@@ -189,7 +189,8 @@ index 0000000000..869c81adeb
 +
 +#include <efi_driver.h>
 +
-+static int efi_add_driver(struct driver *drv) {
++static int efi_add_driver(struct driver *drv)
++{
 +	int ret = 0;
 +	const struct efi_driver_ops *ops = drv->ops;
 +
@@ -207,7 +208,8 @@ index 0000000000..869c81adeb
 + *
 + * @return	0 = success, any other value will stop further execution
 + */
-+int efi_driver_init(void) {
++int efi_driver_init(void)
++{
 +	struct driver *drv;
 +	int ret = 0;
 +
@@ -245,5 +247,5 @@ index 0000000000..869c81adeb
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.15.1
+2.14.2
 
