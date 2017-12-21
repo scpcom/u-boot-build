@@ -1,4 +1,4 @@
-From d604a4b10fb51c0e7fdaaf92c9abac3ddf0684e4 Mon Sep 17 00:00:00 2001
+From e26915b5e8f722bdfd6d3018f41104e8ecb7ccf5 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 12 Dec 2017 21:10:44 +0100
 Subject: [PATCH 1/1] efi_loader: debug output installed device path
@@ -8,27 +8,45 @@ path to the console in debug mode.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ include/efi_loader.h          | 7 ++++---
+ lib/efi_loader/efi_boottime.c | 5 +++++
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 637e6e166d..4198329230 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -69,10 +69,11 @@ const char *__efi_nesting_dec(void);
+ 	} while(0)
+ 
+ /*
+- * Write GUID
++ * Write an indented message with EFI prefix
+  */
+-#define EFI_PRINT_GUID(txt, guid) ({ \
+-	debug("%sEFI: %s %pUl\n", __efi_nesting(), txt, guid); \
++#define EFI_PRINT(format, ...) ({ \
++	debug("%sEFI: " format, __efi_nesting(), \
++		##__VA_ARGS__); \
+ 	})
+ 
+ extern struct efi_runtime_services efi_runtime_services;
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 8f9e783625..efcab6c84a 100644
+index 44c9da0a7c..2da0526efb 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -893,6 +893,13 @@ efi_status_t efi_add_protocol(const void *handle, const efi_guid_t *protocol,
+@@ -876,6 +876,11 @@ efi_status_t efi_add_protocol(const void *handle, const efi_guid_t *protocol,
  	handler->protocol_interface = protocol_interface;
  	INIT_LIST_HEAD(&handler->open_infos);
  	list_add_tail(&handler->link, &efiobj->protocols);
-+#if _DEBUG == 1
 +	if (!guidcmp(&efi_guid_device_path, protocol)) {
-+		debug("%sEFI installed device path: %ls\n", __efi_nesting(),
-+		      efi_dp_str((struct efi_device_path *)
-+				 protocol_interface));
++		EFI_PRINT("installed device path '%ls'\n",
++			  efi_dp_str((struct efi_device_path *)
++				     protocol_interface));
 +	}
-+#endif
  	return EFI_SUCCESS;
  }
  
 -- 
-2.14.2
+2.15.1
 
