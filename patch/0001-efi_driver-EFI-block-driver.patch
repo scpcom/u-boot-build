@@ -1,19 +1,19 @@
-From 23c512318fba6f354be31226076a76c3106866c7 Mon Sep 17 00:00:00 2001
+From 4c10b6265a2cf81cac2fb4fefbf972c2e09ea347 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- common/board_r.c                  |  1 +
- include/dm/uclass-id.h            |  1 +
- include/efi_driver.h              | 20 ++++++++++++
- include/efi_loader.h              |  2 ++
- lib/Makefile                      |  1 +
- lib/efi_driver/Makefile           | 10 ++++++
- lib/efi_driver/efi_block_device.c | 55 +++++++++++++++++++++++++++++++
- lib/efi_driver/efi_uclass.c       | 69 +++++++++++++++++++++++++++++++++++++++
- 8 files changed, 159 insertions(+)
+ common/board_r.c                  |   1 +
+ include/dm/uclass-id.h            |   1 +
+ include/efi_driver.h              |  20 +++
+ include/efi_loader.h              |   2 +
+ lib/Makefile                      |   1 +
+ lib/efi_driver/Makefile           |  10 ++
+ lib/efi_driver/efi_block_device.c |  55 ++++++++
+ lib/efi_driver/efi_uclass.c       | 257 ++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 347 insertions(+)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -70,10 +70,10 @@ index 0000000000..19d262a362
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 61f824e22b..39fd81ab9e 100644
+index 48d24924b9..c561fa99ce 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -266,6 +266,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+@@ -267,6 +267,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
  /* Adds a range into the EFI memory map */
  uint64_t efi_add_memory_map(uint64_t start, uint64_t pages, int memory_type,
  			    bool overlap_only_ram);
@@ -173,10 +173,10 @@ index 0000000000..2cd22cff78
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..6af1328ace
+index 0000000000..d4c1f1b6d6
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,257 @@
 +/*
 + *  EFI drivers
 + *
@@ -188,6 +188,194 @@ index 0000000000..6af1328ace
 +#define DEBUG 1
 +
 +#include <efi_driver.h>
++
++/*
++ * Check if the driver supports the controller.
++ *
++ * @this			driver binding protocol
++ * @controller_handle		handle of the controller
++ * @remaining_device_path	path specifying the child controller
++ * @return			status code
++ */
++static efi_status_t EFIAPI supported(
++		struct efi_driver_binding_protocol *this,
++		efi_handle_t controller_handle,
++		struct efi_device_path *remaining_device_path)
++{
++	efi_status_t ret;
++	void *interface;
++	efi_guid_t *guid_controller = NULL;
++
++	EFI_ENTRY("%p, %pUl, %ls", this, controller_handle,
++		  efi_dp_str(remaining_device_path));
++
++	ret = EFI_CALL(systab.boottime->open_protocol(
++			controller_handle, guid_controller,
++			&interface, this->driver_binding_handle,
++			controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER));
++	switch (ret) {
++	case EFI_ACCESS_DENIED:
++	case EFI_ALREADY_STARTED:
++		goto out;
++	case EFI_SUCCESS:
++		break;
++	default:
++		ret = EFI_UNSUPPORTED;
++		goto out;
++	}
++	ret = EFI_CALL(systab.boottime->close_protocol(
++				controller_handle, guid_controller,
++				this->driver_binding_handle,
++				controller_handle));
++	if (ret != EFI_SUCCESS)
++		ret = EFI_UNSUPPORTED;
++out:
++	return EFI_EXIT(ret);
++}
++
++/*
++ * Create child controllers and attach driver.
++ *
++ * @this			driver binding protocol
++ * @controller_handle		handle of the controller
++ * @remaining_device_path	path specifying the child controller
++ * @return			status code
++ */
++static efi_status_t EFIAPI start(
++		struct efi_driver_binding_protocol *this,
++		efi_handle_t controller_handle,
++		struct efi_device_path *remaining_device_path)
++{
++	efi_status_t ret;
++	void *interface;
++	efi_guid_t *guid_controller = NULL;
++
++	EFI_ENTRY("%p, %pUl, %ls", this, controller_handle,
++		  efi_dp_str(remaining_device_path));
++
++	/* Attach driver to controller */
++	ret = EFI_CALL(systab.boottime->open_protocol(
++			controller_handle, guid_controller,
++			&interface, this->driver_binding_handle,
++			controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER));
++	switch (ret) {
++	case EFI_ACCESS_DENIED:
++	case EFI_ALREADY_STARTED:
++		goto out;
++	case EFI_SUCCESS:
++		break;
++	default:
++		ret =  EFI_UNSUPPORTED;
++		goto out;
++	}
++out:
++	return EFI_EXIT(ret);
++}
++
++/*
++ * Remove a single child controller from the parent controller.
++ *
++ * @controller_handle	parent controller
++ * @child_handle	child controller
++ * @return		status code
++ */
++static efi_status_t disconnect_child(efi_handle_t controller_handle,
++				     efi_handle_t child_handle)
++{
++	efi_status_t ret;
++	efi_guid_t *guid_controller = NULL;
++	efi_guid_t *guid_child_controller = NULL;
++
++	ret = EFI_CALL(systab.boottime->close_protocol(
++				controller_handle, guid_controller,
++				child_handle, child_handle));
++	if (ret != EFI_SUCCESS) {
++		EFI_PRINT("Cannot close protocol\n");
++		return ret;
++	}
++	ret = EFI_CALL(systab.boottime->uninstall_protocol_interface(
++				child_handle, guid_child_controller, NULL));
++	if (ret != EFI_SUCCESS) {
++		EFI_PRINT("Cannot uninstall protocol interface\n");
++		return ret;
++	}
++	return ret;
++}
++
++/*
++ * Remove child controllers and disconnect the controller.
++ *
++ * @this			driver binding protocol
++ * @controller_handle		handle of the controller
++ * @number_of_children		number of child controllers to remove
++ * @child_handle_buffer		handles of the child controllers to remove
++ * @return			status code
++ */
++static efi_status_t EFIAPI stop(
++		struct efi_driver_binding_protocol *this,
++		efi_handle_t controller_handle,
++		size_t number_of_children,
++		efi_handle_t *child_handle_buffer)
++{
++	efi_status_t ret;
++	efi_uintn_t count;
++	struct efi_open_protocol_info_entry *entry_buffer;
++	efi_guid_t *guid_controller = NULL;
++
++	EFI_ENTRY("%p, %pUl, %zu, %p", this, controller_handle,
++		  number_of_children, child_handle_buffer);
++
++	/* Destroy provided child controllers */
++	if (number_of_children) {
++		efi_uintn_t i;
++
++		for (i = 0; i < number_of_children; ++i) {
++			ret = disconnect_child(controller_handle,
++					       child_handle_buffer[i]);
++			if (ret != EFI_SUCCESS)
++				return ret;
++		}
++		return EFI_SUCCESS;
++	}
++
++	/* Destroy all children */
++	ret = EFI_CALL(systab.boottime->open_protocol_information(
++					controller_handle, guid_controller,
++					&entry_buffer, &count));
++	if (ret != EFI_SUCCESS)
++		goto out;
++	while (count) {
++		if (entry_buffer[--count].attributes &
++		    EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER) {
++			ret = disconnect_child(
++					controller_handle,
++					entry_buffer[count].agent_handle);
++			if (ret != EFI_SUCCESS)
++				goto out;
++		}
++	}
++	ret = EFI_CALL(systab.boottime->free_pool(entry_buffer));
++	if (ret != EFI_SUCCESS)
++		printf("%s(%u) %s: ERROR: Cannot free pool\n",
++			__FILE__, __LINE__, __func__);
++
++	/* Detach driver from controller */
++	ret = EFI_CALL(systab.boottime->close_protocol(
++			controller_handle, guid_controller,
++			this->driver_binding_handle, controller_handle));
++out:
++	return EFI_EXIT(ret);
++}
++
++/* Driver binding protocol interface */
++static struct efi_driver_binding_protocol binding_interface = {
++	supported,
++	start,
++	stop,
++	0xffffffff,
++	NULL,
++	NULL,
++	};
 +
 +static int efi_add_driver(struct driver *drv)
 +{
@@ -247,5 +435,5 @@ index 0000000000..6af1328ace
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.14.2
+2.15.1
 
