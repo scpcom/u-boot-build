@@ -1,0 +1,59 @@
+From 06747f4c6a8b0bc770c1b078d9b8537a50da636f Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 21 Dec 2017 20:38:04 +0100
+Subject: [PATCH 1/1] efi_selftest: do not cut off u16 strings when printing
+
+Device paths can be very long. Due to a limited output buffer
+the output for device paths is cut off. We can avoid this by
+directly calling the boottime service with the the device path
+string.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/efi_selftest_console.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/lib/efi_selftest/efi_selftest_console.c b/lib/efi_selftest/efi_selftest_console.c
+index 7920c961ba..cd5b8ef3a1 100644
+--- a/lib/efi_selftest/efi_selftest_console.c
++++ b/lib/efi_selftest/efi_selftest_console.c
+@@ -143,10 +143,12 @@ void efi_st_printc(int color, const char *fmt, ...)
+ 	const char *c;
+ 	u16 *pos = buf;
+ 	const char *s;
+-	const u16 *u;
++	u16 *u;
+ 
+ 	va_start(args, fmt);
+ 
++	if (color >= 0)
++		con_out->set_attribute(con_out, (unsigned long)color);
+ 	c = fmt;
+ 	for (; *c; ++c) {
+ 		switch (*c) {
+@@ -189,9 +191,10 @@ void efi_st_printc(int color, const char *fmt, ...)
+ 				/* u16 string */
+ 				case 's':
+ 					u = va_arg(args, u16*);
+-					/* Ensure string fits into buffer */
+-					for (; *u && pos < buf + 120; ++u)
+-						*pos++ = *u;
++					*pos = 0;
++					con_out->output_string(con_out, buf);
++					con_out->output_string(con_out, u);
++					pos = buf;
+ 					break;
+ 				default:
+ 					--c;
+@@ -216,8 +219,6 @@ void efi_st_printc(int color, const char *fmt, ...)
+ 	}
+ 	va_end(args);
+ 	*pos = 0;
+-	if (color >= 0)
+-		con_out->set_attribute(con_out, (unsigned long)color);
+ 	con_out->output_string(con_out, buf);
+ 	if (color >= 0)
+ 		con_out->set_attribute(con_out, EFI_LIGHTGRAY);
+-- 
+2.14.2
+
