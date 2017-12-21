@@ -1,4 +1,4 @@
-From f9a5f44374ea6654057c581fd19d8181f7f03d1a Mon Sep 17 00:00:00 2001
+From 7f3d1c28cc9db83b7c3fac09abb8c9b5b798e989 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Dec 2017 07:06:29 +0100
 Subject: [PATCH 1/1] efi_selftest: test for (Dis)ConnectController
@@ -29,7 +29,7 @@ index 837e86228e..e549553c82 100644
  efi_selftest_events.o \
 diff --git a/lib/efi_selftest/efi_selftest_controllers.c b/lib/efi_selftest/efi_selftest_controllers.c
 new file mode 100644
-index 0000000000..9908c85c44
+index 0000000000..1a22aba6f4
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_controllers.c
 @@ -0,0 +1,385 @@
@@ -282,7 +282,7 @@ index 0000000000..9908c85c44
 +}
 +
 +/* Driver binding protocol interface */
-+struct efi_driver_binding_protocol binding_interface = {
++static struct efi_driver_binding_protocol binding_interface = {
 +	supported,
 +	start,
 +	stop,
@@ -419,5 +419,5 @@ index 0000000000..9908c85c44
 +	.execute = execute,
 +};
 -- 
-2.14.2
+2.15.1
 
