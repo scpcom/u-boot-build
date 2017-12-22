@@ -1,7 +1,7 @@
-From 7f3d1c28cc9db83b7c3fac09abb8c9b5b798e989 Mon Sep 17 00:00:00 2001
+From 9b7645f754b97d7ffd90f1f2987536fbe9a77077 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 14 Dec 2017 07:06:29 +0100
-Subject: [PATCH 1/1] efi_selftest: test for (Dis)ConnectController
+Subject: [PATCH v2 15/16] efi_selftest: test for (Dis)ConnectController
 
 This unit test checks the following protocol services:
 ConnectController, DisconnectController,
@@ -9,6 +9,9 @@ InstallProtocol, UninstallProtocol,
 OpenProtocol, CloseProtcol, OpenProtocolInformation
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	define binding_interface as static struct
 ---
  lib/efi_selftest/Makefile                   |   1 +
  lib/efi_selftest/efi_selftest_controllers.c | 385 ++++++++++++++++++++++++++++

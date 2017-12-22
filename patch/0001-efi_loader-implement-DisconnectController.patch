@@ -1,7 +1,7 @@
-From cc82a009634b45e1a89475fac8ad94b614296285 Mon Sep 17 00:00:00 2001
+From 82400f77a3505df4545cc8fc3d69169722cff8e6 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 22 Aug 2017 20:07:52 +0200
-Subject: [PATCH 1/1] efi_loader: implement DisconnectController
+Subject: [PATCH v2 11/16] efi_loader: implement DisconnectController
 
 Unfortunately we need a forward declaration because both
 OpenProtocol and CloseProtocol have to call DisconnectController.
@@ -9,11 +9,15 @@ And DisconnectController calls both OpenProtcol and CloseProtocol.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 283 ++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 261 insertions(+), 22 deletions(-)
+v2
+	Return EFI_NOT_FOUND in disconnect_all_drivers if no
+	driver is disconnected.
+---
+ lib/efi_loader/efi_boottime.c | 284 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 262 insertions(+), 22 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index bd4800b812..4ba7900261 100644
+index 3e499b4ce0..b855c6ef85 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -60,6 +60,10 @@ static int nesting_level;
@@ -27,7 +31,7 @@ index bd4800b812..4ba7900261 100644
  /* Called on every callback entry */
  int __efi_entry_check(void)
  {
-@@ -958,6 +962,108 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
+@@ -956,6 +960,109 @@ static efi_status_t EFIAPI efi_reinstall_protocol_interface(void *handle,
  	return EFI_EXIT(EFI_ACCESS_DENIED);
  }
  
@@ -114,13 +118,14 @@ index bd4800b812..4ba7900261 100644
 +{
 +	efi_uintn_t number_of_drivers;
 +	efi_handle_t *driver_handle_buffer;
-+	efi_status_t r, ret = EFI_NOT_FOUND;
++	efi_status_t r, ret;
 +
 +	ret = efi_get_drivers(efiobj, protocol, &number_of_drivers,
 +			      &driver_handle_buffer);
 +	if (ret != EFI_SUCCESS)
 +		return ret;
 +
++	ret = EFI_NOT_FOUND;
 +	while (number_of_drivers) {
 +		r = EFI_CALL(efi_disconnect_controller(
 +				efiobj->handle,
@@ -136,7 +141,7 @@ index bd4800b812..4ba7900261 100644
  /*
   * Uninstall protocol interface.
   *
-@@ -1622,28 +1728,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1620,28 +1727,6 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  	return EFI_EXIT(efi_set_watchdog(timeout));
  }
  
@@ -165,7 +170,7 @@ index bd4800b812..4ba7900261 100644
  /*
   * Close a protocol.
   *
-@@ -2485,6 +2569,161 @@ out:
+@@ -2481,6 +2566,161 @@ out:
  	return EFI_EXIT(ret);
  }
  
@@ -328,5 +333,5 @@ index bd4800b812..4ba7900261 100644
  	.hdr = {
  		.headersize = sizeof(struct efi_table_hdr),
 -- 
-2.14.2
+2.15.1
 

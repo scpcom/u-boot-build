@@ -39,6 +39,8 @@ git am ../patch/0001-efi_selftest-avoid-superfluous-messages-for-task-pri.patch
 git am ../patch/0001-efi_selftest-do-not-cut-off-u16-strings-when-printin.patch
 # >>> end of beautify selftest output
 
+git am ../patch/0001-efi_loader-use-correct-format-string-for-unsigned-lo.patch
+
 # <<< start of block driver series
 git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
 git am ../patch/0001-efi_loader-return-NULL-from-device-path-functions.patch

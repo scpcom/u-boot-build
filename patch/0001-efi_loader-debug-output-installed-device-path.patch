@@ -1,12 +1,21 @@
-From e26915b5e8f722bdfd6d3018f41104e8ecb7ccf5 Mon Sep 17 00:00:00 2001
+From 8b3bc43f4c882a0498c24e78f83d864eeee38be6 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 12 Dec 2017 21:10:44 +0100
-Subject: [PATCH 1/1] efi_loader: debug output installed device path
+Subject: [PATCH v2 08/16] efi_loader: debug output installed device path
 
 When a device path protocol is installed write the device
 path to the console in debug mode.
 
+For printing the new macro EFI_PRINT is used, which can be reused
+for future diagnostic output.
+
+Remove unused EFI_PRINT_GUID macro
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	Remove unused EFI_PRINT_GUID macro.
+	Use new macro EFI_PRINT to output device path.
 ---
  include/efi_loader.h          | 7 ++++---
  lib/efi_loader/efi_boottime.c | 5 +++++
