@@ -1,4 +1,4 @@
-From 4c10b6265a2cf81cac2fb4fefbf972c2e09ea347 Mon Sep 17 00:00:00 2001
+From 4df976ffd0cc31b0e1003ff879cb2f247f17027c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -7,13 +7,13 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  common/board_r.c                  |   1 +
  include/dm/uclass-id.h            |   1 +
- include/efi_driver.h              |  20 +++
+ include/efi_driver.h              |  29 ++++
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c |  55 ++++++++
- lib/efi_driver/efi_uclass.c       | 257 ++++++++++++++++++++++++++++++++++++++
- 8 files changed, 347 insertions(+)
+ lib/efi_driver/efi_block_device.c |  57 ++++++++
+ lib/efi_driver/efi_uclass.c       | 275 ++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 376 insertions(+)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -45,10 +45,10 @@ index 3fc20834ae..07fabc3ce6 100644
  	UCLASS_FIRMWARE,	/* Firmware */
 diff --git a/include/efi_driver.h b/include/efi_driver.h
 new file mode 100644
-index 0000000000..19d262a362
+index 0000000000..5061b5f2f4
 --- /dev/null
 +++ b/include/efi_driver.h
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,29 @@
 +/*
 + *  EFI application loader
 + *
@@ -65,7 +65,16 @@ index 0000000000..19d262a362
 +#include <efi_loader.h>
 +
 +struct efi_driver_ops {
-+	efi_handle_t	handle;
++	const efi_guid_t *protocol;
++	const efi_guid_t *child_protocol;
++};
++
++/*
++ * This structure adds internal fields to the driver binding protocol.
++ */
++struct efi_driver_binding_extended_protocol {
++	struct efi_driver_binding_protocol bp;
++	const struct efi_driver_ops *ops;
 +};
 +
 +#endif /* _EFI_DRIVER_H */
@@ -112,10 +121,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..2cd22cff78
+index 0000000000..c4adc55d94
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,57 @@
 +/*
 + *  EFI drivers
 + *
@@ -164,6 +173,8 @@ index 0000000000..2cd22cff78
 +};
 +
 +static const struct efi_driver_ops driver_ops = {
++	.protocol	= &efi_block_io_guid,
++	.child_protocol = &efi_block_io_guid,
 +};
 +
 +U_BOOT_DRIVER(efi_block) = {
@@ -173,10 +184,10 @@ index 0000000000..2cd22cff78
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..d4c1f1b6d6
+index 0000000000..aa06778150
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,257 @@
+@@ -0,0 +1,275 @@
 +/*
 + *  EFI drivers
 + *
@@ -367,25 +378,43 @@ index 0000000000..d4c1f1b6d6
 +	return EFI_EXIT(ret);
 +}
 +
-+/* Driver binding protocol interface */
-+static struct efi_driver_binding_protocol binding_interface = {
-+	supported,
-+	start,
-+	stop,
-+	0xffffffff,
-+	NULL,
-+	NULL,
-+	};
-+
-+static int efi_add_driver(struct driver *drv)
++static efi_status_t efi_add_driver(struct driver *drv)
 +{
-+	int ret = 0;
++	efi_status_t ret;
 +	const struct efi_driver_ops *ops = drv->ops;
++	struct efi_driver_binding_extended_protocol *bp;
 +
-+	debug("EFI: Adding driver %s\n", drv->name);
-+	ret = efi_create_handle(ops->handle);
-+	if (ret)
++	debug("EFI: Adding driver '%s'\n", drv->name);
++	if (!ops->protocol) {
++		printf("EFI: ERROR: protocol GUID missing for driver '%s'\n",
++		       drv->name);
++		return EFI_INVALID_PARAMETER;
++	}
++	bp = calloc(1, sizeof(struct efi_driver_binding_extended_protocol));
++	if (!bp)
++		return EFI_OUT_OF_RESOURCES;
++
++	bp->bp.supported = supported;
++	bp->bp.start = start;
++	bp->bp.stop = stop;
++	bp->bp.version = 0xffffffff;
++	bp->ops = drv->ops;
++
++	ret = efi_create_handle(&bp->bp.driver_binding_handle);
++	if (ret != EFI_SUCCESS) {
++		free(bp);
 +		goto out;
++	}
++	bp->bp.image_handle = bp->bp.driver_binding_handle;
++	ret = EFI_CALL(systab.boottime->install_protocol_interface(
++				bp->bp.driver_binding_handle,
++				&efi_guid_driver_binding_protocol,
++				EFI_NATIVE_INTERFACE, bp));
++	if (ret != EFI_SUCCESS) {
++		efi_delete_handle(bp->bp.driver_binding_handle);
++		free(bp);
++		goto out;
++	}
 +out:
 +	return ret;
 +}
@@ -435,5 +464,5 @@ index 0000000000..d4c1f1b6d6
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.15.1
+2.14.2
 
