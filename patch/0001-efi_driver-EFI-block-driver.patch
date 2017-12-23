@@ -1,4 +1,4 @@
-From 4df976ffd0cc31b0e1003ff879cb2f247f17027c Mon Sep 17 00:00:00 2001
+From a6c5ce8181ffdcfd8c5a777271c5df196a604f5c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -12,8 +12,8 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
  lib/efi_driver/efi_block_device.c |  57 ++++++++
- lib/efi_driver/efi_uclass.c       | 275 ++++++++++++++++++++++++++++++++++++++
- 8 files changed, 376 insertions(+)
+ lib/efi_driver/efi_uclass.c       | 277 ++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 378 insertions(+)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -79,10 +79,10 @@ index 0000000000..5061b5f2f4
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 48d24924b9..c561fa99ce 100644
+index 7b249c5e41..e23e7ce687 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -267,6 +267,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+@@ -269,6 +269,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
  /* Adds a range into the EFI memory map */
  uint64_t efi_add_memory_map(uint64_t start, uint64_t pages, int memory_type,
  			    bool overlap_only_ram);
@@ -184,10 +184,10 @@ index 0000000000..c4adc55d94
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..aa06778150
+index 0000000000..9b185a0e51
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,275 @@
+@@ -0,0 +1,277 @@
 +/*
 + *  EFI drivers
 + *
@@ -208,20 +208,21 @@ index 0000000000..aa06778150
 + * @remaining_device_path	path specifying the child controller
 + * @return			status code
 + */
-+static efi_status_t EFIAPI supported(
++static efi_status_t EFIAPI efi_uc_supported(
 +		struct efi_driver_binding_protocol *this,
 +		efi_handle_t controller_handle,
 +		struct efi_device_path *remaining_device_path)
 +{
 +	efi_status_t ret;
 +	void *interface;
-+	efi_guid_t *guid_controller = NULL;
++	struct efi_driver_binding_extended_protocol *bp =
++			(struct efi_driver_binding_extended_protocol *)this;
 +
-+	EFI_ENTRY("%p, %pUl, %ls", this, controller_handle,
++	EFI_ENTRY("%p, %p, %ls", this, controller_handle,
 +		  efi_dp_str(remaining_device_path));
 +
 +	ret = EFI_CALL(systab.boottime->open_protocol(
-+			controller_handle, guid_controller,
++			controller_handle, bp->ops->protocol,
 +			&interface, this->driver_binding_handle,
 +			controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER));
 +	switch (ret) {
@@ -235,7 +236,7 @@ index 0000000000..aa06778150
 +		goto out;
 +	}
 +	ret = EFI_CALL(systab.boottime->close_protocol(
-+				controller_handle, guid_controller,
++				controller_handle, bp->ops->protocol,
 +				this->driver_binding_handle,
 +				controller_handle));
 +	if (ret != EFI_SUCCESS)
@@ -252,7 +253,7 @@ index 0000000000..aa06778150
 + * @remaining_device_path	path specifying the child controller
 + * @return			status code
 + */
-+static efi_status_t EFIAPI start(
++static efi_status_t EFIAPI efi_uc_start(
 +		struct efi_driver_binding_protocol *this,
 +		efi_handle_t controller_handle,
 +		struct efi_device_path *remaining_device_path)
@@ -322,7 +323,7 @@ index 0000000000..aa06778150
 + * @child_handle_buffer		handles of the child controllers to remove
 + * @return			status code
 + */
-+static efi_status_t EFIAPI stop(
++static efi_status_t EFIAPI efi_uc_stop(
 +		struct efi_driver_binding_protocol *this,
 +		efi_handle_t controller_handle,
 +		size_t number_of_children,
@@ -394,9 +395,9 @@ index 0000000000..aa06778150
 +	if (!bp)
 +		return EFI_OUT_OF_RESOURCES;
 +
-+	bp->bp.supported = supported;
-+	bp->bp.start = start;
-+	bp->bp.stop = stop;
++	bp->bp.supported = efi_uc_supported;
++	bp->bp.start = efi_uc_start;
++	bp->bp.stop = efi_uc_stop;
 +	bp->bp.version = 0xffffffff;
 +	bp->ops = drv->ops;
 +
@@ -406,10 +407,8 @@ index 0000000000..aa06778150
 +		goto out;
 +	}
 +	bp->bp.image_handle = bp->bp.driver_binding_handle;
-+	ret = EFI_CALL(systab.boottime->install_protocol_interface(
-+				bp->bp.driver_binding_handle,
-+				&efi_guid_driver_binding_protocol,
-+				EFI_NATIVE_INTERFACE, bp));
++	ret = efi_add_protocol(bp->bp.driver_binding_handle,
++			       &efi_guid_driver_binding_protocol, bp);
 +	if (ret != EFI_SUCCESS) {
 +		efi_delete_handle(bp->bp.driver_binding_handle);
 +		free(bp);
@@ -429,6 +428,9 @@ index 0000000000..aa06778150
 +{
 +	struct driver *drv;
 +	int ret = 0;
++
++	/* Save 'gd' pointer */
++	efi_save_gd();
 +
 +	debug("EFI: Initializing EFI driver framework\n");
 +	for (drv = ll_entry_start(struct driver, driver);
