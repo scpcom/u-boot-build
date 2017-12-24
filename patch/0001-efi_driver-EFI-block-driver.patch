@@ -1,4 +1,4 @@
-From 89597e807bc36fade3aa1f07548f56745513e9e3 Mon Sep 17 00:00:00 2001
+From d61abbe33023b7a7c43d8fd029927f0f8cf0b765 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -6,14 +6,16 @@ Subject: [PATCH 1/1] efi_driver: EFI block driver
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  common/board_r.c                  |   3 +
+ drivers/block/blk-uclass.c        |   4 +-
+ include/blk.h                     |   1 +
  include/dm/uclass-id.h            |   1 +
- include/efi_driver.h              |  29 ++++
+ include/efi_driver.h              |  30 ++++
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c |  57 +++++++
+ lib/efi_driver/efi_block_device.c |  85 ++++++++++
  lib/efi_driver/efi_uclass.c       | 319 ++++++++++++++++++++++++++++++++++++++
- 8 files changed, 422 insertions(+)
+ 10 files changed, 455 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -34,6 +36,41 @@ index 09167c13cc..5e7eb2d5cb 100644
  #endif
  	stdio_init_tables,
  	initr_serial,
+diff --git a/drivers/block/blk-uclass.c b/drivers/block/blk-uclass.c
+index 010ed32d3a..bfda2211f0 100644
+--- a/drivers/block/blk-uclass.c
++++ b/drivers/block/blk-uclass.c
+@@ -24,6 +24,7 @@ static const char *if_typename_str[IF_TYPE_COUNT] = {
+ 	[IF_TYPE_HOST]		= "host",
+ 	[IF_TYPE_SYSTEMACE]	= "ace",
+ 	[IF_TYPE_NVME]		= "nvme",
++	[IF_TYPE_EFI]		= "efi",
+ };
+ 
+ static enum uclass_id if_type_uclass_id[IF_TYPE_COUNT] = {
+@@ -36,8 +37,9 @@ static enum uclass_id if_type_uclass_id[IF_TYPE_COUNT] = {
+ 	[IF_TYPE_SD]		= UCLASS_INVALID,
+ 	[IF_TYPE_SATA]		= UCLASS_AHCI,
+ 	[IF_TYPE_HOST]		= UCLASS_ROOT,
+-	[IF_TYPE_NVME]		= UCLASS_NVME,
+ 	[IF_TYPE_SYSTEMACE]	= UCLASS_INVALID,
++	[IF_TYPE_NVME]		= UCLASS_NVME,
++	[IF_TYPE_EFI]		= UCLASS_EFI,
+ };
+ 
+ static enum if_type if_typename_to_iftype(const char *if_typename)
+diff --git a/include/blk.h b/include/blk.h
+index 41b4d7efa8..69b5a98e56 100644
+--- a/include/blk.h
++++ b/include/blk.h
+@@ -34,6 +34,7 @@ enum if_type {
+ 	IF_TYPE_HOST,
+ 	IF_TYPE_SYSTEMACE,
+ 	IF_TYPE_NVME,
++	IF_TYPE_EFI,
+ 
+ 	IF_TYPE_COUNT,			/* Number of interface types */
+ };
 diff --git a/include/dm/uclass-id.h b/include/dm/uclass-id.h
 index 3fc20834ae..07fabc3ce6 100644
 --- a/include/dm/uclass-id.h
@@ -48,10 +85,10 @@ index 3fc20834ae..07fabc3ce6 100644
  	UCLASS_FIRMWARE,	/* Firmware */
 diff --git a/include/efi_driver.h b/include/efi_driver.h
 new file mode 100644
-index 0000000000..5061b5f2f4
+index 0000000000..7e4856c09f
 --- /dev/null
 +++ b/include/efi_driver.h
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,30 @@
 +/*
 + *  EFI application loader
 + *
@@ -70,6 +107,7 @@ index 0000000000..5061b5f2f4
 +struct efi_driver_ops {
 +	const efi_guid_t *protocol;
 +	const efi_guid_t *child_protocol;
++	int (*bind)(struct udevice *parent, efi_handle_t handle);
 +};
 +
 +/*
@@ -124,10 +162,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..c4adc55d94
+index 0000000000..010af2de86
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,85 @@
 +/*
 + *  EFI drivers
 + *
@@ -138,6 +176,8 @@ index 0000000000..c4adc55d94
 +
 +#include <efi_driver.h>
 +
++static int efi_blk_max_devnum;
++
 +static int efi_blk_probe(struct udevice *udev)
 +{
 +	struct blk_desc *desc = dev_get_uclass_platdata(udev);
@@ -147,7 +187,7 @@ index 0000000000..c4adc55d94
 +	return 0;
 +}
 +
-+ulong efi_read(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
++static ulong efi_read(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
 +	       void *buffer)
 +{
 +	ulong n = 0;
@@ -155,12 +195,37 @@ index 0000000000..c4adc55d94
 +	return n;
 +}
 +
-+ulong efi_write(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
++static ulong efi_write(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
 +		const void *buffer)
 +{
 +	ulong n = 0;
 +
 +	return n;
++}
++
++static int bind(struct udevice *parent, efi_handle_t handle)
++{
++	struct udevice *bdev;
++	int ret, devnum;
++	char name[20];
++	lbaint_t lba;
++	struct efi_object *obj = efi_search_obj(handle);
++
++	if (!obj)
++		return -ENOENT;
++
++	/* TODO: determine lba */
++	lba = 0;
++
++	devnum = efi_blk_max_devnum++;
++	sprintf(name, "efi#%d", devnum);
++	
++	ret = blk_create_device(parent, "efi_blk", name, IF_TYPE_EFI, devnum, 512,
++				lba, &bdev);
++	if (ret)
++		return ret;
++	obj->dev = bdev;
++	return 0;
 +}
 +
 +static const struct blk_ops efi_blk_ops = {
@@ -178,6 +243,7 @@ index 0000000000..c4adc55d94
 +static const struct efi_driver_ops driver_ops = {
 +	.protocol	= &efi_block_io_guid,
 +	.child_protocol = &efi_block_io_guid,
++	.bind		= bind,
 +};
 +
 +U_BOOT_DRIVER(efi_block) = {
@@ -511,5 +577,5 @@ index 0000000000..9d0163b233
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.15.1
+2.14.2
 
