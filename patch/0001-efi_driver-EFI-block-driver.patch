@@ -1,4 +1,4 @@
-From d61abbe33023b7a7c43d8fd029927f0f8cf0b765 Mon Sep 17 00:00:00 2001
+From 7f57c16c8461325a5c698a453939c53272b4dd89 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -13,9 +13,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c |  85 ++++++++++
- lib/efi_driver/efi_uclass.c       | 319 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 455 insertions(+), 1 deletion(-)
+ lib/efi_driver/efi_block_device.c |  99 ++++++++++++
+ lib/efi_driver/efi_uclass.c       | 320 ++++++++++++++++++++++++++++++++++++++
+ 10 files changed, 470 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -85,7 +85,7 @@ index 3fc20834ae..07fabc3ce6 100644
  	UCLASS_FIRMWARE,	/* Firmware */
 diff --git a/include/efi_driver.h b/include/efi_driver.h
 new file mode 100644
-index 0000000000..7e4856c09f
+index 0000000000..21a186819b
 --- /dev/null
 +++ b/include/efi_driver.h
 @@ -0,0 +1,30 @@
@@ -107,7 +107,7 @@ index 0000000000..7e4856c09f
 +struct efi_driver_ops {
 +	const efi_guid_t *protocol;
 +	const efi_guid_t *child_protocol;
-+	int (*bind)(struct udevice *parent, efi_handle_t handle);
++	int (*bind)(efi_handle_t handle);
 +};
 +
 +/*
@@ -162,10 +162,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..010af2de86
+index 0000000000..3d991658e0
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,99 @@
 +/*
 + *  EFI drivers
 + *
@@ -174,7 +174,10 @@ index 0000000000..010af2de86
 + *  SPDX-License-Identifier:     GPL-2.0+
 + */
 +
++#define DEBUG 1
++
 +#include <efi_driver.h>
++#include <dm/root.h>
 +
 +static int efi_blk_max_devnum;
 +
@@ -182,6 +185,7 @@ index 0000000000..010af2de86
 +{
 +	struct blk_desc *desc = dev_get_uclass_platdata(udev);
 +
++	printf("%s(%d) %s:\n", __FILE__, __LINE__, __func__);
 +	part_init(desc);
 +
 +	return 0;
@@ -192,6 +196,8 @@ index 0000000000..010af2de86
 +{
 +	ulong n = 0;
 +
++	printf("%s(%d) %s:\n", __FILE__, __LINE__, __func__);
++
 +	return n;
 +}
 +
@@ -200,31 +206,39 @@ index 0000000000..010af2de86
 +{
 +	ulong n = 0;
 +
++	printf("%s(%d) %s:\n", __FILE__, __LINE__, __func__);
++
 +	return n;
 +}
 +
-+static int bind(struct udevice *parent, efi_handle_t handle)
++static int bind(efi_handle_t handle)
 +{
-+	struct udevice *bdev;
++	struct udevice *bdev, *parent = dm_root();
 +	int ret, devnum;
 +	char name[20];
 +	lbaint_t lba;
 +	struct efi_object *obj = efi_search_obj(handle);
 +
++	printf("%s(%d) %s: handle %p\n", __FILE__, __LINE__, __func__, handle);
++
 +	if (!obj)
 +		return -ENOENT;
 +
 +	/* TODO: determine lba */
-+	lba = 0;
++	lba = 128;
 +
 +	devnum = efi_blk_max_devnum++;
 +	sprintf(name, "efi#%d", devnum);
-+	
++
 +	ret = blk_create_device(parent, "efi_blk", name, IF_TYPE_EFI, devnum, 512,
 +				lba, &bdev);
 +	if (ret)
 +		return ret;
++	EFI_PRINT("device '%s' created\n", bdev->name);
 +	obj->dev = bdev;
++
++	ret = blk_prepare_device(bdev);
++
 +	return 0;
 +}
 +
@@ -253,10 +267,10 @@ index 0000000000..010af2de86
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..9d0163b233
+index 0000000000..1eac32ea9a
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,319 @@
+@@ -0,0 +1,320 @@
 +/*
 + *  EFI drivers
 + *
@@ -390,6 +404,7 @@ index 0000000000..9d0163b233
 +	}
 +
 +	/* TODO: driver specific stuff */
++	bp->ops->bind(controller_handle);
 +
 +out:
 +	return EFI_EXIT(ret);
