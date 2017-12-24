@@ -1,0 +1,28 @@
+From ea64de307a3279e5cef14b49cc698648c5ec4ddc Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 24 Dec 2017 13:06:15 +0100
+Subject: [PATCH 1/1] dm: core: remove orphaned parameter description in
+ platdata.h
+
+struct driver_info has no field 'flags'.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/dm/platdata.h | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/include/dm/platdata.h b/include/dm/platdata.h
+index 488b2ab0ae..b73aa33093 100644
+--- a/include/dm/platdata.h
++++ b/include/dm/platdata.h
+@@ -23,7 +23,6 @@
+  * @name:	Driver name
+  * @platdata:	Driver-specific platform data
+  * @platdata_size: Size of platform data structure
+- * @flags:	Platform data flags (DM_FLAG_...)
+  */
+ struct driver_info {
+ 	const char *name;
+-- 
+2.14.2
+
