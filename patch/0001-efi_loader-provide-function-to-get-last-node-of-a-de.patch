@@ -1,0 +1,66 @@
+From 8cbc9854ef8d1acf62e065fcde491e64e4a9e947 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 24 Dec 2017 06:19:45 +0100
+Subject: [PATCH 1/1] efi_loader: provide function to get last node of a device
+ path
+
+On a block device and its partions the same protocols can be
+installed. To tell the apart we can use the type of the last
+node of the device path which is not the end node.
+
+The patch provides a utility function to find this last node.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h             |  3 +++
+ lib/efi_loader/efi_device_path.c | 20 ++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index e23e7ce687..54de58ad37 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -310,6 +310,9 @@ struct efi_device_path *efi_dp_from_eth(void);
+ struct efi_device_path *efi_dp_from_mem(uint32_t mem_type,
+ 					uint64_t start_address,
+ 					uint64_t end_address);
++/* Determine the last device path node that is not the end node. */
++const struct efi_device_path *efi_dp_last_node(
++			const struct efi_device_path *dp);
+ efi_status_t efi_dp_split_file_path(struct efi_device_path *full_path,
+ 				    struct efi_device_path **device_path,
+ 				    struct efi_device_path **file_path);
+diff --git a/lib/efi_loader/efi_device_path.c b/lib/efi_loader/efi_device_path.c
+index c1ba54e6bd..b6d6fb9912 100644
+--- a/lib/efi_loader/efi_device_path.c
++++ b/lib/efi_loader/efi_device_path.c
+@@ -208,6 +208,26 @@ struct efi_object *efi_dp_find_obj(struct efi_device_path *dp,
+ 	return efiobj;
+ }
+ 
++/*
++ * Determine the last device path node that is not the end node.
++ *
++ * @dp		device path
++ * @return	last node before the end node if it exists
++ *		otherwise NULL
++ */
++const struct efi_device_path *efi_dp_last_node(const struct efi_device_path *dp)
++{
++	struct efi_device_path *ret;
++
++	if (!dp || dp->type == DEVICE_PATH_TYPE_END)
++		return NULL;
++	while (dp) {
++		ret = (struct efi_device_path *)dp;
++		dp = efi_dp_next(dp);
++	}
++	return ret;
++}
++
+ /* return size not including End node: */
+ unsigned efi_dp_size(const struct efi_device_path *dp)
+ {
+-- 
+2.15.1
+

@@ -1,11 +1,11 @@
-From a6c5ce8181ffdcfd8c5a777271c5df196a604f5c Mon Sep 17 00:00:00 2001
+From 4a022c1afab4e1b7c280722a2ca8f7dde4be5e50 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- common/board_r.c                  |   1 +
+ common/board_r.c                  |   3 +
  include/dm/uclass-id.h            |   1 +
  include/efi_driver.h              |  29 ++++
  include/efi_loader.h              |   2 +
@@ -13,20 +13,23 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  lib/efi_driver/Makefile           |  10 ++
  lib/efi_driver/efi_block_device.c |  57 ++++++++
  lib/efi_driver/efi_uclass.c       | 277 ++++++++++++++++++++++++++++++++++++++
- 8 files changed, 378 insertions(+)
+ 8 files changed, 380 insertions(+)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
  create mode 100644 lib/efi_driver/efi_uclass.c
 
 diff --git a/common/board_r.c b/common/board_r.c
-index 09167c13cc..8f3dd39fd7 100644
+index 09167c13cc..5e7eb2d5cb 100644
 --- a/common/board_r.c
 +++ b/common/board_r.c
-@@ -718,6 +718,7 @@ static init_fnc_t init_sequence_r[] = {
+@@ -717,7 +717,10 @@ static init_fnc_t init_sequence_r[] = {
+ 	set_cpu_clk_info, /* Setup clock information */
  #endif
  #ifdef CONFIG_EFI_LOADER
++	/* Setup EFI memory before any other EFI related code */
  	efi_memory_init,
++	/* Install EFI drivers */
 +	efi_driver_init,
  #endif
  	stdio_init_tables,
@@ -466,5 +469,5 @@ index 0000000000..9b185a0e51
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.14.2
+2.15.1
 
