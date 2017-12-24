@@ -1,4 +1,4 @@
-From 4a022c1afab4e1b7c280722a2ca8f7dde4be5e50 Mon Sep 17 00:00:00 2001
+From 89597e807bc36fade3aa1f07548f56745513e9e3 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -11,9 +11,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c |  57 ++++++++
- lib/efi_driver/efi_uclass.c       | 277 ++++++++++++++++++++++++++++++++++++++
- 8 files changed, 380 insertions(+)
+ lib/efi_driver/efi_block_device.c |  57 +++++++
+ lib/efi_driver/efi_uclass.c       | 319 ++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 422 insertions(+)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -82,7 +82,7 @@ index 0000000000..5061b5f2f4
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 7b249c5e41..e23e7ce687 100644
+index 672ad16464..54de58ad37 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -269,6 +269,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
@@ -187,10 +187,10 @@ index 0000000000..c4adc55d94
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..9b185a0e51
+index 0000000000..9d0163b233
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,277 @@
+@@ -0,0 +1,319 @@
 +/*
 + *  EFI drivers
 + *
@@ -202,6 +202,31 @@ index 0000000000..9b185a0e51
 +#define DEBUG 1
 +
 +#include <efi_driver.h>
++
++/*
++ * Check node type. We do not support partions as controller handles.
++ *
++ * @handle	handle to be checked
++ * @return	status code
++ */
++static efi_status_t check_node_type(efi_handle_t handle)
++{
++	efi_status_t r, ret = EFI_SUCCESS;
++	const struct efi_device_path *dp;
++
++	/* Open the device path protocol */
++	r = EFI_CALL(systab.boottime->open_protocol(
++			handle, &efi_guid_device_path, (void **)&dp,
++			NULL, NULL, EFI_OPEN_PROTOCOL_GET_PROTOCOL));
++	if (r == EFI_SUCCESS && dp) {
++		/* Get the last node */
++		const struct efi_device_path *node = efi_dp_last_node(dp);
++		/* We do not support partitions as controller */
++		if (!node || node->type == DEVICE_PATH_TYPE_MEDIA_DEVICE)
++			ret = EFI_UNSUPPORTED;
++	}
++	return ret;
++}
 +
 +/*
 + * Check if the driver supports the controller.
@@ -216,7 +241,7 @@ index 0000000000..9b185a0e51
 +		efi_handle_t controller_handle,
 +		struct efi_device_path *remaining_device_path)
 +{
-+	efi_status_t ret;
++	efi_status_t r, ret;
 +	void *interface;
 +	struct efi_driver_binding_extended_protocol *bp =
 +			(struct efi_driver_binding_extended_protocol *)this;
@@ -238,11 +263,14 @@ index 0000000000..9b185a0e51
 +		ret = EFI_UNSUPPORTED;
 +		goto out;
 +	}
-+	ret = EFI_CALL(systab.boottime->close_protocol(
++
++	ret = check_node_type(controller_handle);
++
++	r = EFI_CALL(systab.boottime->close_protocol(
 +				controller_handle, bp->ops->protocol,
 +				this->driver_binding_handle,
 +				controller_handle));
-+	if (ret != EFI_SUCCESS)
++	if (r != EFI_SUCCESS)
 +		ret = EFI_UNSUPPORTED;
 +out:
 +	return EFI_EXIT(ret);
@@ -261,16 +289,17 @@ index 0000000000..9b185a0e51
 +		efi_handle_t controller_handle,
 +		struct efi_device_path *remaining_device_path)
 +{
-+	efi_status_t ret;
++	efi_status_t r, ret;
 +	void *interface;
-+	efi_guid_t *guid_controller = NULL;
++	struct efi_driver_binding_extended_protocol *bp =
++			(struct efi_driver_binding_extended_protocol *)this;
 +
 +	EFI_ENTRY("%p, %pUl, %ls", this, controller_handle,
 +		  efi_dp_str(remaining_device_path));
 +
 +	/* Attach driver to controller */
 +	ret = EFI_CALL(systab.boottime->open_protocol(
-+			controller_handle, guid_controller,
++			controller_handle, bp->ops->protocol,
 +			&interface, this->driver_binding_handle,
 +			controller_handle, EFI_OPEN_PROTOCOL_BY_DRIVER));
 +	switch (ret) {
@@ -283,6 +312,19 @@ index 0000000000..9b185a0e51
 +		ret =  EFI_UNSUPPORTED;
 +		goto out;
 +	}
++	ret = check_node_type(controller_handle);
++	if (ret != EFI_SUCCESS) {
++		r = EFI_CALL(systab.boottime->close_protocol(
++				controller_handle, bp->ops->protocol,
++				this->driver_binding_handle,
++				controller_handle));
++		if (r != EFI_SUCCESS)
++			EFI_PRINT("Failure to close handle\n");
++		goto out;
++	}
++
++	/* TODO: driver specific stuff */
++
 +out:
 +	return EFI_EXIT(ret);
 +}
@@ -372,7 +414,7 @@ index 0000000000..9b185a0e51
 +	ret = EFI_CALL(systab.boottime->free_pool(entry_buffer));
 +	if (ret != EFI_SUCCESS)
 +		printf("%s(%u) %s: ERROR: Cannot free pool\n",
-+			__FILE__, __LINE__, __func__);
++		       __FILE__, __LINE__, __func__);
 +
 +	/* Detach driver from controller */
 +	ret = EFI_CALL(systab.boottime->close_protocol(
