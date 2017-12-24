@@ -43,6 +43,7 @@ git am ../patch/0001-efi_loader-use-correct-format-string-for-unsigned-lo.patch
 
 git am ../patch/0001-dm-core-remove-orphaned-parameter-description-in-pla.patch
 
+git am ../patch/0001-efi_selftest-execute-only-block-device-test.patch
 # <<< start of block driver series
 git am ../patch/0001-efi_loader-make-efi_block_io_guid-a-global-symbol.patch
 git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
