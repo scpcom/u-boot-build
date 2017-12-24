@@ -1,4 +1,4 @@
-From 7f57c16c8461325a5c698a453939c53272b4dd89 Mon Sep 17 00:00:00 2001
+From 89fc8e85f818eccf0e88d4a954dc5934437161e0 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -13,9 +13,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c |  99 ++++++++++++
+ lib/efi_driver/efi_block_device.c | 122 +++++++++++++++
  lib/efi_driver/efi_uclass.c       | 320 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 470 insertions(+), 1 deletion(-)
+ 10 files changed, 493 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -85,7 +85,7 @@ index 3fc20834ae..07fabc3ce6 100644
  	UCLASS_FIRMWARE,	/* Firmware */
 diff --git a/include/efi_driver.h b/include/efi_driver.h
 new file mode 100644
-index 0000000000..21a186819b
+index 0000000000..2bbe26c6e3
 --- /dev/null
 +++ b/include/efi_driver.h
 @@ -0,0 +1,30 @@
@@ -107,7 +107,7 @@ index 0000000000..21a186819b
 +struct efi_driver_ops {
 +	const efi_guid_t *protocol;
 +	const efi_guid_t *child_protocol;
-+	int (*bind)(efi_handle_t handle);
++	int (*bind)(efi_handle_t handle, void *interface);
 +};
 +
 +/*
@@ -162,10 +162,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..3d991658e0
+index 0000000000..2248797420
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,99 @@
+@@ -0,0 +1,122 @@
 +/*
 + *  EFI drivers
 + *
@@ -194,11 +194,19 @@ index 0000000000..3d991658e0
 +static ulong efi_read(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
 +	       void *buffer)
 +{
-+	ulong n = 0;
++	struct efi_block_io *io = dev->platdata;
++	efi_status_t ret;
 +
-+	printf("%s(%d) %s:\n", __FILE__, __LINE__, __func__);
-+
-+	return n;
++	printf("%s(%d) %s: dev %s, start " LBAFU ", count " LBAFU " \n",
++	       __FILE__, __LINE__, __func__,
++	       dev->name, blknr, blkcnt);
++	ret = EFI_CALL(io->read_blocks(
++			io, io->media->media_id, (u64)blknr,
++			(efi_uintn_t)blkcnt *
++			(efi_uintn_t)io->media->block_size, buffer));
++	if (ret != EFI_SUCCESS)
++		return 0;
++	return blkcnt;
 +}
 +
 +static ulong efi_write(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
@@ -211,33 +219,48 @@ index 0000000000..3d991658e0
 +	return n;
 +}
 +
-+static int bind(efi_handle_t handle)
++static int bind(efi_handle_t handle, void *interface)
 +{
 +	struct udevice *bdev, *parent = dm_root();
 +	int ret, devnum;
 +	char name[20];
-+	lbaint_t lba;
 +	struct efi_object *obj = efi_search_obj(handle);
++	struct efi_block_io *io = interface;
 +
-+	printf("%s(%d) %s: handle %p\n", __FILE__, __LINE__, __func__, handle);
++	printf("%s(%d) %s: handle %p, interface %p\n",
++	       __FILE__, __LINE__, __func__, handle, io);
 +
 +	if (!obj)
 +		return -ENOENT;
 +
-+	/* TODO: determine lba */
-+	lba = 128;
-+
 +	devnum = efi_blk_max_devnum++;
 +	sprintf(name, "efi#%d", devnum);
 +
-+	ret = blk_create_device(parent, "efi_blk", name, IF_TYPE_EFI, devnum, 512,
-+				lba, &bdev);
++	EFI_PRINT("blk size %lu, last blk %lu\n", (unsigned long)(io->media->block_size),
++		  (unsigned long)(io->media->last_block));
++	ret = blk_create_device(parent, "efi_blk", name, IF_TYPE_EFI, devnum,
++				io->media->block_size, (lbaint_t)io->media->last_block,
++				&bdev);
 +	if (ret)
 +		return ret;
 +	EFI_PRINT("device '%s' created\n", bdev->name);
++	bdev->platdata = interface;
 +	obj->dev = bdev;
 +
 +	ret = blk_prepare_device(bdev);
++
++	struct blk_desc *desc = dev_get_uclass_platdata(bdev);
++	int part;
++	disk_partition_t info;
++
++	/* Add devices for each partition */
++	for (part = 1; part <= MAX_SEARCH_PARTITIONS; part++) {
++		printf("Looking for partion %d\n", part);
++		if (part_get_info(desc, part, &info))
++			continue;
++		printf("Found partition %s:%d\n", bdev->name, part);
++	}
++
 +
 +	return 0;
 +}
@@ -267,7 +290,7 @@ index 0000000000..3d991658e0
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..1eac32ea9a
+index 0000000000..654ef6b59b
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
 @@ -0,0 +1,320 @@
@@ -370,7 +393,7 @@ index 0000000000..1eac32ea9a
 +		struct efi_device_path *remaining_device_path)
 +{
 +	efi_status_t r, ret;
-+	void *interface;
++	void *interface = NULL;
 +	struct efi_driver_binding_extended_protocol *bp =
 +			(struct efi_driver_binding_extended_protocol *)this;
 +
@@ -404,7 +427,7 @@ index 0000000000..1eac32ea9a
 +	}
 +
 +	/* TODO: driver specific stuff */
-+	bp->ops->bind(controller_handle);
++	bp->ops->bind(controller_handle, interface);
 +
 +out:
 +	return EFI_EXIT(ret);
@@ -592,5 +615,5 @@ index 0000000000..1eac32ea9a
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.14.2
+2.15.1
 
