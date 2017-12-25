@@ -1,4 +1,4 @@
-From fddf91783b458d3e8d4cfa0677fdc972560a5ab2 Mon Sep 17 00:00:00 2001
+From a50b35c527be05d7557a6e48ad38799df6f02378 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -13,9 +13,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c | 141 +++++++++++++++++
+ lib/efi_driver/efi_block_device.c | 158 +++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 320 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 512 insertions(+), 1 deletion(-)
+ 10 files changed, 529 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -162,10 +162,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..3bfa2d0b1c
+index 0000000000..da2e9926a1
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,141 @@
+@@ -0,0 +1,158 @@
 +/*
 + *  EFI drivers
 + *
@@ -202,7 +202,7 @@ index 0000000000..3bfa2d0b1c
 +				io, io->media->media_id, (u64)blknr,
 +				(efi_uintn_t)blkcnt *
 +				(efi_uintn_t)io->media->block_size, buffer));
-+	EFI_PRINT("%s: r = %u\n", __func__,  0xffffU & (unsigned int)ret);
++	EFI_PRINT("%s: r = %u\n", __func__,  (unsigned int)(ret & ~EFI_ERROR_MASK));
 +	if (ret != EFI_SUCCESS)
 +		return 0;
 +	return blkcnt;
@@ -228,13 +228,43 @@ index 0000000000..3bfa2d0b1c
 +	ret = EFI_CALL(io->write_blocks(
 +				io, io->media->media_id, (u64)blknr,
 +				(efi_uintn_t)blkcnt *
-+				(efi_uintn_t)io->media->block_size, buffer));
-+	EFI_PRINT("%s: r = %u\n", __func__,  0xffffU & (unsigned int)ret);
++				(efi_uintn_t)io->media->block_size, (void *)buffer));
++	EFI_PRINT("%s: r = %u\n", __func__,  (unsigned int)(ret & ~EFI_ERROR_MASK));
 +	if (ret != EFI_SUCCESS)
 +		return 0;
 +	return blkcnt;
 +}
 +
++static int efi_bl_bind_partions(efi_handle_t handle)
++{
++	struct efi_object *obj = efi_search_obj(handle);
++	struct blk_desc *desc;
++	int disks = 0, part;
++	disk_partition_t info;
++
++	if (!obj || !obj->dev)
++		return -ENOENT;
++	desc = dev_get_uclass_platdata(obj->dev);
++
++	/* Add devices for each partition */
++	for (part = 1; part <= MAX_SEARCH_PARTITIONS; part++) {
++		printf("Looking for partion %d\n", part);
++		if (part_get_info(desc, part, &info))
++			continue;
++		printf("Found partition %s:%d\n", obj->dev->name, part);
++		++disks;
++	}
++
++	return disks;
++}
++
++/*
++ * Create a block device for a handle
++ *
++ * @handle	handle
++ * @interface	block io protocol
++ * @return	0 = success
++ */
 +static int efi_bl_bind(efi_handle_t handle, void *interface)
 +{
 +	struct udevice *bdev, *parent = dm_root();
@@ -252,31 +282,18 @@ index 0000000000..3bfa2d0b1c
 +	devnum = efi_blk_max_devnum++;
 +	sprintf(name, "efi#%d", devnum);
 +
-+	EFI_PRINT("blk size %lu, last blk %lu\n", (unsigned long)(io->media->block_size),
-+		  (unsigned long)(io->media->last_block));
 +	ret = blk_create_device(parent, "efi_blk", name, IF_TYPE_EFI, devnum,
 +				io->media->block_size, (lbaint_t)io->media->last_block,
 +				&bdev);
 +	if (ret)
 +		return ret;
-+	EFI_PRINT("device '%s' created\n", bdev->name);
++	EFI_PRINT("%s: block device '%s' created\n", __func__, bdev->name);
 +	bdev->platdata = interface;
 +	obj->dev = bdev;
 +
 +	ret = blk_prepare_device(bdev);
 +
-+	struct blk_desc *desc = dev_get_uclass_platdata(bdev);
-+	int part;
-+	disk_partition_t info;
-+
-+	/* Add devices for each partition */
-+	for (part = 1; part <= MAX_SEARCH_PARTITIONS; part++) {
-+		printf("Looking for partion %d\n", part);
-+		if (part_get_info(desc, part, &info))
-+			continue;
-+		printf("Found partition %s:%d\n", bdev->name, part);
-+	}
-+
++	efi_bl_bind_partions(handle);
 +
 +	return 0;
 +}
