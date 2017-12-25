@@ -1,4 +1,4 @@
-From 89fc8e85f818eccf0e88d4a954dc5934437161e0 Mon Sep 17 00:00:00 2001
+From fddf91783b458d3e8d4cfa0677fdc972560a5ab2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -13,9 +13,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c | 122 +++++++++++++++
+ lib/efi_driver/efi_block_device.c | 141 +++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 320 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 493 insertions(+), 1 deletion(-)
+ 10 files changed, 512 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -120,10 +120,10 @@ index 0000000000..2bbe26c6e3
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 672ad16464..54de58ad37 100644
+index a5ade5cb2d..0188a57bb1 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -269,6 +269,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+@@ -272,6 +272,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
  /* Adds a range into the EFI memory map */
  uint64_t efi_add_memory_map(uint64_t start, uint64_t pages, int memory_type,
  			    bool overlap_only_ram);
@@ -162,10 +162,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..2248797420
+index 0000000000..3bfa2d0b1c
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,122 @@
+@@ -0,0 +1,141 @@
 +/*
 + *  EFI drivers
 + *
@@ -181,45 +181,61 @@ index 0000000000..2248797420
 +
 +static int efi_blk_max_devnum;
 +
-+static int efi_blk_probe(struct udevice *udev)
-+{
-+	struct blk_desc *desc = dev_get_uclass_platdata(udev);
-+
-+	printf("%s(%d) %s:\n", __FILE__, __LINE__, __func__);
-+	part_init(desc);
-+
-+	return 0;
-+}
-+
-+static ulong efi_read(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
-+	       void *buffer)
++/*
++ * Read from block device
++ *
++ * @dev		device
++ * @blknr	first block to be read
++ * @blkcnt	number of blocks to read
++ * @buffer	output buffer
++ * @return	number of blocks tranferred
++ */
++static ulong efi_bl_read(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
++			 void *buffer)
 +{
 +	struct efi_block_io *io = dev->platdata;
 +	efi_status_t ret;
 +
-+	printf("%s(%d) %s: dev %s, start " LBAFU ", count " LBAFU " \n",
-+	       __FILE__, __LINE__, __func__,
-+	       dev->name, blknr, blkcnt);
++	EFI_PRINT("%s: read '%s', from block " LBAFU ", " LBAFU " blocks\n",
++		  __func__, dev->name, blknr, blkcnt);
 +	ret = EFI_CALL(io->read_blocks(
-+			io, io->media->media_id, (u64)blknr,
-+			(efi_uintn_t)blkcnt *
-+			(efi_uintn_t)io->media->block_size, buffer));
++				io, io->media->media_id, (u64)blknr,
++				(efi_uintn_t)blkcnt *
++				(efi_uintn_t)io->media->block_size, buffer));
++	EFI_PRINT("%s: r = %u\n", __func__,  0xffffU & (unsigned int)ret);
 +	if (ret != EFI_SUCCESS)
 +		return 0;
 +	return blkcnt;
 +}
 +
-+static ulong efi_write(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
++/*
++ * Write to block device
++ *
++ * @dev		device
++ * @blknr	first block to be write
++ * @blkcnt	number of blocks to write
++ * @buffer	input buffer
++ * @return	number of blocks tranferred
++ */
++static ulong efi_bl_write(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
 +		const void *buffer)
 +{
-+	ulong n = 0;
++	struct efi_block_io *io = dev->platdata;
++	efi_status_t ret;
 +
-+	printf("%s(%d) %s:\n", __FILE__, __LINE__, __func__);
-+
-+	return n;
++	EFI_PRINT("%s: write '%s', from block " LBAFU ", " LBAFU " blocks\n",
++		  __func__, dev->name, blknr, blkcnt);
++	ret = EFI_CALL(io->write_blocks(
++				io, io->media->media_id, (u64)blknr,
++				(efi_uintn_t)blkcnt *
++				(efi_uintn_t)io->media->block_size, buffer));
++	EFI_PRINT("%s: r = %u\n", __func__,  0xffffU & (unsigned int)ret);
++	if (ret != EFI_SUCCESS)
++		return 0;
++	return blkcnt;
 +}
 +
-+static int bind(efi_handle_t handle, void *interface)
++static int efi_bl_bind(efi_handle_t handle, void *interface)
 +{
 +	struct udevice *bdev, *parent = dm_root();
 +	int ret, devnum;
@@ -265,24 +281,27 @@ index 0000000000..2248797420
 +	return 0;
 +}
 +
++/* Block device driver operators */
 +static const struct blk_ops efi_blk_ops = {
-+	.read	= efi_read,
-+	.write	= efi_write,
++	.read	= efi_bl_read,
++	.write	= efi_bl_write,
 +};
 +
++/* Identify as block device driver */
 +U_BOOT_DRIVER(efi_blk) = {
 +	.name		= "efi_blk",
 +	.id		= UCLASS_BLK,
 +	.ops		= &efi_blk_ops,
-+	.probe		= efi_blk_probe,
 +};
 +
++/* EFI driver operators */
 +static const struct efi_driver_ops driver_ops = {
 +	.protocol	= &efi_block_io_guid,
 +	.child_protocol = &efi_block_io_guid,
-+	.bind		= bind,
++	.bind		= efi_bl_bind,
 +};
 +
++/* Identify as EFI driver */
 +U_BOOT_DRIVER(efi_block) = {
 +	.name		= "EFI block driver",
 +	.id		= UCLASS_EFI,
