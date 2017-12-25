@@ -72,7 +72,7 @@ build:
 	cd denx && ( git am --abort || true )
 	cd denx && git checkout -b build
 	# cd denx && ../patch/patch-$(TAG)
-	cd denx && ../patch/patch-efi-next
+	cd denx && ../patch/patch-efi-next.sh
 	cd denx && make distclean
 	cp config/config-$(TAG) denx/.config
 	cd denx && make oldconfig
