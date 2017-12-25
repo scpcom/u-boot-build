@@ -1,0 +1,30 @@
+From 5a8b2ee64541ed908f9afa8f8fd7c48813a0c91e Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 25 Dec 2017 05:57:56 +0100
+Subject: [PATCH 1/1] efi_loader: efi_disk_register: correctly determine
+ if_type_name
+
+The interface type name can be used to look up the interface type.
+Don't confound it with the driver name which may be different.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_disk.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/efi_disk.c b/lib/efi_loader/efi_disk.c
+index d1422cfb71..fc099b5d33 100644
+--- a/lib/efi_loader/efi_disk.c
++++ b/lib/efi_loader/efi_disk.c
+@@ -318,7 +318,7 @@ int efi_disk_register(void)
+ 	     dev;
+ 	     uclass_next_device_check(&dev)) {
+ 		struct blk_desc *desc = dev_get_uclass_platdata(dev);
+-		const char *if_typename = dev->driver->name;
++		const char *if_typename = blk_get_if_type_name(desc->if_type);
+ 
+ 		printf("Scanning disk %s...\n", dev->name);
+ 
+-- 
+2.15.1
+
