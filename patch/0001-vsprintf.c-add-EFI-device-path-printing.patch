@@ -12,8 +12,8 @@ A possible output would be
 
     device path: /MemoryMapped(0x0,0x3ff93a82,0x3ff93a82)
 
-This enhancement is not available when building without EFI support or
-when building the SPL or the API example.
+This enhancement is not available when building without EFI support
+and neither in the SPL nor in the API example.
 
 Cc: Wolfgang Denk <wd@denx.de>
 Cc: Simon Glass <sjg@chromium.org>
@@ -23,7 +23,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 I propose Alex picks up this patch for the EFI tree.
 
 v3:
-	Do not panic but return -ENOMEM if out of memory.
+	Return -ENOMEM if out of memory.
+	Avoid missing dependency error when building the SPL of the
+	API example.
 v2:
 	Panic if out of memory.
 	Wolfgang suggested not to silently ignore an out of memory
