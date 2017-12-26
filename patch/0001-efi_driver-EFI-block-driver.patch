@@ -1,4 +1,4 @@
-From a50b35c527be05d7557a6e48ad38799df6f02378 Mon Sep 17 00:00:00 2001
+From 56544a2461419aed207e75f0e767f1c2c56e7737 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -13,9 +13,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c | 158 +++++++++++++++++++
+ lib/efi_driver/efi_block_device.c | 151 ++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 320 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 529 insertions(+), 1 deletion(-)
+ 10 files changed, 522 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -120,10 +120,10 @@ index 0000000000..2bbe26c6e3
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index a5ade5cb2d..0188a57bb1 100644
+index 711c901eda..a465175d1f 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -272,6 +272,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+@@ -273,6 +273,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
  /* Adds a range into the EFI memory map */
  uint64_t efi_add_memory_map(uint64_t start, uint64_t pages, int memory_type,
  			    bool overlap_only_ram);
@@ -162,10 +162,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..da2e9926a1
+index 0000000000..609e7dfabe
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,158 @@
+@@ -0,0 +1,151 @@
 +/*
 + *  EFI drivers
 + *
@@ -239,23 +239,15 @@ index 0000000000..da2e9926a1
 +{
 +	struct efi_object *obj = efi_search_obj(handle);
 +	struct blk_desc *desc;
-+	int disks = 0, part;
-+	disk_partition_t info;
++	const char *if_typename;
 +
 +	if (!obj || !obj->dev)
 +		return -ENOENT;
 +	desc = dev_get_uclass_platdata(obj->dev);
++	if_typename = blk_get_if_type_name(desc->if_type);
 +
-+	/* Add devices for each partition */
-+	for (part = 1; part <= MAX_SEARCH_PARTITIONS; part++) {
-+		printf("Looking for partion %d\n", part);
-+		if (part_get_info(desc, part, &info))
-+			continue;
-+		printf("Found partition %s:%d\n", obj->dev->name, part);
-+		++disks;
-+	}
-+
-+	return disks;
++	return efi_disk_create_partitions(handle, desc, if_typename,
++					  desc->devnum, obj->dev->name);
 +}
 +
 +/*
@@ -293,7 +285,8 @@ index 0000000000..da2e9926a1
 +
 +	ret = blk_prepare_device(bdev);
 +
-+	efi_bl_bind_partions(handle);
++	int disks = efi_bl_bind_partions(handle);
++	EFI_PRINT("Found %d partions\n", disks);
 +
 +	return 0;
 +}

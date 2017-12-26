@@ -47,6 +47,7 @@ git am ../patch/0001-efi_selftest-execute-only-block-device-test.patch
 # <<< start of block driver series
 git am ../patch/0001-efi_loader-efi_disk_register-correctly-determine-if_.patch
 git am ../patch/0001-efi_loader-make-efi_block_io_guid-a-global-symbol.patch
+git am ../patch/0001-efi_loader-provide-a-function-to-create-a-partition-.patch
 git am ../patch/0001-efi_loader-make-efi_disk_create_partitions-a-global-.patch
 git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
 git am ../patch/0001-efi_loader-return-NULL-from-device-path-functions.patch
