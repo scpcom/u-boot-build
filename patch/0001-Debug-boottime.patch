@@ -1,15 +1,17 @@
-From 873b8dc1a305a7e15fea707c1f4183d68db78ff7 Mon Sep 17 00:00:00 2001
+From 8ca305e20040b16aabfc883703839b0c3eb189f1 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 6 Dec 2017 16:07:30 +0100
 Subject: [PATCH 1/1] Debug boottime
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ lib/efi_loader/efi_boottime.c | 18 ++++++++++++++++++
+ lib/efi_loader/efi_disk.c     |  2 ++
+ lib/efi_loader/efi_file.c     |  2 ++
+ 3 files changed, 22 insertions(+)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 22b5ca3d64..a2d6859616 100644
+index 5c905efa8c..d0d3194ab9 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -6,6 +6,8 @@
@@ -21,7 +23,7 @@ index 22b5ca3d64..a2d6859616 100644
  #include <common.h>
  #include <div64.h>
  #include <efi_loader.h>
-@@ -149,6 +151,8 @@ const char *__efi_nesting_dec(void)
+@@ -150,6 +152,8 @@ const char *__efi_nesting_dec(void)
   *
   * @event	event to signal
   */
@@ -30,7 +32,7 @@ index 22b5ca3d64..a2d6859616 100644
  void efi_signal_event(struct efi_event *event)
  {
  	if (event->notify_function) {
-@@ -161,6 +165,8 @@ void efi_signal_event(struct efi_event *event)
+@@ -162,6 +166,8 @@ void efi_signal_event(struct efi_event *event)
  	}
  	event->is_queued = false;
  }
@@ -39,7 +41,7 @@ index 22b5ca3d64..a2d6859616 100644
  
  /*
   * Raise the task priority level.
-@@ -783,6 +789,8 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
+@@ -785,6 +791,8 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
   * @event	event to check
   * @return	status code
   */
@@ -48,7 +50,7 @@ index 22b5ca3d64..a2d6859616 100644
  static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  {
  	int i;
-@@ -802,6 +810,8 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+@@ -804,6 +812,8 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  	}
  	return EFI_EXIT(EFI_INVALID_PARAMETER);
  }
@@ -57,7 +59,7 @@ index 22b5ca3d64..a2d6859616 100644
  
  /*
   * Find the internal EFI object for a handle.
-@@ -1613,6 +1623,8 @@ static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
+@@ -1737,6 +1747,8 @@ static efi_status_t EFIAPI efi_stall(unsigned long microseconds)
   * @watchdog_data	buffer with data describing the reset reason
   * @return		status code
   */
@@ -66,7 +68,7 @@ index 22b5ca3d64..a2d6859616 100644
  static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  						  uint64_t watchdog_code,
  						  unsigned long data_size,
-@@ -1622,6 +1634,8 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
+@@ -1746,6 +1758,8 @@ static efi_status_t EFIAPI efi_set_watchdog_timer(unsigned long timeout,
  		  data_size, watchdog_data);
  	return EFI_EXIT(efi_set_watchdog(timeout));
  }
@@ -75,6 +77,50 @@ index 22b5ca3d64..a2d6859616 100644
  
  /*
   * Close a protocol.
+@@ -2227,6 +2241,8 @@ static efi_status_t EFIAPI efi_calculate_crc32(void *data,
+  * @source		source of the copy operation
+  * @length		number of bytes to copy
+  */
++#undef _DEBUG
++#define _DEBUG 0
+ static void EFIAPI efi_copy_mem(void *destination, const void *source,
+ 				size_t length)
+ {
+@@ -2252,6 +2268,8 @@ static void EFIAPI efi_set_mem(void *buffer, size_t size, uint8_t value)
+ 	memset(buffer, value, size);
+ 	EFI_EXIT(EFI_SUCCESS);
+ }
++#undef _DEBUG
++#define _DEBUG 1
+ 
+ /*
+  * Open protocol interface on a handle.
+diff --git a/lib/efi_loader/efi_disk.c b/lib/efi_loader/efi_disk.c
+index d299fc8dea..c8442a62d0 100644
+--- a/lib/efi_loader/efi_disk.c
++++ b/lib/efi_loader/efi_disk.c
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
++
+ #include <common.h>
+ #include <blk.h>
+ #include <dm.h>
+diff --git a/lib/efi_loader/efi_file.c b/lib/efi_loader/efi_file.c
+index 52a4e7438e..c6e35ea4eb 100644
+--- a/lib/efi_loader/efi_file.c
++++ b/lib/efi_loader/efi_file.c
+@@ -6,6 +6,8 @@
+  *  SPDX-License-Identifier:     GPL-2.0+
+  */
+ 
++#define DEBUG 1
++
+ #include <common.h>
+ #include <charset.h>
+ #include <efi_loader.h>
 -- 
 2.14.2
 

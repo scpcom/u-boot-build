@@ -30,7 +30,7 @@ git am ../patch/0001-efi_selftest-remove-todo-in-manage-protocols.patch
 git am ../patch/0001-efi_selftest-remove-todo-in-device-path-test.patch
 git am ../patch/0001-efi_selftest-test-for-Dis-ConnectController.patch
 git am ../patch/0001-efi_loader-consistently-use-efi_handle_t-for-handles.patch
-git am ../patch/0001-Debug-boottime.patch
+# git am ../patch/0001-Debug-boottime.patch
 # >>> end of protocol series 4
 
 # <<< start of beautify selftest output
@@ -43,6 +43,10 @@ git am ../patch/0001-efi_loader-use-correct-format-string-for-unsigned-lo.patch
 
 git am ../patch/0001-dm-core-remove-orphaned-parameter-description-in-pla.patch
 
+# <<< start of simple file system protocol
+git am ../patch/0001-efi_loader-address-of-the-simple-file-system-protoco.patch
+git am ../patch/0001-efi_loader-correct-find-simple-file-system-protocol.patch
+# >>> end of simple file system protocol
 
 # <<< device path output series
 git am ../patch/0001-efi_loader-print-device-path-when-entering-efi_load_.patch
