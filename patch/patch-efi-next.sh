@@ -45,7 +45,7 @@ git am ../patch/0001-dm-core-remove-orphaned-parameter-description-in-pla.patch
 
 
 # <<< device path output series
-0001-efi_loader-print-device-path-when-entering-efi_load_.patch
+git am ../patch/0001-efi_loader-print-device-path-when-entering-efi_load_.patch
 # >>> end of device path output series
 
 # <<< start of block driver series

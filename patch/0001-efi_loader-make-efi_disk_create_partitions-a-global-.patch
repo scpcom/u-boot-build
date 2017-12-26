@@ -44,7 +44,7 @@ index e605742120..9139d4f160 100644
  
  /*
 - * Create a device for a disk
-+ * Create a device for a partition disk
++ * Create a handle for a partition or disk
   *
 - * @name	not used
 + * @parent	parent handle
