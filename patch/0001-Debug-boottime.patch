@@ -95,32 +95,6 @@ index 5c905efa8c..d0d3194ab9 100644
  
  /*
   * Open protocol interface on a handle.
-diff --git a/lib/efi_loader/efi_disk.c b/lib/efi_loader/efi_disk.c
-index d299fc8dea..c8442a62d0 100644
---- a/lib/efi_loader/efi_disk.c
-+++ b/lib/efi_loader/efi_disk.c
-@@ -6,6 +6,8 @@
-  *  SPDX-License-Identifier:     GPL-2.0+
-  */
- 
-+#define DEBUG 1
-+
- #include <common.h>
- #include <blk.h>
- #include <dm.h>
-diff --git a/lib/efi_loader/efi_file.c b/lib/efi_loader/efi_file.c
-index 52a4e7438e..c6e35ea4eb 100644
---- a/lib/efi_loader/efi_file.c
-+++ b/lib/efi_loader/efi_file.c
-@@ -6,6 +6,8 @@
-  *  SPDX-License-Identifier:     GPL-2.0+
-  */
- 
-+#define DEBUG 1
-+
- #include <common.h>
- #include <charset.h>
- #include <efi_loader.h>
 -- 
 2.14.2
 

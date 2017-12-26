@@ -30,7 +30,7 @@ git am ../patch/0001-efi_selftest-remove-todo-in-manage-protocols.patch
 git am ../patch/0001-efi_selftest-remove-todo-in-device-path-test.patch
 git am ../patch/0001-efi_selftest-test-for-Dis-ConnectController.patch
 git am ../patch/0001-efi_loader-consistently-use-efi_handle_t-for-handles.patch
-# git am ../patch/0001-Debug-boottime.patch
+git am ../patch/0001-Debug-boottime.patch
 # >>> end of protocol series 4
 
 # <<< start of beautify selftest output
@@ -44,6 +44,7 @@ git am ../patch/0001-efi_loader-use-correct-format-string-for-unsigned-lo.patch
 git am ../patch/0001-dm-core-remove-orphaned-parameter-description-in-pla.patch
 
 # <<< start of simple file system protocol
+git am ../patch/0001-efi_loader-return-NULL-from-device-path-functions.patch
 git am ../patch/0001-efi_loader-address-of-the-simple-file-system-protoco.patch
 git am ../patch/0001-efi_loader-correct-find-simple-file-system-protocol.patch
 # >>> end of simple file system protocol
@@ -59,7 +60,6 @@ git am ../patch/0001-efi_loader-provide-a-function-to-create-a-partition-.patch
 git am ../patch/0001-efi_loader-make-efi_disk_create_partitions-a-global-.patch
 git am ../patch/0001-efi_selftest-execute-only-block-device-test.patch
 git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
-git am ../patch/0001-efi_loader-return-NULL-from-device-path-functions.patch
 git am ../patch/0001-efi_loader-provide-function-to-get-last-node-of-a-de.patch
 git am ../patch/0001-efi_loader-provide-links-between-devices-EFI-handles.patch
 git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch

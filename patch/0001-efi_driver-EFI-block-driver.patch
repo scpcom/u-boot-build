@@ -1,4 +1,4 @@
-From 56544a2461419aed207e75f0e767f1c2c56e7737 Mon Sep 17 00:00:00 2001
+From 75b04ef587b87b4d18556525630bfddbef359651 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -13,9 +13,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c | 151 ++++++++++++++++++
- lib/efi_driver/efi_uclass.c       | 320 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 522 insertions(+), 1 deletion(-)
+ lib/efi_driver/efi_block_device.c | 149 ++++++++++++++++++
+ lib/efi_driver/efi_uclass.c       | 318 ++++++++++++++++++++++++++++++++++++++
+ 10 files changed, 518 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -162,10 +162,10 @@ index 0000000000..8583f6fbcd
 +obj-y += efi_uclass.o efi_block_device.o
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..609e7dfabe
+index 0000000000..d6bf92ea50
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,151 @@
+@@ -0,0 +1,149 @@
 +/*
 + *  EFI drivers
 + *
@@ -173,8 +173,6 @@ index 0000000000..609e7dfabe
 + *
 + *  SPDX-License-Identifier:     GPL-2.0+
 + */
-+
-+#define DEBUG 1
 +
 +#include <efi_driver.h>
 +#include <dm/root.h>
@@ -319,10 +317,10 @@ index 0000000000..609e7dfabe
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..654ef6b59b
+index 0000000000..67083ed496
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
-@@ -0,0 +1,320 @@
+@@ -0,0 +1,318 @@
 +/*
 + *  EFI drivers
 + *
@@ -330,8 +328,6 @@ index 0000000000..654ef6b59b
 + *
 + *  SPDX-License-Identifier:     GPL-2.0+
 + */
-+
-+#define DEBUG 1
 +
 +#include <efi_driver.h>
 +
@@ -644,5 +640,5 @@ index 0000000000..654ef6b59b
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.15.1
+2.14.2
 
