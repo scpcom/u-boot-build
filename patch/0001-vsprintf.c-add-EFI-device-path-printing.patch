@@ -82,7 +82,7 @@ index dd572d2868a..5447a2cc740 100644
  }
  
 +#if defined(CONFIG_EFI_LOADER) && \
-+    !defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
++	!defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
 +static char *device_path_string(char *buf, char *end, void *dp, int field_width,
 +				int precision, int flags)
 +{
@@ -109,7 +109,7 @@ index dd572d2868a..5447a2cc740 100644
  
  	switch (*fmt) {
 +#if defined(CONFIG_EFI_LOADER) && \
-+    !defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
++	!defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
 +	case 'D':
 +		return device_path_string(buf, end, ptr, field_width,
 +					  precision, flags);

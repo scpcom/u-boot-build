@@ -43,12 +43,17 @@ git am ../patch/0001-efi_loader-use-correct-format-string-for-unsigned-lo.patch
 
 git am ../patch/0001-dm-core-remove-orphaned-parameter-description-in-pla.patch
 
-git am ../patch/0001-efi_selftest-execute-only-block-device-test.patch
+
+# <<< device path output series
+0001-efi_loader-print-device-path-when-entering-efi_load_.patch
+# >>> end of device path output series
+
 # <<< start of block driver series
 git am ../patch/0001-efi_loader-efi_disk_register-correctly-determine-if_.patch
 git am ../patch/0001-efi_loader-make-efi_block_io_guid-a-global-symbol.patch
 git am ../patch/0001-efi_loader-provide-a-function-to-create-a-partition-.patch
 git am ../patch/0001-efi_loader-make-efi_disk_create_partitions-a-global-.patch
+git am ../patch/0001-efi_selftest-execute-only-block-device-test.patch
 git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
 git am ../patch/0001-efi_loader-return-NULL-from-device-path-functions.patch
 git am ../patch/0001-efi_loader-provide-function-to-get-last-node-of-a-de.patch
