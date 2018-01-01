@@ -1,8 +1,6 @@
 !/bin/sh
 git am ../patch/0001-dm-fix-typo-falback.patch
 
-git am ../patch/0001-mx6-wandboard-reenable-SPL-build.patch
-
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 
 # git am ../patch/0001-Test-vexpress-only.patch
