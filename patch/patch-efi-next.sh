@@ -3,6 +3,9 @@ git am ../patch/0001-dm-fix-typo-falback.patch
 
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 
+git am ../patch/0001-fs-remove-distractive-message-in-fs_read.patch
+git am ../patch/0001-fs-fat-remove-distractive-message-in-file_fat_read_a.patch
+
 # git am ../patch/0001-Test-vexpress-only.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
