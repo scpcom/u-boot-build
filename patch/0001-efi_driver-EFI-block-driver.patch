@@ -1,21 +1,22 @@
-From 75b04ef587b87b4d18556525630bfddbef359651 Mon Sep 17 00:00:00 2001
+From 25b851afc835961d0a554575370d93bc21a90a71 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- common/board_r.c                  |   3 +
- drivers/block/blk-uclass.c        |   4 +-
- include/blk.h                     |   1 +
- include/dm/uclass-id.h            |   1 +
- include/efi_driver.h              |  30 ++++
- include/efi_loader.h              |   2 +
- lib/Makefile                      |   1 +
- lib/efi_driver/Makefile           |  10 ++
- lib/efi_driver/efi_block_device.c | 149 ++++++++++++++++++
- lib/efi_driver/efi_uclass.c       | 318 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 518 insertions(+), 1 deletion(-)
+ common/board_r.c                             |   3 +
+ drivers/block/blk-uclass.c                   |   4 +-
+ include/blk.h                                |   1 +
+ include/dm/uclass-id.h                       |   1 +
+ include/efi_driver.h                         |  30 +++
+ include/efi_loader.h                         |   2 +
+ lib/Makefile                                 |   1 +
+ lib/efi_driver/Makefile                      |  10 +
+ lib/efi_driver/efi_block_device.c            | 149 +++++++++++++
+ lib/efi_driver/efi_uclass.c                  | 318 +++++++++++++++++++++++++++
+ lib/efi_selftest/efi_selftest_block_device.c |  18 +-
+ 11 files changed, 527 insertions(+), 10 deletions(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -639,6 +640,80 @@ index 0000000000..67083ed496
 +	.init		= efi_uc_init,
 +	.destroy	= efi_uc_destroy,
 +};
+diff --git a/lib/efi_selftest/efi_selftest_block_device.c b/lib/efi_selftest/efi_selftest_block_device.c
+index ca06534a1b..0637a0d627 100644
+--- a/lib/efi_selftest/efi_selftest_block_device.c
++++ b/lib/efi_selftest/efi_selftest_block_device.c
+@@ -47,10 +47,10 @@ struct compressed_disk_image {
+ 	struct line lines[];
+ };
+ 
+-struct compressed_disk_image img = EFI_ST_DISK_IMG;
++static const struct compressed_disk_image img = EFI_ST_DISK_IMG;
+ 
+ /* Decompressed disk image */
+-u8 *image;
++static u8 *image;
+ 
+ /*
+  * Reset service of the block IO protocol.
+@@ -75,7 +75,7 @@ static efi_status_t EFIAPI reset(
+  * @buffer	target buffer
+  * @return	status code
+  */
+-efi_status_t EFIAPI read_blocks(
++static efi_status_t EFIAPI read_blocks(
+ 			struct efi_block_io *this, u32 media_id, u64 lba,
+ 			efi_uintn_t buffer_size, void *buffer)
+ {
+@@ -100,7 +100,7 @@ efi_status_t EFIAPI read_blocks(
+  * @buffer	source buffer
+  * @return	status code
+  */
+-efi_status_t EFIAPI write_blocks(
++static efi_status_t EFIAPI write_blocks(
+ 			struct efi_block_io *this, u32 media_id, u64 lba,
+ 			efi_uintn_t buffer_size, void *buffer)
+ {
+@@ -121,7 +121,7 @@ efi_status_t EFIAPI write_blocks(
+  * @this	block IO protocol
+  * @return	status code
+  */
+-efi_status_t EFIAPI flush_blocks(struct efi_block_io *this)
++static efi_status_t EFIAPI flush_blocks(struct efi_block_io *this)
+ {
+ 	return EFI_SUCCESS;
+ }
+@@ -132,7 +132,7 @@ efi_status_t EFIAPI flush_blocks(struct efi_block_io *this)
+  * @image	decompressed disk image
+  * @return	status code
+  */
+-efi_status_t decompress(u8 **image)
++static efi_status_t decompress(u8 **image)
+ {
+ 	u8 *buf;
+ 	size_t i;
+@@ -161,9 +161,9 @@ efi_status_t decompress(u8 **image)
+ 	return ret;
+ }
+ 
+-struct efi_block_io_media media;
++static struct efi_block_io_media media;
+ 
+-struct efi_block_io block_io = {
++static struct efi_block_io block_io = {
+ 	.media = &media,
+ 	.reset = reset,
+ 	.read_blocks = read_blocks,
+@@ -172,7 +172,7 @@ struct efi_block_io block_io = {
+ };
+ 
+ /* Handle for the block IO device */
+-efi_handle_t disk_handle;
++static efi_handle_t disk_handle;
+ 
+ /*
+  * Setup unit test.
 -- 
 2.14.2
 
