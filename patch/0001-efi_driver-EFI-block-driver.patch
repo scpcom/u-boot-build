@@ -187,7 +187,7 @@ index 0000000000..d6bf92ea50
 + * @blknr	first block to be read
 + * @blkcnt	number of blocks to read
 + * @buffer	output buffer
-+ * @return	number of blocks tranferred
++ * @return	number of blocks transferred
 + */
 +static ulong efi_bl_read(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
 +			 void *buffer)
@@ -214,7 +214,7 @@ index 0000000000..d6bf92ea50
 + * @blknr	first block to be write
 + * @blkcnt	number of blocks to write
 + * @buffer	input buffer
-+ * @return	number of blocks tranferred
++ * @return	number of blocks transferred
 + */
 +static ulong efi_bl_write(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
 +		const void *buffer)
