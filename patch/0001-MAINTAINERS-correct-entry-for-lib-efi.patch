@@ -1,0 +1,31 @@
+From 54fc3e9f50ac54ce2b9c7dd5b83e7cb492156b00 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 2 Jan 2018 15:26:57 +0100
+Subject: [PATCH 1/1] MAINTAINERS: correct entry for lib/efi*/
+
+lib/efi* indicates files efi* in directory lib.
+lib/efi*/ indicates all files in directories lib/efi*.
+
+Fixes: 623b3a579765 efi_selftest: provide an EFI selftest application
+Cc: Alexander Graf <agraf@suse.de>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 60960cb5de..0f2836cf6e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -287,7 +287,7 @@ M:	Alexander Graf <agraf@suse.de>
+ S:	Maintained
+ T:	git git://github.com/agraf/u-boot.git
+ F:	include/efi*
+-F:	lib/efi*
++F:	lib/efi*/
+ F:	test/py/tests/test_efi*
+ F:	cmd/bootefi.c
+ F:	tools/file2include.c
+-- 
+2.14.2
+
