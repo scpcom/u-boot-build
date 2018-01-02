@@ -53,7 +53,7 @@ index 4d32fe5910..e661532639 100644
  hostprogs-y += dumpimage mkimage
  hostprogs-$(CONFIG_FIT_SIGNATURE) += fit_info fit_check_sign
  
-+hostprogs-$(CONFIG_EFI_LOADER) += file2include
++hostprogs-$(CONFIG_CMD_BOOTEFI_SELFTEST) += file2include
 +
  FIT_SIG_OBJS-$(CONFIG_FIT_SIGNATURE) := common/image-sig.o
  
