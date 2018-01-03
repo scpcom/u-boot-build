@@ -83,6 +83,12 @@ unit-tests:
 	# cd denx && test/py/test.py --bd qemu-x86 -k test_efi_helloworld_net
 	cd denx && test/py/test.py --build-dir . --bd qemu-x86 -k test_efi_loader
 
+liv:
+	cp denx/lib/efi_loader/*.efi tftp
+	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -display sdl -vga cirrus \
+	-net nic,vlan=0,macaddr=12:A1:00:12:34:02 -net tap,vlan=0,ifname=tap0,script=no,downscript=no \
+	-machine pc-i440fx-2.8 -hda img
+
 lav:
 	cp denx/lib/efi_loader/*.efi tftp
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom -nographic \

@@ -1,0 +1,30 @@
+From 7cc8ff0290448e2bef83477f8b75188553d473de Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 3 Jan 2018 16:18:39 +0100
+Subject: [PATCH 1/1] configs: x86: allow to override CONFIG_BOOTCOMMAND
+
+Allow to override CONFIG_BOOTCOMMAND in .config.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/configs/x86-common.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/configs/x86-common.h b/include/configs/x86-common.h
+index 064c546403..3d536dc9d5 100644
+--- a/include/configs/x86-common.h
++++ b/include/configs/x86-common.h
+@@ -64,8 +64,10 @@
+  * Command line configuration.
+  */
+ 
++#ifndef CONFIG_BOOTCOMMAND
+ #define CONFIG_BOOTCOMMAND	\
+ 	"ext2load scsi 0:3 01000000 /boot/vmlinuz; zboot 01000000"
++#endif
+ 
+ #if defined(CONFIG_CMD_KGDB)
+ #define CONFIG_KGDB_BAUDRATE			115200
+-- 
+2.14.2
+
