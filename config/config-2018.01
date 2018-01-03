@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2018.01-rc2 Configuration
+# U-Boot 2018.01-rc3 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
@@ -161,7 +161,8 @@ CONFIG_BOOTSTAGE_STASH_SIZE=0x1000
 CONFIG_BOOTDELAY=2
 CONFIG_USE_BOOTARGS=y
 CONFIG_BOOTARGS="root=/dev/sdb3 init=/sbin/init rootwait ro"
-# CONFIG_USE_BOOTCOMMAND is not set
+CONFIG_USE_BOOTCOMMAND=y
+CONFIG_BOOTCOMMAND="load ide 0:1 0x1000000 snp.efi && bootefi 0x1000000"
 
 #
 # Console
