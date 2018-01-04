@@ -1,0 +1,30 @@
+From b714857ed29202ac421d3e3aee98448c6dd8aed3 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 2 Jan 2018 15:25:15 +0100
+Subject: [PATCH 1/1] efi_loader: fix StartImage bootservice
+
+The calling convention for the entry point of an EFI image
+is always 'asmlinkage'.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 4316f21737..6742482568 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1537,7 +1537,8 @@ static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
+ 					   unsigned long *exit_data_size,
+ 					   s16 **exit_data)
+ {
+-	ulong (*entry)(efi_handle_t image_handle, struct efi_system_table *st);
++	asmlinkage ulong (*entry)(efi_handle_t image_handle,
++				  struct efi_system_table *st);
+ 	struct efi_loaded_image *info = image_handle;
+ 
+ 	EFI_ENTRY("%p, %p, %p", image_handle, exit_data_size, exit_data);
+-- 
+2.15.1
+
