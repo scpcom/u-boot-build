@@ -1,4 +1,4 @@
-From 039190b14822cf2687e87c7bb49c1281e5851294 Mon Sep 17 00:00:00 2001
+From 471c9bd4c110b7f002a6ea9f5ae2bae112c376af Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 18 Dec 2017 23:16:03 +0100
 Subject: [PATCH 1/1] efi_selftest: provide a test for block io
@@ -26,7 +26,7 @@ index e549553c82..547e7e0098 100644
  efi_selftest_devicepath.o \
 diff --git a/lib/efi_selftest/efi_selftest_block_device.c b/lib/efi_selftest/efi_selftest_block_device.c
 new file mode 100644
-index 0000000000..ca06534a1b
+index 0000000000..0637a0d627
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_block_device.c
 @@ -0,0 +1,395 @@
@@ -79,10 +79,10 @@ index 0000000000..ca06534a1b
 +	struct line lines[];
 +};
 +
-+struct compressed_disk_image img = EFI_ST_DISK_IMG;
++static const struct compressed_disk_image img = EFI_ST_DISK_IMG;
 +
 +/* Decompressed disk image */
-+u8 *image;
++static u8 *image;
 +
 +/*
 + * Reset service of the block IO protocol.
@@ -107,7 +107,7 @@ index 0000000000..ca06534a1b
 + * @buffer	target buffer
 + * @return	status code
 + */
-+efi_status_t EFIAPI read_blocks(
++static efi_status_t EFIAPI read_blocks(
 +			struct efi_block_io *this, u32 media_id, u64 lba,
 +			efi_uintn_t buffer_size, void *buffer)
 +{
@@ -132,7 +132,7 @@ index 0000000000..ca06534a1b
 + * @buffer	source buffer
 + * @return	status code
 + */
-+efi_status_t EFIAPI write_blocks(
++static efi_status_t EFIAPI write_blocks(
 +			struct efi_block_io *this, u32 media_id, u64 lba,
 +			efi_uintn_t buffer_size, void *buffer)
 +{
@@ -153,7 +153,7 @@ index 0000000000..ca06534a1b
 + * @this	block IO protocol
 + * @return	status code
 + */
-+efi_status_t EFIAPI flush_blocks(struct efi_block_io *this)
++static efi_status_t EFIAPI flush_blocks(struct efi_block_io *this)
 +{
 +	return EFI_SUCCESS;
 +}
@@ -164,7 +164,7 @@ index 0000000000..ca06534a1b
 + * @image	decompressed disk image
 + * @return	status code
 + */
-+efi_status_t decompress(u8 **image)
++static efi_status_t decompress(u8 **image)
 +{
 +	u8 *buf;
 +	size_t i;
@@ -193,9 +193,9 @@ index 0000000000..ca06534a1b
 +	return ret;
 +}
 +
-+struct efi_block_io_media media;
++static struct efi_block_io_media media;
 +
-+struct efi_block_io block_io = {
++static struct efi_block_io block_io = {
 +	.media = &media,
 +	.reset = reset,
 +	.read_blocks = read_blocks,
@@ -204,7 +204,7 @@ index 0000000000..ca06534a1b
 +};
 +
 +/* Handle for the block IO device */
-+efi_handle_t disk_handle;
++static efi_handle_t disk_handle;
 +
 +/*
 + * Setup unit test.
