@@ -57,6 +57,7 @@ git am ../patch/0001-efi_loader-print-device-path-when-entering-efi_load_.patch
 # >>> end of device path output series
 
 # <<< start of block driver series
+git am ../patch/0001-efi_loader-check-tables-in-helloworld.efi.patch
 git am ../patch/0001-efi_loader-fix-StartImage-bootservice.patch
 git am ../patch/0001-efi_loader-efi_disk_register-correctly-determine-if_.patch
 git am ../patch/0001-efi_loader-make-efi_block_io_guid-a-global-symbol.patch
