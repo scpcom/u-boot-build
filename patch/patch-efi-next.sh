@@ -1,4 +1,4 @@
-!/bin/sh
+#!/bin/sh
 git am ../patch/0001-dm-fix-typo-falback.patch
 
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
