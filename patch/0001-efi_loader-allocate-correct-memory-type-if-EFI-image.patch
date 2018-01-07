@@ -1,7 +1,7 @@
 From eae0189ef2fa98c6763ef417fc8893c16666dbf9 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 7 Jan 2018 23:39:16 +0100
-Subject: [PATCH 1/1] efi_loader: allocate correct memory type if EFI image
+Subject: [PATCH 1/1] efi_loader: allocate correct memory type for EFI image
 
 The category of memory allocated for an EFI image should depend on
 its type (application, bootime service driver, runtime service driver).
