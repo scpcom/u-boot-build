@@ -86,7 +86,6 @@ unit-tests:
 iso:
 	cp denx/lib/efi_loader/*.efi tftp
 	qemu-system-x86_64 -m 1G \
-	-display sdl -vga cirrus \
 	-net nic,vlan=0,macaddr=12:A1:00:12:34:02 \
 	-net tap,vlan=0,ifname=tap0,script=no,downscript=no \
 	-machine pc-i440fx-2.8 -drive file=ipxe.iso,if=ide,format=raw,media=cdrom
@@ -94,7 +93,7 @@ iso:
 liv:
 	cp denx/lib/efi_loader/*.efi tftp
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom \
-	-display sdl -vga cirrus -spice port=5900,addr=127.0.0.1,disable-ticketing \
+	-display sdl -vga cirrus \
 	-net nic,vlan=0,macaddr=12:A1:00:12:34:02 \
 	-net tap,vlan=0,ifname=tap0,script=no,downscript=no \
 	-machine pc-i440fx-2.8 -drive file=img,if=ide,format=raw
