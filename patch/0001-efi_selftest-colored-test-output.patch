@@ -1,4 +1,4 @@
-From 8ed94a2b9bb9b8597d5654ffad7fe17e433764b9 Mon Sep 17 00:00:00 2001
+From 0498750121af1427b2872259145ce0c1a56a1f70 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 16 Dec 2017 15:27:24 +0100
 Subject: [PATCH 1/1] efi_selftest: colored test output
@@ -19,7 +19,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  3 files changed, 40 insertions(+), 25 deletions(-)
 
 diff --git a/include/efi_selftest.h b/include/efi_selftest.h
-index be5ba4bfa9..344f28ed36 100644
+index be5ba4bfa9..08dd8e43ad 100644
 --- a/include/efi_selftest.h
 +++ b/include/efi_selftest.h
 @@ -18,14 +18,20 @@
@@ -66,7 +66,7 @@ index be5ba4bfa9..344f28ed36 100644
 - * @pointer: pointer
 - * @buf: pointer to buffer address
 - * on return position of terminating zero word
-+ * @color	color
++ * @color	color, see constants in efi_api.h, use -1 for no color
 + * @fmt		printf format
 + * @...		arguments to be printed
 + *		on return position of terminating zero word
@@ -168,7 +168,7 @@ index 4e5a12c47c..fc5ef254a1 100644
  	/* Reset system */
  	efi_st_printf("Preparing for reset. Press any key.\n");
 diff --git a/lib/efi_selftest/efi_selftest_console.c b/lib/efi_selftest/efi_selftest_console.c
-index 6a7fd20da5..7920c961ba 100644
+index 6a7fd20da5..d528fc56ff 100644
 --- a/lib/efi_selftest/efi_selftest_console.c
 +++ b/lib/efi_selftest/efi_selftest_console.c
 @@ -130,12 +130,13 @@ static void int2dec(s32 value, u16 **buf)
@@ -180,7 +180,7 @@ index 6a7fd20da5..7920c961ba 100644
   *
 - * @fmt: format string
 - * @...: optional arguments
-+ * @color	color
++ * @color	color, see constants in efi_api.h, use -1 for no color
 + * @fmt		format string
 + * @...		optional arguments
   */
@@ -202,5 +202,5 @@ index 6a7fd20da5..7920c961ba 100644
  
  /*
 -- 
-2.14.2
+2.15.1
 
