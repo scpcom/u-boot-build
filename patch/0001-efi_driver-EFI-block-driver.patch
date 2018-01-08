@@ -1,4 +1,4 @@
-From 7df7cac0021e78856ebf94593bd73e1e2f22f2c0 Mon Sep 17 00:00:00 2001
+From c8f8dfe72165ba1655018dc266272061e9f3b6fd Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -12,10 +12,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_driver.h              |  30 ++++
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
- lib/efi_driver/Makefile           |  11 ++
+ lib/efi_driver/Makefile           |  13 ++
  lib/efi_driver/efi_block_device.c | 149 ++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 318 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 519 insertions(+), 1 deletion(-)
+ 10 files changed, 521 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -146,10 +146,10 @@ index 8cd779f8ca..0db41c19f3 100644
  obj-$(CONFIG_LZMA) += lzma/
 diff --git a/lib/efi_driver/Makefile b/lib/efi_driver/Makefile
 new file mode 100644
-index 0000000000..6220cc4008
+index 0000000000..e35529a952
 --- /dev/null
 +++ b/lib/efi_driver/Makefile
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,13 @@
 +#
 +# (C) Copyright 2017 Heinrich Schuchardt
 +#
@@ -160,7 +160,9 @@ index 0000000000..6220cc4008
 +# object inclusion implicitly depends on it
 +
 +obj-y += efi_uclass.o
-+obj-$(CONFIG_BLK) += efi_block_device.o
++ifeq ($(CONFIG_BLK)$(CONFIG_PARTITIONS),yy)
++obj-y += efi_block_device.o
++endif
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
 index 0000000000..d8a95bb12f
