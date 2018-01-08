@@ -8,6 +8,8 @@ efi_open_protocol has to keep track of opened protocols.
 OpenProtocol enters the agent and controller handle
 information into this list.
 
+A unit test is supplied with a subsequent patch.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_loader/efi_boottime.c | 107 ++++++++++++++++++++++++++++++++++++++++--
