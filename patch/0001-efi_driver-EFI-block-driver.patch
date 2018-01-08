@@ -1,4 +1,4 @@
-From c8f8dfe72165ba1655018dc266272061e9f3b6fd Mon Sep 17 00:00:00 2001
+From bb51b30288281a1c59ecde7dc78d1e4490d60c4e Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 17 Dec 2017 19:30:21 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -8,6 +8,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  common/board_r.c                  |   3 +
  drivers/block/blk-uclass.c        |   4 +-
  include/blk.h                     |   1 +
+ include/config_fallbacks.h        |   1 +
  include/dm/uclass-id.h            |   1 +
  include/efi_driver.h              |  30 ++++
  include/efi_loader.h              |   2 +
@@ -15,17 +16,17 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  lib/efi_driver/Makefile           |  13 ++
  lib/efi_driver/efi_block_device.c | 149 ++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 318 ++++++++++++++++++++++++++++++++++++++
- 10 files changed, 521 insertions(+), 1 deletion(-)
+ 11 files changed, 522 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
  create mode 100644 lib/efi_driver/efi_uclass.c
 
 diff --git a/common/board_r.c b/common/board_r.c
-index 09167c13cc..5e7eb2d5cb 100644
+index fcfbdfdbb1c..98811edc070 100644
 --- a/common/board_r.c
 +++ b/common/board_r.c
-@@ -717,7 +717,10 @@ static init_fnc_t init_sequence_r[] = {
+@@ -715,7 +715,10 @@ static init_fnc_t init_sequence_r[] = {
  	set_cpu_clk_info, /* Setup clock information */
  #endif
  #ifdef CONFIG_EFI_LOADER
@@ -37,7 +38,7 @@ index 09167c13cc..5e7eb2d5cb 100644
  	stdio_init_tables,
  	initr_serial,
 diff --git a/drivers/block/blk-uclass.c b/drivers/block/blk-uclass.c
-index 010ed32d3a..bfda2211f0 100644
+index 010ed32d3ad..bfda2211f0e 100644
 --- a/drivers/block/blk-uclass.c
 +++ b/drivers/block/blk-uclass.c
 @@ -24,6 +24,7 @@ static const char *if_typename_str[IF_TYPE_COUNT] = {
@@ -60,7 +61,7 @@ index 010ed32d3a..bfda2211f0 100644
  
  static enum if_type if_typename_to_iftype(const char *if_typename)
 diff --git a/include/blk.h b/include/blk.h
-index 41b4d7efa8..69b5a98e56 100644
+index 41b4d7efa82..69b5a98e567 100644
 --- a/include/blk.h
 +++ b/include/blk.h
 @@ -34,6 +34,7 @@ enum if_type {
@@ -71,8 +72,20 @@ index 41b4d7efa8..69b5a98e56 100644
  
  	IF_TYPE_COUNT,			/* Number of interface types */
  };
+diff --git a/include/config_fallbacks.h b/include/config_fallbacks.h
+index 2c4d43d6726..524313d5aab 100644
+--- a/include/config_fallbacks.h
++++ b/include/config_fallbacks.h
+@@ -52,6 +52,7 @@
+ 	defined(CONFIG_MMC) || \
+ 	defined(CONFIG_NVME) || \
+ 	defined(CONFIG_SYSTEMACE) || \
++	(defined(CONFIG_EFI_LOADER) && !defined(CONFIG_SPL_BUILD)) || \
+ 	defined(CONFIG_SANDBOX)
+ #define HAVE_BLOCK_DEVICE
+ #endif
 diff --git a/include/dm/uclass-id.h b/include/dm/uclass-id.h
-index 3fc20834ae..07fabc3ce6 100644
+index 3fc20834aed..07fabc3ce6c 100644
 --- a/include/dm/uclass-id.h
 +++ b/include/dm/uclass-id.h
 @@ -34,6 +34,7 @@ enum uclass_id {
@@ -85,7 +98,7 @@ index 3fc20834ae..07fabc3ce6 100644
  	UCLASS_FIRMWARE,	/* Firmware */
 diff --git a/include/efi_driver.h b/include/efi_driver.h
 new file mode 100644
-index 0000000000..2bbe26c6e3
+index 00000000000..2bbe26c6e31
 --- /dev/null
 +++ b/include/efi_driver.h
 @@ -0,0 +1,30 @@
@@ -120,7 +133,7 @@ index 0000000000..2bbe26c6e3
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 711c901eda..a465175d1f 100644
+index 711c901eda2..a465175d1f4 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -273,6 +273,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
@@ -133,7 +146,7 @@ index 711c901eda..a465175d1f 100644
  int efi_memory_init(void);
  /* Adds new or overrides configuration table entry to the system table */
 diff --git a/lib/Makefile b/lib/Makefile
-index 8cd779f8ca..0db41c19f3 100644
+index 8cd779f8cad..0db41c19f37 100644
 --- a/lib/Makefile
 +++ b/lib/Makefile
 @@ -8,6 +8,7 @@
@@ -146,7 +159,7 @@ index 8cd779f8ca..0db41c19f3 100644
  obj-$(CONFIG_LZMA) += lzma/
 diff --git a/lib/efi_driver/Makefile b/lib/efi_driver/Makefile
 new file mode 100644
-index 0000000000..e35529a952
+index 00000000000..e35529a9522
 --- /dev/null
 +++ b/lib/efi_driver/Makefile
 @@ -0,0 +1,13 @@
@@ -165,7 +178,7 @@ index 0000000000..e35529a952
 +endif
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..d8a95bb12f
+index 00000000000..d8a95bb12ff
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
 @@ -0,0 +1,149 @@
@@ -320,7 +333,7 @@ index 0000000000..d8a95bb12f
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..67083ed496
+index 00000000000..67083ed496b
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
 @@ -0,0 +1,318 @@
@@ -643,5 +656,5 @@ index 0000000000..67083ed496
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.14.2
+2.11.0
 
