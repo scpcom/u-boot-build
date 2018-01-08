@@ -14,6 +14,8 @@ git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
 git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
 
+git am ../patch/0001-board_r-remove-superfluous-ifdef-CONFIG_PRAM.patch
+
 git am ../patch/0001-MAINTAINERS-correct-entry-for-lib-efi.patch
 
 git am ../patch/0001-configs-x86-allow-to-override-CONFIG_BOOTCOMMAND.patch
