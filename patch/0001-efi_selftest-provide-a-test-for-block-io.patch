@@ -1,45 +1,32 @@
-From 17e5c75a5d90b925f63011694fe8386ac741c4c4 Mon Sep 17 00:00:00 2001
+From 5359f0a6b2ee436096adfac8f4a77867519407f2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 18 Dec 2017 23:16:03 +0100
 Subject: [PATCH 1/1] efi_selftest: provide a test for block io
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_selftest/Makefile                    |  10 +-
+ lib/efi_selftest/Makefile                    |   4 +
  lib/efi_selftest/efi_selftest_block_device.c | 395 +++++++++++++++++++++++++++
  lib/efi_selftest/efi_selftest_disk_image.h   |  69 +++++
- 3 files changed, 473 insertions(+), 1 deletion(-)
+ 3 files changed, 468 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_block_device.c
  create mode 100644 lib/efi_selftest/efi_selftest_disk_image.h
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index e549553c82..b9e2c10385 100644
+index e549553c82a..20f614d6baa 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
-@@ -7,7 +7,9 @@
- # This file only gets included with CONFIG_EFI_LOADER set, so all
- # object inclusion implicitly depends on it
- 
--obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
-+ifeq ($(CONFIG_CMD_BOOTEFI_SELFTEST),y)
-+
-+obj-y += \
- efi_selftest.o \
- efi_selftest_controllers.o \
- efi_selftest_console.o \
-@@ -21,3 +23,9 @@ efi_selftest_textoutput.o \
+@@ -21,3 +21,7 @@ efi_selftest_textoutput.o \
  efi_selftest_tpl.o \
  efi_selftest_util.o \
  efi_selftest_watchdog.o
 +
 +ifeq ($(CONFIG_BLK)$(CONFIG_PARTITIONS),yy)
-+obj-y += efi_selftest_block_device.o
++obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += efi_selftest_block_device.o
 +endif
-+
-+endif # CONFIG_CMD_BOOTEFI_SELFTEST
 diff --git a/lib/efi_selftest/efi_selftest_block_device.c b/lib/efi_selftest/efi_selftest_block_device.c
 new file mode 100644
-index 0000000000..5bd23a622f
+index 00000000000..5bd23a622fb
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_block_device.c
 @@ -0,0 +1,395 @@
@@ -440,7 +427,7 @@ index 0000000000..5bd23a622f
 +};
 diff --git a/lib/efi_selftest/efi_selftest_disk_image.h b/lib/efi_selftest/efi_selftest_disk_image.h
 new file mode 100644
-index 0000000000..4775dace70
+index 00000000000..4775dace706
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_disk_image.h
 @@ -0,0 +1,69 @@
@@ -514,5 +501,5 @@ index 0000000000..4775dace70
 +	{0x00006008, "\x72\x6c\x64\x21\x0a\x00\x00\x00"}, /* rld!.... */ \
 +	{0, NULL} } }
 -- 
-2.15.1
+2.11.0
 
