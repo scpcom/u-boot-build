@@ -15,14 +15,14 @@ A possible output would be
 This enhancement is not available when building without EFI support
 and neither in the SPL nor in the API example.
 
-The test can be executed in the sandbox with command ut_print.
+A test is provided. It can be executed in the sandbox with command
+ut_print.
 
 The development for EFI support in the sandbox is currently in
 branch u-boot-dm/efi-working. The branch currently lacks
-6ea8b580f06b9ba9100af1ea5fa4d160e78a4517
-[PATCH v3 3/3] efi_loader: correct DeviceNodeToText for media types
-Ater rebasing the aforementioned branch on U-Boot v2018.01 the
-test is executed successfully.
+commit 6ea8b580f06b ("efi_loader: correct DeviceNodeToText
+for media types"). Ater rebasing the aforementioned branch on
+U-Boot v2018.01 the test is executed successfully.
 
 Without EFI support in the sandbox the test is simply skipped.
 
@@ -182,10 +182,10 @@ index a42c554bef..d10ed8695b 100644
 +static void efi_ut_print(void)
 +{
 +#if defined(CONFIG_EFI_LOADER) && \
-+	!defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
++    !defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
 +	char str[10];
 +	u8 buf[sizeof(struct efi_device_path_sd_mmc_path) +
-+	       sizeof(struct efi_device_path)];	
++	       sizeof(struct efi_device_path)];
 +	u8 *pos = buf;
 +	struct efi_device_path *dp_end;
 +	struct efi_device_path_sd_mmc_path *dp_sd =
@@ -198,12 +198,12 @@ index a42c554bef..d10ed8695b 100644
 +	dp_sd->slot_number = 3;
 +	pos += sizeof(struct efi_device_path_sd_mmc_path);
 +	/* Append end node */
-+	dp_end = (struct efi_device_path *) pos;
++	dp_end = (struct efi_device_path *)pos;
 +	dp_end->type = DEVICE_PATH_TYPE_END;
 +	dp_end->sub_type = DEVICE_PATH_SUB_TYPE_END;
 +	dp_end->length = sizeof(struct efi_device_path);
 +
-+	sprintf(str, "_%pD_", buf);
++	snprintf(str, sizeof(str), "_%pD_", buf);
 +	assert(!strcmp("_/SD(3)_", str));
 +#endif
 +}
