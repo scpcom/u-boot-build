@@ -73,7 +73,7 @@ build:
 	cd denx && git checkout -b build
 	# cd denx && ../patch/patch-$(TAG)
 	cd denx && ../patch/patch-efi-next.sh
-	cd denx && make distclean
+	cd denx && make mrproper
 	cp config/config-$(TAG) denx/.config
 	cd denx && make oldconfig
 	cd denx && make -j$(NPROC)
