@@ -1,7 +1,7 @@
-From c748a5fad32f95f05b4400742457b40547265029 Mon Sep 17 00:00:00 2001
+From f75b2bd73d99b9b598f5616c08b43c2f265beab6 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Sun, 26 Dec 2017 00:46:56 +0100
-Subject: [PATCH v3 1/1] vsprintf.c: add EFI device path printing
+Date: Tue, 26 Dec 2017 00:46:56 +0100
+Subject: [PATCH v4 1/1] vsprintf.c: add EFI device path printing
 
 For debugging efi_loader we need the capability to print EFI
 device paths. With this patch we can write:
@@ -15,6 +15,17 @@ A possible output would be
 This enhancement is not available when building without EFI support
 and neither in the SPL nor in the API example.
 
+The test can be executed in the sandbox with command ut_print.
+
+The development for EFI support in the sandbox is currently in
+branch u-boot-dm/efi-working. The branch currently lacks
+6ea8b580f06b9ba9100af1ea5fa4d160e78a4517
+[PATCH v3 3/3] efi_loader: correct DeviceNodeToText for media types
+Ater rebasing the aforementioned branch on U-Boot v2018.01 the
+test is executed successfully.
+
+Without EFI support in the sandbox the test is simply skipped.
+
 Cc: Wolfgang Denk <wd@denx.de>
 Cc: Simon Glass <sjg@chromium.org>
 Suggested-by: Rob Clark <robdclark@gmail.com>
@@ -22,6 +33,8 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
 I propose Alex picks up this patch for the EFI tree.
 
+v4:
+	Add unit test.
 v3:
 	Return -ENOMEM if out of memory.
 	Avoid missing dependency error when building the SPL of the
@@ -33,10 +46,11 @@ v2:
 ---
  examples/api/Makefile |  3 +++
  lib/vsprintf.c        | 47 +++++++++++++++++++++++++++++++++++++++++------
- 2 files changed, 44 insertions(+), 6 deletions(-)
+ test/print_ut.c       | 37 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 81 insertions(+), 6 deletions(-)
 
 diff --git a/examples/api/Makefile b/examples/api/Makefile
-index 899527267d4..9068727b98b 100644
+index 899527267d..9068727b98 100644
 --- a/examples/api/Makefile
 +++ b/examples/api/Makefile
 @@ -4,6 +4,9 @@
@@ -50,7 +64,7 @@ index 899527267d4..9068727b98b 100644
  LOAD_ADDR = 0x40000
  endif
 diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index dd572d2868a..5447a2cc740 100644
+index dd572d2868..226f4eb3e5 100644
 --- a/lib/vsprintf.c
 +++ b/lib/vsprintf.c
 @@ -11,16 +11,17 @@
@@ -146,6 +160,67 @@ index dd572d2868a..5447a2cc740 100644
  	/* Print the string */
  	puts(printbuffer);
  	return i;
+diff --git a/test/print_ut.c b/test/print_ut.c
+index a42c554bef..d10ed8695b 100644
+--- a/test/print_ut.c
++++ b/test/print_ut.c
+@@ -7,12 +7,46 @@
+ #define DEBUG
+ 
+ #include <common.h>
++#if defined(CONFIG_EFI_LOADER) && \
++	!defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
++#include <efi_api.h>
++#endif
+ #include <display_options.h>
+ #include <version.h>
+ 
+ #define FAKE_BUILD_TAG	"jenkins-u-boot-denx_uboot_dm-master-build-aarch64" \
+ 			"and a lot more text to come"
+ 
++/* Test efi_loader specific printing */
++static void efi_ut_print(void)
++{
++#if defined(CONFIG_EFI_LOADER) && \
++	!defined(CONFIG_SPL_BUILD) && !defined(API_BUILD)
++	char str[10];
++	u8 buf[sizeof(struct efi_device_path_sd_mmc_path) +
++	       sizeof(struct efi_device_path)];	
++	u8 *pos = buf;
++	struct efi_device_path *dp_end;
++	struct efi_device_path_sd_mmc_path *dp_sd =
++			(struct efi_device_path_sd_mmc_path *)pos;
++
++	/* Create a device path for an SD card */
++	dp_sd->dp.type = DEVICE_PATH_TYPE_MESSAGING_DEVICE;
++	dp_sd->dp.sub_type = DEVICE_PATH_SUB_TYPE_MSG_SD;
++	dp_sd->dp.length = sizeof(struct efi_device_path_sd_mmc_path);
++	dp_sd->slot_number = 3;
++	pos += sizeof(struct efi_device_path_sd_mmc_path);
++	/* Append end node */
++	dp_end = (struct efi_device_path *) pos;
++	dp_end->type = DEVICE_PATH_TYPE_END;
++	dp_end->sub_type = DEVICE_PATH_SUB_TYPE_END;
++	dp_end->length = sizeof(struct efi_device_path);
++
++	sprintf(str, "_%pD_", buf);
++	assert(!strcmp("_/SD(3)_", str));
++#endif
++}
++
+ static int do_ut_print(cmd_tbl_t *cmdtp, int flag, int argc,
+ 		       char *const argv[])
+ {
+@@ -75,6 +109,9 @@ static int do_ut_print(cmd_tbl_t *cmdtp, int flag, int argc,
+ 	assert(!strncmp(FAKE_BUILD_TAG, s + 9 + len, 12));
+ 	assert(!strcmp("\n\n", s + big_str_len - 3));
+ 
++	/* Test efi_loader specific printing */
++	efi_ut_print();
++
+ 	printf("%s: Everything went swimmingly\n", __func__);
+ 	return 0;
+ }
 -- 
 2.11.0
 
