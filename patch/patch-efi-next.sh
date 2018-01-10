@@ -20,6 +20,8 @@ git am ../patch/0001-MAINTAINERS-correct-entry-for-lib-efi.patch
 
 git am ../patch/0001-configs-x86-allow-to-override-CONFIG_BOOTCOMMAND.patch
 
+git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
+
 # <<< start of protocol series 4
 git am ../patch/0001-efi_selftest-colored-test-output.patch
 git am ../patch/0001-efi_loader-simplify-efi_remove_all_protocols.patch
