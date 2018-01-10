@@ -1,4 +1,4 @@
-From 6a63088e763343b2da6c84ee979fa5795de1b364 Mon Sep 17 00:00:00 2001
+From dfcd0296860076f10b85727a674a9e54e32c0bea Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 6 Jan 2018 21:40:53 +0100
 Subject: [PATCH 1/1] efi_loader: check tables in helloworld.efi
@@ -11,7 +11,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 26 insertions(+)
 
 diff --git a/lib/efi_loader/helloworld.c b/lib/efi_loader/helloworld.c
-index b8c147d7f2..ad0c866576 100644
+index b8c147d7f2..1ec0179226 100644
 --- a/lib/efi_loader/helloworld.c
 +++ b/lib/efi_loader/helloworld.c
 @@ -14,6 +14,22 @@
@@ -52,15 +52,15 @@ index b8c147d7f2..ad0c866576 100644
 +	/* Find configuration tables */
 +	for (i = 0; i < systable->nr_tables; ++i) {
 +		if (!hw_memcmp(&systable->tables[i].guid, &fdt_guid,
-+				   sizeof(efi_guid_t)))
++			       sizeof(efi_guid_t)))
 +			con_out->output_string(con_out, L"Have device tree\n");
 +		if (!hw_memcmp(&systable->tables[i].guid, &smbios_guid,
-+				   sizeof(efi_guid_t)))
++			       sizeof(efi_guid_t)))
 +			con_out->output_string(con_out, L"Have SMBIOS table\n");
 +	}
  	/* Output the load options */
  	con_out->output_string(con_out, L"Load options: ");
  	if (loaded_image->load_options_size && loaded_image->load_options)
 -- 
-2.14.2
+2.15.1
 
