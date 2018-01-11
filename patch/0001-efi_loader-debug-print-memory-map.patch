@@ -1,4 +1,4 @@
-From c711ce6786bd2eb99bdcda1a96ae3c94c32ce36b Mon Sep 17 00:00:00 2001
+From ed902eb0a8eb61e08ee67e603a23bbcf1c96ee03 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 11 Jan 2018 18:44:29 +0100
 Subject: [PATCH 1/1] efi_loader: debug print memory map
@@ -9,7 +9,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 9 insertions(+)
 
 diff --git a/lib/efi_loader/efi_memory.c b/lib/efi_loader/efi_memory.c
-index aaf64421a3..6cee5a37c4 100644
+index aaf64421a3..750f13628c 100644
 --- a/lib/efi_loader/efi_memory.c
 +++ b/lib/efi_loader/efi_memory.c
 @@ -432,6 +432,8 @@ efi_status_t efi_free_pool(void *buffer)
@@ -21,11 +21,16 @@ index aaf64421a3..6cee5a37c4 100644
  efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
  				struct efi_mem_desc *memory_map,
  				efi_uintn_t *map_key,
-@@ -468,6 +470,11 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+@@ -463,11 +465,16 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+ 	if (memory_map) {
+ 		/* Return the list in ascending order */
+ 		memory_map = &memory_map[map_entries - 1];
++		debug("%s: memory map\n", __func__);
+ 		list_for_each(lhandle, &efi_mem) {
+ 			struct efi_mem_list *lmem;
  
  			lmem = list_entry(lhandle, struct efi_mem_list, link);
  			*memory_map = lmem->desc;
-+			debug("%s: memory map\n", __func__);
 +			debug("typ 0x%02x, pst 0x%016llx, vst 0x%016llx, num %011llx\n",
 +			      memory_map->type, memory_map->physical_start,
 +			      memory_map->virtual_start,
@@ -43,5 +48,5 @@ index aaf64421a3..6cee5a37c4 100644
  __weak void efi_add_known_memory(void)
  {
 -- 
-2.14.2
+2.15.1
 
