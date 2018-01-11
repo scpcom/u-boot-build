@@ -1,0 +1,47 @@
+From c711ce6786bd2eb99bdcda1a96ae3c94c32ce36b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 11 Jan 2018 18:44:29 +0100
+Subject: [PATCH 1/1] efi_loader: debug print memory map
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_memory.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/lib/efi_loader/efi_memory.c b/lib/efi_loader/efi_memory.c
+index aaf64421a3..6cee5a37c4 100644
+--- a/lib/efi_loader/efi_memory.c
++++ b/lib/efi_loader/efi_memory.c
+@@ -432,6 +432,8 @@ efi_status_t efi_free_pool(void *buffer)
+  * @descriptor_version	version number of the memory descriptor structure
+  * @return		status code
+  */
++#undef _DEBUG
++#define _DEBUG 1
+ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+ 				struct efi_mem_desc *memory_map,
+ 				efi_uintn_t *map_key,
+@@ -468,6 +470,11 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+ 
+ 			lmem = list_entry(lhandle, struct efi_mem_list, link);
+ 			*memory_map = lmem->desc;
++			debug("%s: memory map\n", __func__);
++			debug("typ 0x%02x, pst 0x%016llx, vst 0x%016llx, num %011llx\n",
++			      memory_map->type, memory_map->physical_start,
++			      memory_map->virtual_start,
++			      memory_map->num_pages);
+ 			memory_map--;
+ 		}
+ 	}
+@@ -476,6 +483,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+ 
+ 	return EFI_SUCCESS;
+ }
++#undef _DEBUG
++#define _DEBUG 0
+ 
+ __weak void efi_add_known_memory(void)
+ {
+-- 
+2.14.2
+

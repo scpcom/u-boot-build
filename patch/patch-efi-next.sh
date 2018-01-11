@@ -80,5 +80,6 @@ git am ../patch/0001-efi_driver-EFI-block-driver.patch
 # git am ../patch/0001-efi_selftest-test-start-image.patch
 
 # Work in progress
+git am ../patch/0001-efi_loader-debug-print-memory-map.patch
 # git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch
 # git am ../patch/0001-efi_loader-allow-multiple-source-files-for-EFI-apps.patch
