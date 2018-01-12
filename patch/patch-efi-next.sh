@@ -79,6 +79,7 @@ git am ../patch/0001-efi_driver-EFI-block-driver.patch
 
 git am ../patch/0001-efi_loader-correctly-call-images.patch
 git am ../patch/0001-efi_selftest-test-start-image.patch
+git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
 
 # Work in progress
 # git am ../patch/0001-efi_loader-debug-print-memory-map.patch
