@@ -1,4 +1,4 @@
-From 442a22c7f722238648dbdad4a1e5ee5668e3a82e Mon Sep 17 00:00:00 2001
+From f178062ef83c7d9531d1a861bb174d418262ea7f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 12 Jan 2018 23:15:35 +0100
 Subject: [PATCH 1/1] dm: video: Correct color ANSI escape sequence support
@@ -8,9 +8,8 @@ Get RGB sequence in pixels right (swap blue and red).
 Do not set reserved bits.
 Use u32 instead of unsigned for color bit mask.
 
-qemu-system-i386 -display sdl -vga virtio,
-qemu-system-i386 -display sdl -vga cirrus, and
-qemu-system-i386 -display sdl -vga qxl,
+qemu-system-i386 -display sdl -vga virtio and
+qemu-system-i386 -display sdl -vga cirrus
 now display the same colors as
 qemu-system-i386 -nographic
 
@@ -22,12 +21,12 @@ Testing is possible via
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  drivers/video/vidconsole-uclass.c | 53 ++++++++++++++++++++++++++-------------
- drivers/video/video-uclass.c      | 16 ++++++++++--
+ drivers/video/video-uclass.c      | 38 +++++++++++++++++++++++++---
  include/video.h                   |  6 +++--
- 3 files changed, 54 insertions(+), 21 deletions(-)
+ 3 files changed, 74 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/video/vidconsole-uclass.c b/drivers/video/vidconsole-uclass.c
-index 5f63c12d6c..e65182dd96 100644
+index 5f63c12d6c..79c7f2113f 100644
 --- a/drivers/video/vidconsole-uclass.c
 +++ b/drivers/video/vidconsole-uclass.c
 @@ -114,28 +114,35 @@ static const struct {
@@ -57,7 +56,7 @@ index 5f63c12d6c..e65182dd96 100644
  };
  
 -static void set_color(struct video_priv *priv, unsigned idx, unsigned *c)
-+static void et_color(struct video_priv *priv, unsigned int idx, u32 *c)
++static void set_color(struct video_priv *priv, unsigned int idx, u32 *c)
  {
  	switch (priv->bpix) {
  	case VIDEO_BPP16:
@@ -115,10 +114,39 @@ index 5f63c12d6c..e65182dd96 100644
  			}
  		}
 diff --git a/drivers/video/video-uclass.c b/drivers/video/video-uclass.c
-index dcaceed42c..e96f9f8510 100644
+index dcaceed42c..8dfb6b1902 100644
 --- a/drivers/video/video-uclass.c
 +++ b/drivers/video/video-uclass.c
-@@ -193,9 +193,21 @@ static int video_post_probe(struct udevice *dev)
+@@ -91,14 +91,26 @@ void video_clear(struct udevice *dev)
+ {
+ 	struct video_priv *priv = dev_get_uclass_priv(dev);
+ 
+-	if (priv->bpix == VIDEO_BPP32) {
++	switch (priv->bpix) {
++	case VIDEO_BPP16: {
++		u16 *ppix = priv->fb;
++		u16 *end = priv->fb + priv->fb_size;
++
++		while (ppix < end)
++			*ppix++ = priv->colour_bg;
++		break;
++	}
++	case VIDEO_BPP32: {
+ 		u32 *ppix = priv->fb;
+ 		u32 *end = priv->fb + priv->fb_size;
+ 
+ 		while (ppix < end)
+ 			*ppix++ = priv->colour_bg;
+-	} else {
++		break;
++	}
++	default:
+ 		memset(priv->fb, priv->colour_bg, priv->fb_size);
++		break;
+ 	}
+ }
+ 
+@@ -193,9 +205,27 @@ static int video_post_probe(struct udevice *dev)
  
  	/* Set up colours - we could in future support other colours */
  #ifdef CONFIG_SYS_WHITE_ON_BLACK
@@ -134,11 +162,17 @@ index dcaceed42c..e96f9f8510 100644
 +		priv->colour_fg = 0xffffff;
 +		break;
 +	}
-+
 +	priv->fg = 7;
  #else
 -	priv->colour_bg = 0xffffff;
-+	priv->colour_bg = 0xc0c0c0;
++	switch (priv->bpix) {
++	case VIDEO_BPP16:
++		priv->colour_bg = 0xcffff;
++		break;
++	default:
++		priv->colour_bg = 0xffffff;
++		break;
++	}
  #endif
  
  	if (!CONFIG_IS_ENABLED(NO_FB_CLEAR))
