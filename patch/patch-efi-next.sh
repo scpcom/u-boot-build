@@ -81,6 +81,8 @@ git am ../patch/0001-efi_loader-correctly-call-images.patch
 git am ../patch/0001-efi_selftest-test-start-image.patch
 git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
 
+# git am ../patch/0001-efi_loader-disable-exit-boot-services-event.patch
+
 # Work in progress
 # git am ../patch/0001-efi_loader-debug-print-memory-map.patch
 # git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch

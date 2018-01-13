@@ -1,0 +1,31 @@
+From 0e60a5fe1440be4a5dc5f22c406ddb8cac3c7d9b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 13 Jan 2018 15:08:57 +0000
+Subject: [PATCH] efi_loader: disable exit boot services event
+
+iPXE crashes when the exit boot services event occurs.
+
+Some more work on the U-Boot side is needed.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index e13a2ac22e..8b3b648045 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1673,7 +1673,9 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
+ 	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
+ 		if (efi_events[i].type != EVT_SIGNAL_EXIT_BOOT_SERVICES)
+ 			continue;
++		/* This is not working correctly with iPXE yet.
+ 		efi_signal_event(&efi_events[i]);
++		 */
+ 	}
+ 	/* Make sure that notification functions are not called anymore */
+ 	efi_tpl = TPL_HIGH_LEVEL;
+-- 
+2.15.1
+
