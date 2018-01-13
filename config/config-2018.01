@@ -752,6 +752,7 @@ CONFIG_ETH_DESIGNWARE=y
 # CONFIG_SUN4I_EMAC is not set
 # CONFIG_SUN8I_EMAC is not set
 # CONFIG_GMAC_ROCKCHIP is not set
+# CONFIG_SYS_DPAA_QBMAN is not set
 # CONFIG_PCI is not set
 
 #
