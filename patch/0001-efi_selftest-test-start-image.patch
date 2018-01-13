@@ -1,45 +1,45 @@
-From 3edbdd3c45861f31e414967d2c612abf79adad1c Mon Sep 17 00:00:00 2001
+From 2a52f5a269d33f74ae18d27d5272625b65dbb144 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 2 Jan 2018 14:17:37 +0100
-Subject: [PATCH] efi_selftest: test start image
+Subject: [PATCH 1/1] efi_selftest: test start image
 
 This test checks the StartImage boottime service.
-The helloworld.efi application is loaded into memory and started.
+An EFI application is loaded into memory and started.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_selftest/.gitignore                 |   1 +
- lib/efi_selftest/Kconfig                    |   1 +
- lib/efi_selftest/Makefile                   |   9 ++
- lib/efi_selftest/efi_selftest_start_image.c | 142 ++++++++++++++++++++++++++++
- 4 files changed, 153 insertions(+)
+ lib/efi_selftest/.gitignore                 |   2 +
+ lib/efi_selftest/Makefile                   |  14 +++
+ lib/efi_selftest/efi_selftest_miniapp.c     |  34 +++++++
+ lib/efi_selftest/efi_selftest_start_image.c | 144 ++++++++++++++++++++++++++++
+ 4 files changed, 194 insertions(+)
  create mode 100644 lib/efi_selftest/.gitignore
+ create mode 100644 lib/efi_selftest/efi_selftest_miniapp.c
  create mode 100644 lib/efi_selftest/efi_selftest_start_image.c
 
 diff --git a/lib/efi_selftest/.gitignore b/lib/efi_selftest/.gitignore
 new file mode 100644
-index 0000000000..aa036dd77e
+index 0000000000..c527e464e5
 --- /dev/null
 +++ b/lib/efi_selftest/.gitignore
-@@ -0,0 +1 @@
-+/efi_helloworld_file_image.h
-diff --git a/lib/efi_selftest/Kconfig b/lib/efi_selftest/Kconfig
-index 3b5f3a1230..757d63b148 100644
---- a/lib/efi_selftest/Kconfig
-+++ b/lib/efi_selftest/Kconfig
-@@ -1,6 +1,7 @@
- config CMD_BOOTEFI_SELFTEST
- 	bool "Allow booting an EFI efi_selftest"
- 	depends on CMD_BOOTEFI
-+	select CMD_BOOTEFI_HELLO_COMPILE
- 	help
- 	  This adds an EFI test application to U-Boot that can be executed
- 	  with the 'bootefi selftest' command. It provides extended tests of
+@@ -0,0 +1,2 @@
++efi_miniapp_file_image.h
++*.efi
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 20f614d6ba..493d308b33 100644
+index 20f614d6ba..c353a01860 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
-@@ -17,11 +17,20 @@ efi_selftest_exitbootservices.o \
+@@ -7,6 +7,9 @@
+ # This file only gets included with CONFIG_EFI_LOADER set, so all
+ # object inclusion implicitly depends on it
+ 
++CFLAGS_efi_selftest_miniapp.o := $(CFLAGS_EFI) -Os -ffreestanding
++CFLAGS_REMOVE_efi_selftest_miniapp.o := $(CFLAGS_NON_EFI) -Os
++
+ obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
+ efi_selftest.o \
+ efi_selftest_controllers.o \
+@@ -17,6 +20,7 @@ efi_selftest_exitbootservices.o \
  efi_selftest_gop.o \
  efi_selftest_manageprotocols.o \
  efi_selftest_snp.o \
@@ -47,25 +47,66 @@ index 20f614d6ba..493d308b33 100644
  efi_selftest_textoutput.o \
  efi_selftest_tpl.o \
  efi_selftest_util.o \
- efi_selftest_watchdog.o
- 
+@@ -25,3 +29,13 @@ efi_selftest_watchdog.o
  ifeq ($(CONFIG_BLK)$(CONFIG_PARTITIONS),yy)
-+targets += efi_helloworld_file_image.h
-+
-+$(obj)/efi_helloworld_file_image.h: $(obj)/../efi_loader/helloworld.efi
-+	$(obj)/../../tools/file2include $(obj)/../efi_loader/helloworld.efi > \
-+	$(obj)/efi_helloworld_file_image.h
-+
-+$(obj)/efi_selftest_start_image.o: $(obj)/efi_helloworld_file_image.h
-+
  obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += efi_selftest_block_device.o
  endif
++
++targets += \
++efi_miniapp_file_image.h \
++efi_selftest_miniapp.efi
++
++$(obj)/efi_miniapp_file_image.h: $(obj)/efi_selftest_miniapp.efi
++	$(obj)/../../tools/file2include $(obj)/efi_selftest_miniapp.efi > \
++	$(obj)/efi_miniapp_file_image.h
++
++$(obj)/efi_selftest_start_image.o: $(obj)/efi_miniapp_file_image.h
+diff --git a/lib/efi_selftest/efi_selftest_miniapp.c b/lib/efi_selftest/efi_selftest_miniapp.c
+new file mode 100644
+index 0000000000..acfab799c5
+--- /dev/null
++++ b/lib/efi_selftest/efi_selftest_miniapp.c
+@@ -0,0 +1,34 @@
++/*
++ * efi_selftest_miniapp
++ *
++ * Copyright (c) 2018 Heinrich Schuchardt
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ *
++ * This EFI application is run by the StartImage selftest.
++ */
++
++#include <common.h>
++#include <efi_api.h>
++
++/*
++ * Entry point of the EFI application.
++ *
++ * @handle	handle of the loaded image
++ * @systable	system table
++ * @return	status code
++ */
++efi_status_t EFIAPI efi_main(efi_handle_t handle,
++			     struct efi_system_table *systable)
++{
++	struct efi_simple_text_output_protocol *con_out = systable->con_out;
++
++	con_out->set_attribute(con_out, EFI_BACKGROUND_BROWN | EFI_WHITE);
++	con_out->output_string(con_out, L"Entering EFI application");
++	con_out->set_attribute(con_out, EFI_LIGHTGRAY);
++	con_out->output_string(con_out, L"\n");
++
++	systable->boottime->exit(handle, EFI_SUCCESS, 0, NULL);
++
++	return EFI_SUCCESS;
++}
 diff --git a/lib/efi_selftest/efi_selftest_start_image.c b/lib/efi_selftest/efi_selftest_start_image.c
 new file mode 100644
-index 0000000000..e4d6f5655f
+index 0000000000..012f64e369
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_start_image.c
-@@ -0,0 +1,142 @@
+@@ -0,0 +1,144 @@
 +/*
 + * efi_selftest_start_image
 + *
@@ -74,12 +115,12 @@ index 0000000000..e4d6f5655f
 + * SPDX-License-Identifier:     GPL-2.0+
 + *
 + * This test checks the StartImage boottime service.
-+ * The helloworld.efi application is loaded into memory and started.
++ * The efi_selftest_miniapp.efi application is loaded into memory and started.
 + */
 +
 +#include <efi_selftest.h>
-+/* Include containing the helloworld.efi application */
-+#include "efi_helloworld_file_image.h"
++/* Include containing the miniapp.efi application */
++#include "efi_miniapp_file_image.h"
 +
 +/* Block size of compressed disk image */
 +#define COMPRESSED_DISK_IMAGE_BLOCK_SIZE 8
@@ -182,6 +223,8 @@ index 0000000000..e4d6f5655f
 +
 +/*
 + * Execute unit test.
++ *
++ * Load and start the application image.
 + *
 + * @return:	EFI_ST_SUCCESS for success
 + */
