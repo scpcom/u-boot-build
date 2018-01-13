@@ -80,6 +80,7 @@ git am ../patch/0001-efi_driver-EFI-block-driver.patch
 git am ../patch/0001-efi_loader-correctly-call-images.patch
 git am ../patch/0001-efi_selftest-test-start-image.patch
 git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
+git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 
 # git am ../patch/0001-efi_loader-disable-exit-boot-services-event.patch
 
