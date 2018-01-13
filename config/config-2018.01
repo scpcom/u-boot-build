@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# U-Boot 2018.01-rc3 Configuration
+# U-Boot 2018.01 Configuration
 #
 CONFIG_CREATE_ARCH_SYMLINK=y
 # CONFIG_ARC is not set
@@ -822,6 +822,7 @@ CONFIG_USB_EHCI_HCD=y
 # CONFIG_USB_EHCI_MSM is not set
 CONFIG_USB_EHCI_PCI=y
 # CONFIG_USB_EHCI_GENERIC is not set
+# CONFIG_USB_EHCI_FSL is not set
 # CONFIG_USB_OHCI_HCD is not set
 # CONFIG_USB_UHCI_HCD is not set
 # CONFIG_USB_DWC2 is not set
