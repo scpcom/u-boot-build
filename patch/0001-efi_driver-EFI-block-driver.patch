@@ -286,7 +286,7 @@ index 0000000000..ff8dadbc27
 +	struct efi_block_io *io = interface;
 +	int disks;
 +
-+	EFI_PRINTF("%s: handle %p, interface %p\n", __func__, handle, io);
++	EFI_PRINT("%s: handle %p, interface %p\n", __func__, handle, io);
 +
 +	if (!obj)
 +		return -ENOENT;
