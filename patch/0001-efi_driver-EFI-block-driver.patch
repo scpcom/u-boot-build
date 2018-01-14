@@ -1,9 +1,12 @@
-From d29b3ea0153e27e1bfa0a17b2b3d776a2f7e7d35 Mon Sep 17 00:00:00 2001
+From 0f62039d9475ee8ce1489949c625b02ffa996e1f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Sun, 17 Dec 2017 19:30:21 +0100
+Date: Thu, 11 Jan 2018 09:07:08 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	replace printf by EFI_PRINT
 ---
  common/board_r.c                  |   3 +
  drivers/block/blk-uclass.c        |   4 +-
@@ -14,9 +17,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  13 ++
- lib/efi_driver/efi_block_device.c | 153 ++++++++++++++++++
+ lib/efi_driver/efi_block_device.c | 152 ++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 318 ++++++++++++++++++++++++++++++++++++++
- 12 files changed, 527 insertions(+), 2 deletions(-)
+ 11 files changed, 525 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -178,10 +181,10 @@ index 0000000000..e35529a952
 +endif
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..92e1759a11
+index 0000000000..ff8dadbc27
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,153 @@
+@@ -0,0 +1,152 @@
 +/*
 + *  EFI drivers
 + *
@@ -283,8 +286,7 @@ index 0000000000..92e1759a11
 +	struct efi_block_io *io = interface;
 +	int disks;
 +
-+	printf("%s(%d) %s: handle %p, interface %p\n",
-+	       __FILE__, __LINE__, __func__, handle, io);
++	EFI_PRINTF("%s: handle %p, interface %p\n", __func__, handle, io);
 +
 +	if (!obj)
 +		return -ENOENT;
