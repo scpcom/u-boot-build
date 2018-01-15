@@ -1,12 +1,45 @@
-From 0f62039d9475ee8ce1489949c625b02ffa996e1f Mon Sep 17 00:00:00 2001
+From 8d279a79f0ddcdedd98d1f90deeba40df9d020d3 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 11 Jan 2018 09:07:08 +0100
-Subject: [PATCH 1/1] efi_driver: EFI block driver
+Subject: [PATCH] efi_driver: EFI block driver
+
+This patch provides
+* a uclass for EFI drivers
+* a EFI driver for block devices
+
+For each EFI driver the uclass
+* creates a handle
+* adds the driver binding protocol
+
+The uclass provides the bind, start, and stop entry points for the driver
+binding protocol.
+
+In bind() and stop() it checks if the controller implements the protocol
+supported by the EFI driver. In the start() function it calls the bind()
+function of the EFI driver. In the stop() function it destroys the child
+controllers.
+
+The EFI block driver binds to controllers implementing the block io
+protocol.
+
+When the bind function of the EFI block driver is called it creates a
+new U-Boot block device. It installs child handles for all partitions and
+installs the simple file protocol on these.
+
+The read and write functions of the EFI block driver delegate calls to the
+controller that it is bound to.
+
+A usage example is as following:
+
+U-Boot loads the iPXE snp.efi executable. iPXE connects an iSCSI drive and
+exposes a handle with the block IO protocol. It calls ConnectController.
+
+Now the EFI block driver installs the partions with the simple file
+protocol.
+
+iPXE uses the simple file protocol to load Grub or the Linux Kernel.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
----
-v2
-	replace printf by EFI_PRINT
 ---
  common/board_r.c                  |   3 +
  drivers/block/blk-uclass.c        |   4 +-
@@ -26,7 +59,7 @@ v2
  create mode 100644 lib/efi_driver/efi_uclass.c
 
 diff --git a/common/board_r.c b/common/board_r.c
-index fcfbdfdbb1..98811edc07 100644
+index 2baa47f3a0..4ad37ee31a 100644
 --- a/common/board_r.c
 +++ b/common/board_r.c
 @@ -715,7 +715,10 @@ static init_fnc_t init_sequence_r[] = {
@@ -181,7 +214,7 @@ index 0000000000..e35529a952
 +endif
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..ff8dadbc27
+index 0000000000..6a8d2e6254
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
 @@ -0,0 +1,152 @@
@@ -662,5 +695,5 @@ index 0000000000..67083ed496
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.15.1
+2.11.0
 
