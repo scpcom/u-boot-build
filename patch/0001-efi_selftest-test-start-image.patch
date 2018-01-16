@@ -1,4 +1,4 @@
-From 5a221e5b51f84330d753e3fe6b5ec305aa28f8e6 Mon Sep 17 00:00:00 2001
+From 05fa18a7c2646ed844a5c8ed40336f1d2a93ac48 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 2 Jan 2018 14:17:37 +0100
 Subject: [PATCH 1/1] efi_selftest: test start image
@@ -9,13 +9,12 @@ An EFI application is loaded into memory and started.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  arch/arm/lib/Makefile                       |   1 +
- arch/x86/config.mk                          |   2 +-
  arch/x86/lib/Makefile                       |   6 +-
  lib/efi_selftest/.gitignore                 |   2 +
- lib/efi_selftest/Makefile                   |  18 ++++
+ lib/efi_selftest/Makefile                   |  26 +++++
  lib/efi_selftest/efi_selftest_miniapp.c     |  34 +++++++
  lib/efi_selftest/efi_selftest_start_image.c | 144 ++++++++++++++++++++++++++++
- 7 files changed, 203 insertions(+), 4 deletions(-)
+ 6 files changed, 210 insertions(+), 3 deletions(-)
  create mode 100644 lib/efi_selftest/.gitignore
  create mode 100644 lib/efi_selftest/efi_selftest_miniapp.c
  create mode 100644 lib/efi_selftest/efi_selftest_start_image.c
@@ -30,19 +29,6 @@ index abffa10c85..876024fc15 100644
  extra-$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE) += $(EFI_CRT0) $(EFI_RELOC)
 +extra-$(CONFIG_CMD_BOOTEFI_SELFTEST) += $(EFI_CRT0) $(EFI_RELOC)
  extra-$(CONFIG_EFI) += $(EFI_CRT0) $(EFI_RELOC)
-diff --git a/arch/x86/config.mk b/arch/x86/config.mk
-index 472ada5490..515c99dd2c 100644
---- a/arch/x86/config.mk
-+++ b/arch/x86/config.mk
-@@ -88,7 +88,7 @@ else
- PLATFORM_CPPFLAGS += -D__I386__
- endif
- 
--ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
-+ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE)$(CONFIG_CMD_BOOTEFI_SELFTEST),)
- 
- ifneq ($(CONFIG_EFI_STUB_64BIT),)
- EFI_LDS := elf_x86_64_efi.lds
 diff --git a/arch/x86/lib/Makefile b/arch/x86/lib/Makefile
 index f6be13fe94..b96984625b 100644
 --- a/arch/x86/lib/Makefile
@@ -68,7 +54,7 @@ index 0000000000..c527e464e5
 +efi_miniapp_file_image.h
 +*.efi
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 20f614d6ba..24f5ae11b8 100644
+index 20f614d6ba..6b7128849b 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
 @@ -7,6 +7,9 @@
@@ -81,20 +67,19 @@ index 20f614d6ba..24f5ae11b8 100644
  obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
  efi_selftest.o \
  efi_selftest_controllers.o \
-@@ -17,6 +20,7 @@ efi_selftest_exitbootservices.o \
- efi_selftest_gop.o \
- efi_selftest_manageprotocols.o \
- efi_selftest_snp.o \
-+efi_selftest_start_image.o \
- efi_selftest_textoutput.o \
- efi_selftest_tpl.o \
- efi_selftest_util.o \
-@@ -25,3 +29,17 @@ efi_selftest_watchdog.o
+@@ -25,3 +28,26 @@ efi_selftest_watchdog.o
  ifeq ($(CONFIG_BLK)$(CONFIG_PARTITIONS),yy)
  obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += efi_selftest_block_device.o
  endif
 +
++# TODO: As of v2018.01 the relocation code for the EFI application cannot
++# be built on x86_64.
++ifeq ($(CONFIG_X86_64),)
++
 +ifneq ($(CONFIG_CMD_BOOTEFI_SELFTEST),)
++
++obj-y += \
++efi_selftest_start_image.o
 +
 +targets += \
 +efi_miniapp_file_image.h \
@@ -105,6 +90,8 @@ index 20f614d6ba..24f5ae11b8 100644
 +	$(obj)/efi_miniapp_file_image.h
 +
 +$(obj)/efi_selftest_start_image.o: $(obj)/efi_miniapp_file_image.h
++
++endif
 +
 +endif
 diff --git a/lib/efi_selftest/efi_selftest_miniapp.c b/lib/efi_selftest/efi_selftest_miniapp.c
