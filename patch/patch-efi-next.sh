@@ -75,6 +75,7 @@ git am ../patch/0001-efi_loader-provide-links-between-devices-EFI-handles.patch
 git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch
 git am ../patch/0001-efi_driver-EFI-block-driver.patch
 git am ../patch/0001-efi_selftest-provide-a-test-for-block-io.patch
+git am ../patch/0001-efi_loader-fix-ExitBootServices.patch
 # >>> end of block driver series
 
 git am ../patch/0001-efi_loader-correctly-call-images.patch
