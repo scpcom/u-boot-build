@@ -61,7 +61,7 @@ git am ../patch/0001-efi_loader-print-device-path-when-entering-efi_load_.patch
 # >>> end of device path output series
 
 # <<< start of block driver series
-git am ../patch/0001-efi_loader-allocate-correct-memory-type-if-EFI-image.patch
+git am ../patch/0001-efi_loader-allocate-correct-memory-type-for-EFI-imag.patch
 git am ../patch/0001-efi_loader-check-tables-in-helloworld.efi.patch
 git am ../patch/0001-efi_loader-fix-StartImage-bootservice.patch
 git am ../patch/0001-efi_loader-efi_disk_register-correctly-determine-if_.patch
