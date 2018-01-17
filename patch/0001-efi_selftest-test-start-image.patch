@@ -1,4 +1,4 @@
-From 05fa18a7c2646ed844a5c8ed40336f1d2a93ac48 Mon Sep 17 00:00:00 2001
+From 831b86757cc739d99e42750938a651f5c8b78885 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 2 Jan 2018 14:17:37 +0100
 Subject: [PATCH 1/1] efi_selftest: test start image
@@ -6,15 +6,17 @@ Subject: [PATCH 1/1] efi_selftest: test start image
 This test checks the StartImage boot service.
 An EFI application is loaded into memory and started.
 
+The test is not built on x86_64 because the relocation code for the efi
+binary cannot be created.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  arch/arm/lib/Makefile                       |   1 +
- arch/x86/lib/Makefile                       |   6 +-
  lib/efi_selftest/.gitignore                 |   2 +
  lib/efi_selftest/Makefile                   |  26 +++++
  lib/efi_selftest/efi_selftest_miniapp.c     |  34 +++++++
  lib/efi_selftest/efi_selftest_start_image.c | 144 ++++++++++++++++++++++++++++
- 6 files changed, 210 insertions(+), 3 deletions(-)
+ 5 files changed, 207 insertions(+)
  create mode 100644 lib/efi_selftest/.gitignore
  create mode 100644 lib/efi_selftest/efi_selftest_miniapp.c
  create mode 100644 lib/efi_selftest/efi_selftest_start_image.c
@@ -29,22 +31,6 @@ index abffa10c85..876024fc15 100644
  extra-$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE) += $(EFI_CRT0) $(EFI_RELOC)
 +extra-$(CONFIG_CMD_BOOTEFI_SELFTEST) += $(EFI_CRT0) $(EFI_RELOC)
  extra-$(CONFIG_EFI) += $(EFI_CRT0) $(EFI_RELOC)
-diff --git a/arch/x86/lib/Makefile b/arch/x86/lib/Makefile
-index f6be13fe94..b96984625b 100644
---- a/arch/x86/lib/Makefile
-+++ b/arch/x86/lib/Makefile
-@@ -70,8 +70,8 @@ extra-$(CONFIG_EFI_STUB_64BIT) += crt0_x86_64_efi.o reloc_x86_64_efi.o
- 
- endif
- 
--ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
- ifeq ($(CONFIG_$(SPL_)X86_64),)
--extra-y += $(EFI_CRT0) $(EFI_RELOC)
--endif
-+extra-$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE) += $(EFI_CRT0) $(EFI_RELOC)
-+extra-$(CONFIG_CMD_BOOTEFI_SELFTEST) += $(EFI_CRT0) $(EFI_RELOC)
-+extra-$(CONFIG_EFI_STUB) += $(EFI_CRT0) $(EFI_RELOC)
- endif
 diff --git a/lib/efi_selftest/.gitignore b/lib/efi_selftest/.gitignore
 new file mode 100644
 index 0000000000..c527e464e5
@@ -54,7 +40,7 @@ index 0000000000..c527e464e5
 +efi_miniapp_file_image.h
 +*.efi
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 20f614d6ba..6b7128849b 100644
+index 20f614d6ba..d7a9865a02 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
 @@ -7,6 +7,9 @@
@@ -136,7 +122,7 @@ index 0000000000..bcdb37e86b
 +}
 diff --git a/lib/efi_selftest/efi_selftest_start_image.c b/lib/efi_selftest/efi_selftest_start_image.c
 new file mode 100644
-index 0000000000..012f64e369
+index 0000000000..02f8ccf9c5
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_start_image.c
 @@ -0,0 +1,144 @@
