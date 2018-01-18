@@ -34,7 +34,7 @@ A usage example is as following:
 U-Boot loads the iPXE snp.efi executable. iPXE connects an iSCSI drive and
 exposes a handle with the block IO protocol. It calls ConnectController.
 
-Now the EFI block driver installs the partions with the simple file
+Now the EFI block driver installs the partitions with the simple file
 protocol.
 
 iPXE uses the simple file protocol to load Grub or the Linux Kernel.
@@ -243,7 +243,7 @@ index 0000000000..837787d563
 + * U-Boot loads the iPXE snp.efi executable. iPXE connects an iSCSI drive and
 + * exposes a handle with the block IO protocol. It calls ConnectController.
 + *
-+ * Now the EFI block driver installs the partions with the simple file
++ * Now the EFI block driver installs the partitions with the simple file
 + * protocol.
 + *
 + * iPXE uses the simple file protocol to load Grub or the Linux Kernel.
@@ -311,7 +311,7 @@ index 0000000000..837787d563
 +	return blkcnt;
 +}
 +
-+static int efi_bl_bind_partions(efi_handle_t handle)
++static int efi_bl_bind_partitions(efi_handle_t handle)
 +{
 +	struct efi_object *obj = efi_search_obj(handle);
 +	struct blk_desc *desc;
@@ -361,8 +361,8 @@ index 0000000000..837787d563
 +
 +	ret = blk_prepare_device(bdev);
 +
-+	disks = efi_bl_bind_partions(handle);
-+	EFI_PRINT("Found %d partions\n", disks);
++	disks = efi_bl_bind_partitions(handle);
++	EFI_PRINT("Found %d partitions\n", disks);
 +
 +	return 0;
 +}
@@ -422,7 +422,7 @@ index 0000000000..798431ae74
 +#include <efi_driver.h>
 +
 +/*
-+ * Check node type. We do not support partions as controller handles.
++ * Check node type. We do not support partitions as controller handles.
 + *
 + * @handle	handle to be checked
 + * @return	status code

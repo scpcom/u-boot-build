@@ -4,7 +4,7 @@ Date: Sun, 24 Dec 2017 06:19:45 +0100
 Subject: [PATCH 1/1] efi_loader: provide function to get last node of a device
  path
 
-On a block device and its partions the same protocols can be
+On a block device and its partitions the same protocols can be
 installed. To tell the apart we can use the type of the last
 node of the device path which is not the end node.
 

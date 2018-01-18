@@ -1,46 +1,23 @@
-From 6def795be4dd10ed816a125debfeb00236db7303 Mon Sep 17 00:00:00 2001
+From c34533eb023a7586d8d05e577b0808dc22a0d2f6 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 18 Dec 2017 18:57:48 +0100
-Subject: [PATCH 1/1] efi_loader: provide links between devices EFI handles
+Subject: [PATCH 1/1] efi_loader: provide link between devices and EFI handles
 
 U-Boot devices and EFI handles can be related, e.g. an
 IDE disk relates to a handle with the EFI_BLOCK_IO_PROTOCOL.
-Provide pointers to store these links.
+Provide a pointer to store this link.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/dm/device.h           | 4 ++++
  include/efi_loader.h          | 2 ++
  lib/efi_loader/efi_boottime.c | 1 +
- 3 files changed, 7 insertions(+)
+ 2 files changed, 3 insertions(+)
 
-diff --git a/include/dm/device.h b/include/dm/device.h
-index 813e49f330..e5c54fe7b6 100644
---- a/include/dm/device.h
-+++ b/include/dm/device.h
-@@ -11,6 +11,7 @@
- #ifndef _DM_DEVICE_H
- #define _DM_DEVICE_H
- 
-+#include <efi_loader.h>
- #include <dm/ofnode.h>
- #include <dm/uclass-id.h>
- #include <fdtdec.h>
-@@ -144,6 +145,9 @@ struct udevice {
- 	uint32_t flags;
- 	int req_seq;
- 	int seq;
-+#ifdef EFI_LOADER
-+	efi_handle_t handle;
-+#endif
- #ifdef CONFIG_DEVRES
- 	struct list_head devres_head;
- #endif
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 36563f722f..aff739979a 100644
+index 2db4e9c09b..bb1e177ae3 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -136,6 +136,8 @@ struct efi_object {
+@@ -139,6 +139,8 @@ struct efi_object {
  	struct list_head protocols;
  	/* The object spawner can either use this for data or as identifier */
  	void *handle;
@@ -50,17 +27,17 @@ index 36563f722f..aff739979a 100644
  
  /**
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index bb637e20bd..92d1e36ff7 100644
+index 5a3349ecb2..abb798ff34 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -362,6 +362,7 @@ efi_status_t efi_create_handle(efi_handle_t *handle)
  			      (void **)&obj);
  	if (r != EFI_SUCCESS)
  		return r;
-+	obj->dev = NULL;
++	memset(obj, 0, sizeof(struct efi_object));
  	efi_add_handle(obj);
  	*handle = obj->handle;
  	return r;
 -- 
-2.11.0
+2.14.2
 

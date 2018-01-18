@@ -28,7 +28,7 @@ index f365b10132..79f55a3439 100644
  int efi_console_register(void);
  /* Called by bootefi to make all disk storage accessible as EFI objects */
  int efi_disk_register(void);
-+/* Create handles and protocols for the partions of a block device */
++/* Create handles and protocols for the partitions of a block device */
 +int efi_disk_create_partitions(efi_handle_t parent, struct blk_desc *desc,
 +			       const char *if_typename, int diskid,
 +			       const char *pdevname);
@@ -112,14 +112,14 @@ index cccfc6dac5..92c3f45ca5 100644
 -				      int diskid,
 -				      const char *pdevname)
 +/*
-+ * Create handles and protocols for the partions of a block device
++ * Create handles and protocols for the partitions of a block device
 + *
 + * @parent		handle of the parent disk
 + * @blk_desc		block device
 + * @if_typename		interface type
 + * @diskid		device number
 + * @pdevname		device name
-+ * @return		number of partions created
++ * @return		number of partitions created
 + */
 +int efi_disk_create_partitions(efi_handle_t parent, struct blk_desc *desc,
 +			       const char *if_typename, int diskid,
