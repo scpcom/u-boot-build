@@ -1,9 +1,10 @@
-From b7b63aa3c301b908a56b6c399f7c2928721d4ee5 Mon Sep 17 00:00:00 2001
+From 40bdc4a2f3171e2b87da70ca7e89e1ed9a1a259d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 12 Jan 2018 23:15:35 +0100
-Subject: [PATCH 1/1] dm: video: Correct color ANSI escape sequence support
+Subject: [PATCH v2 1/1] dm: video: Correct color ANSI escape sequence support
 
-Support increased intensity (bold).
+Support special rendition code 0 - reset attributes.
+Support special rendition code 1 - increased intensity (bold).
 Get RGB sequence in pixels right (swap blue and red).
 Do not set reserved bits.
 Use u32 instead of unsigned for color bit mask.
@@ -21,16 +22,16 @@ Testing is possible via
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
 v2:
-	Adjust sandbox test.
+	SGR 0 should reset the colors and the attributes.
 ---
- drivers/video/vidconsole-uclass.c | 53 ++++++++++++++++++++++++++-------------
- drivers/video/video-uclass.c      | 38 +++++++++++++++++++++++++---
- include/video.h                   |  6 +++--
+ drivers/video/vidconsole-uclass.c | 53 ++++++++++++++++++++++++++------------
+ drivers/video/video-uclass.c      | 54 +++++++++++++++++++++++++++++++++------
+ include/video.h                   | 13 ++++++++--
  test/dm/video.c                   |  2 +-
- 4 files changed, 75 insertions(+), 24 deletions(-)
+ 4 files changed, 94 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/video/vidconsole-uclass.c b/drivers/video/vidconsole-uclass.c
-index 5f63c12d6c..79c7f2113f 100644
+index 5f63c12d6c..3c39ee06dd 100644
 --- a/drivers/video/vidconsole-uclass.c
 +++ b/drivers/video/vidconsole-uclass.c
 @@ -114,28 +114,35 @@ static const struct {
@@ -88,7 +89,7 @@ index 5f63c12d6c..79c7f2113f 100644
  			switch (val) {
 +			case 0:
 +				/* all attributes off */
-+				vid_priv->fg &= 7;
++				video_set_default_colors(vid_priv);
 +				break;
 +			case 1:
 +				/* bold */
@@ -118,10 +119,10 @@ index 5f63c12d6c..79c7f2113f 100644
  			}
  		}
 diff --git a/drivers/video/video-uclass.c b/drivers/video/video-uclass.c
-index dcaceed42c..8dfb6b1902 100644
+index dcaceed42c..ec6ee10c67 100644
 --- a/drivers/video/video-uclass.c
 +++ b/drivers/video/video-uclass.c
-@@ -91,14 +91,26 @@ void video_clear(struct udevice *dev)
+@@ -91,17 +91,59 @@ void video_clear(struct udevice *dev)
  {
  	struct video_priv *priv = dev_get_uclass_priv(dev);
  
@@ -150,11 +151,9 @@ index dcaceed42c..8dfb6b1902 100644
  	}
  }
  
-@@ -193,9 +205,27 @@ static int video_post_probe(struct udevice *dev)
- 
- 	/* Set up colours - we could in future support other colours */
- #ifdef CONFIG_SYS_WHITE_ON_BLACK
--	priv->colour_fg = 0xffffff;
++void video_set_default_colors(struct video_priv *priv)
++{
++#ifdef CONFIG_SYS_WHITE_ON_BLACK
 +	switch (priv->bpix) {
 +	case VIDEO_BPP16:
 +		priv->colour_fg = 0xc618;
@@ -166,9 +165,10 @@ index dcaceed42c..8dfb6b1902 100644
 +		priv->colour_fg = 0xffffff;
 +		break;
 +	}
++	priv->colour_bg = 0;
 +	priv->fg = 7;
- #else
--	priv->colour_bg = 0xffffff;
++#else
++	priv->colour_fg = 0;
 +	switch (priv->bpix) {
 +	case VIDEO_BPP16:
 +		priv->colour_bg = 0xcffff;
@@ -177,11 +177,30 @@ index dcaceed42c..8dfb6b1902 100644
 +		priv->colour_bg = 0xffffff;
 +		break;
 +	}
- #endif
++	priv->fg = 0;
++#endif
++}
++
+ /* Flush video activity to the caches */
+ void video_sync(struct udevice *vid)
+ {
+@@ -191,12 +233,8 @@ static int video_post_probe(struct udevice *dev)
+ 	priv->line_length = priv->xsize * VNBYTES(priv->bpix);
+ 	priv->fb_size = priv->line_length * priv->ysize;
+ 
+-	/* Set up colours - we could in future support other colours */
+-#ifdef CONFIG_SYS_WHITE_ON_BLACK
+-	priv->colour_fg = 0xffffff;
+-#else
+-	priv->colour_bg = 0xffffff;
+-#endif
++	/* Set up colors  */
++	video_set_default_colors(priv);
  
  	if (!CONFIG_IS_ENABLED(NO_FB_CLEAR))
+ 		video_clear(dev);
 diff --git a/include/video.h b/include/video.h
-index 61ff653121..c02e0315a7 100644
+index 61ff653121..3101459d2a 100644
 --- a/include/video.h
 +++ b/include/video.h
 @@ -67,6 +67,7 @@ enum video_log2_bpp {
@@ -206,6 +225,20 @@ index 61ff653121..c02e0315a7 100644
  };
  
  /* Placeholder - there are no video operations at present */
+@@ -183,6 +185,13 @@ int video_get_ysize(struct udevice *dev);
+  */
+ void video_set_flush_dcache(struct udevice *dev, bool flush);
+ 
++/**
++ * Set default colors and attributes
++ *
++ * @priv	device information
++ */
++void video_set_default_colors(struct video_priv *priv);
++
+ #endif /* CONFIG_DM_VIDEO */
+ 
+ #ifndef CONFIG_DM_VIDEO
 diff --git a/test/dm/video.c b/test/dm/video.c
 index 29917d0c2d..caca496902 100644
 --- a/test/dm/video.c
