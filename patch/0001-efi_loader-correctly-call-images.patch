@@ -1,7 +1,7 @@
-From c7c6e603c315358a4d8308d59455fd1ec0b8282a Mon Sep 17 00:00:00 2001
+From 79437f558d26c3e4c3ebfd01ca3b78317b14a5e8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 11 Jan 2018 22:44:08 +0100
-Subject: [PATCH 1/1] efi_loader: correctly call images
+Subject: [PATCH v3 1/1] efi_loader: correctly call images
 
 Avoid a failed assertion when an EFI app calls an EFI app.
 
@@ -16,11 +16,14 @@ calling the Exit boot service.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+v3
+	Provide more comments.
+---
+ lib/efi_loader/efi_boottime.c | 36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 4b3b63e39a..e13a2ac22e 100644
+index 2c5499e0c8..49cd69203b 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -1537,6 +1537,7 @@ static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
@@ -31,15 +34,30 @@ index 4b3b63e39a..e13a2ac22e 100644
  
  	EFI_ENTRY("%p, %p, %p", image_handle, exit_data_size, exit_data);
  	entry = info->reserved;
-@@ -1546,17 +1547,23 @@ static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
+@@ -1545,18 +1546,37 @@ static efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
+ 
  	/* call the image! */
  	if (setjmp(&info->exit_jmp)) {
- 		/* We returned from the child image */
+-		/* We returned from the child image */
++		/*
++		 * We called the entry point of the child image with EFI_CALL
++		 * in the lines below. The child image called the Exit() boot
++		 * service efi_exit() which executed the long jump that brought
++		 * us to the current line. This implies that the second half
++		 * of the EFI_CALL macro has not been executed.
++		 */
 +#ifdef CONFIG_ARM
-+		/* efi_exit() called efi_restore_gd() */
++		/*
++		 * efi_exit() called efi_restore_gd(). We have to undo this
++		 * otherwise __efi_entry_check() will put the wrong value into
++		 * app_gd.
++		 */
 +		gd = app_gd;
 +#endif
-+		/* Execute the return part of EFI_CALL */
++		/*
++		 * To get ready to call EFI_EXIT below we have to execute the
++		 * missed out steps of EFI_CALL.
++		 */
 +		assert(__efi_entry_check());
 +		debug("%sEFI: %lu returned by started image\n",
 +		      __efi_nesting_dec(),
@@ -61,7 +79,7 @@ index 4b3b63e39a..e13a2ac22e 100644
  }
  
  /*
-@@ -1593,7 +1600,7 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
+@@ -1593,7 +1613,7 @@ static efi_status_t EFIAPI efi_exit(efi_handle_t image_handle,
  		  exit_data_size, exit_data);
  
  	/* Make sure entry/exit counts for EFI world cross-overs match */
