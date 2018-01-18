@@ -1,0 +1,37 @@
+From 737d5737a7cf2dc05e1d66d479082b5d3d21eaeb Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 18 Jan 2018 23:16:19 +0100
+Subject: [PATCH 1/1] efi_loader: store DT in EFI_RUNTIME_SERVICES_DATA memory
+
+The device tree is needed at runtime. So we have to store it in
+EFI_RUNTIME_SERVICES_DATA memory.
+
+The UEFI spec recommends to store all configuration tables in
+EFI_RUNTIME_SERVICES_DATA memory.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 97a4f269ae..a30259c4c1 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -103,11 +103,11 @@ static void *copy_fdt(void *fdt)
+ 
+ 	/* Safe fdt location is at 128MB */
+ 	new_fdt_addr = fdt_ram_start + (128 * 1024 * 1024) + fdt_size;
+-	if (efi_allocate_pages(1, EFI_BOOT_SERVICES_DATA, fdt_pages,
++	if (efi_allocate_pages(1, EFI_RUNTIME_SERVICES_DATA, fdt_pages,
+ 			       &new_fdt_addr) != EFI_SUCCESS) {
+ 		/* If we can't put it there, put it somewhere */
+ 		new_fdt_addr = (ulong)memalign(EFI_PAGE_SIZE, fdt_size);
+-		if (efi_allocate_pages(1, EFI_BOOT_SERVICES_DATA, fdt_pages,
++		if (efi_allocate_pages(1, EFI_RUNTIME_SERVICES_DATA, fdt_pages,
+ 				       &new_fdt_addr) != EFI_SUCCESS) {
+ 			printf("ERROR: Failed to reserve space for FDT\n");
+ 			return NULL;
+-- 
+2.15.1
+

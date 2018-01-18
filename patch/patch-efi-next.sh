@@ -86,6 +86,8 @@ git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 
 git am ../patch/0001-efi_loader-text-output-for-device-path-end-node.patch
 
+git am ../patch/0001-efi_loader-store-DT-in-EFI_RUNTIME_SERVICES_DATA-mem.patch
+
 # Work in progress
 # git am ../patch/0001-efi_loader-debug-print-memory-map.patch
 # git am ../patch/0001-efi_loader-Exit-must-remove-loaded-image-handle.patch
