@@ -4,7 +4,7 @@ Date: Tue, 26 Dec 2017 17:58:20 +0100
 Subject: [PATCH 1/1] efi_loader: address of the simple file system protocol
 
 When installing the the simple file system protocol we have to path
-the address of the structure and not the address of a pointer ot the
+the address of the structure and not the address of a pointer to the
 structure.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
