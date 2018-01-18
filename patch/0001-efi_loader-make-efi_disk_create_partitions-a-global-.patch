@@ -5,10 +5,10 @@ Subject: [PATCH 1/1] efi_loader: make efi_disk_create_partitions a global
  symbol
 
 Up to now we have been using efi_disk_create_partitions() to create
-partions for block device that existed before starting an EFI
+partitions for block devices that existed before starting an EFI
 application.
 
-We need to to call it for for block devices created by EFI
+We need to call it for block devices created by EFI
 applications at run time. The EFI application will define the
 handle for the block device and install a device path protocol
 on it. We have to use this device path as stem for the partition

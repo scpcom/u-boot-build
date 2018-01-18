@@ -18,12 +18,14 @@ diff --git a/include/efi_api.h b/include/efi_api.h
 index 502fffed20..0bc244444d 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
-@@ -424,18 +424,24 @@ struct efi_block_io_media
+@@ -424,18 +424,26 @@ struct efi_block_io_media
  	u32 io_align;
  	u8 pad2[4];
  	u64 last_block;
++	/* Added in revision 2 of the protocol */
 +	u64 lowest_aligned_lba;
 +	u32 logical_blocks_per_physical_block;
++	/* Added in revision 3 of the protocol */
 +	u32 optimal_transfer_length_granualarity;
  };
  
