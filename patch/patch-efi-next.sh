@@ -50,17 +50,11 @@ git am ../patch/0001-efi_selftest-test-for-Dis-ConnectController.patch
 
 # git am ../patch/0001-efi_loader-use-correct-format-string-for-unsigned-lo.patch
 
-# <<< start of simple file system protocol
+# <<< start of block driver series
 git am ../patch/0001-efi_loader-return-NULL-from-device-path-functions.patch
 git am ../patch/0001-efi_loader-address-of-the-simple-file-system-protoco.patch
 git am ../patch/0001-efi_loader-correct-find-simple-file-system-protocol.patch
-# >>> end of simple file system protocol
-
-# <<< device path output series
 git am ../patch/0001-efi_loader-print-device-path-when-entering-efi_load_.patch
-# >>> end of device path output series
-
-# <<< start of block driver series
 git am ../patch/0001-efi_loader-allocate-correct-memory-type-for-EFI-imag.patch
 git am ../patch/0001-efi_loader-check-tables-in-helloworld.efi.patch
 # git am ../patch/0001-efi_loader-fix-StartImage-bootservice.patch
@@ -68,7 +62,6 @@ git am ../patch/0001-efi_loader-efi_disk_register-correctly-determine-if_.patch
 git am ../patch/0001-efi_loader-make-efi_block_io_guid-a-global-symbol.patch
 git am ../patch/0001-efi_loader-provide-a-function-to-create-a-partition-.patch
 git am ../patch/0001-efi_loader-make-efi_disk_create_partitions-a-global-.patch
-# git am ../patch/0001-efi_selftest-execute-only-block-device-test.patch
 git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
 git am ../patch/0001-efi_loader-provide-function-to-get-last-node-of-a-de.patch
 git am ../patch/0001-efi_loader-provide-link-between-devices-and-EFI-hand.patch
