@@ -3,8 +3,8 @@ git am ../patch/0001-dm-fix-typo-falback.patch
 
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 
-git am ../patch/0001-fs-remove-distractive-message-in-fs_read.patch
-git am ../patch/0001-fs-fat-remove-distractive-message-in-file_fat_read_a.patch
+# git am ../patch/0001-fs-remove-distractive-message-in-fs_read.patch
+# git am ../patch/0001-fs-fat-remove-distractive-message-in-file_fat_read_a.patch
 
 # git am ../patch/0001-Test-vexpress-only.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
@@ -14,7 +14,7 @@ git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
 # git am ../patch/0001-vsprintf.c-add-EFI-device-path-printing.patch
 
-git am ../patch/0001-board_r-remove-superfluous-ifdef-CONFIG_PRAM.patch
+# git am ../patch/0001-board_r-remove-superfluous-ifdef-CONFIG_PRAM.patch
 
 # git am ../patch/0001-MAINTAINERS-correct-entry-for-lib-efi.patch
 
@@ -51,23 +51,23 @@ git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 # git am ../patch/0001-efi_loader-use-correct-format-string-for-unsigned-lo.patch
 
 # <<< start of block driver series
-git am ../patch/0001-efi_loader-return-NULL-from-device-path-functions.patch
-git am ../patch/0001-efi_loader-address-of-the-simple-file-system-protoco.patch
-git am ../patch/0001-efi_loader-correct-find-simple-file-system-protocol.patch
-git am ../patch/0001-efi_loader-print-device-path-when-entering-efi_load_.patch
-git am ../patch/0001-efi_loader-allocate-correct-memory-type-for-EFI-imag.patch
-git am ../patch/0001-efi_loader-check-tables-in-helloworld.efi.patch
-git am ../patch/0001-efi_loader-fix-StartImage-bootservice.patch
-git am ../patch/0001-efi_loader-efi_disk_register-correctly-determine-if_.patch
-git am ../patch/0001-efi_loader-make-efi_block_io_guid-a-global-symbol.patch
-git am ../patch/0001-efi_loader-provide-a-function-to-create-a-partition-.patch
-git am ../patch/0001-efi_loader-make-efi_disk_create_partitions-a-global-.patch
-git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
-git am ../patch/0001-efi_loader-provide-function-to-get-last-node-of-a-de.patch
-git am ../patch/0001-efi_loader-provide-link-between-devices-and-EFI-hand.patch
-git am ../patch/0001-efi_loader-add-check_tpl-parameter-to-efi_signal_eve.patch
-git am ../patch/0001-efi_loader-fix-ExitBootServices.patch
+# git am ../patch/0001-efi_loader-return-NULL-from-device-path-functions.patch
+# git am ../patch/0001-efi_loader-address-of-the-simple-file-system-protoco.patch
+# git am ../patch/0001-efi_loader-correct-find-simple-file-system-protocol.patch
+# git am ../patch/0001-efi_loader-print-device-path-when-entering-efi_load_.patch
+# git am ../patch/0001-efi_loader-allocate-correct-memory-type-for-EFI-imag.patch
+# git am ../patch/0001-efi_loader-check-tables-in-helloworld.efi.patch
+# git am ../patch/0001-efi_loader-fix-StartImage-bootservice.patch
+# git am ../patch/0001-efi_loader-efi_disk_register-correctly-determine-if_.patch
+# git am ../patch/0001-efi_loader-make-efi_block_io_guid-a-global-symbol.patch
+# git am ../patch/0001-efi_loader-provide-a-function-to-create-a-partition-.patch
+# git am ../patch/0001-efi_loader-make-efi_disk_create_partitions-a-global-.patch
+# git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
+# git am ../patch/0001-efi_loader-provide-function-to-get-last-node-of-a-de.patch
+# git am ../patch/0001-efi_loader-add-check_tpl-parameter-to-efi_signal_eve.patch
+# git am ../patch/0001-efi_loader-fix-ExitBootServices.patch
 # git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch
+git am ../patch/0001-efi_loader-provide-link-between-devices-and-EFI-hand.patch
 git am ../patch/0001-efi_driver-EFI-block-driver.patch
 git am ../patch/0001-efi_selftest-provide-a-test-for-block-io.patch
 # >>> end of block driver series
