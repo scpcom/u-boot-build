@@ -65,10 +65,10 @@ git am ../patch/0001-efi_loader-make-efi_disk_create_partitions-a-global-.patch
 git am ../patch/0001-efi_loader-correct-EFI_BLOCK_IO_PROTOCOL-definitions.patch
 git am ../patch/0001-efi_loader-provide-function-to-get-last-node-of-a-de.patch
 git am ../patch/0001-efi_loader-provide-link-between-devices-and-EFI-hand.patch
-git am ../patch/0001-efi_driver-EFI-block-driver.patch
 git am ../patch/0001-efi_loader-add-check_tpl-parameter-to-efi_signal_eve.patch
 git am ../patch/0001-efi_loader-fix-ExitBootServices.patch
-git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch
+# git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch
+git am ../patch/0001-efi_driver-EFI-block-driver.patch
 git am ../patch/0001-efi_selftest-provide-a-test-for-block-io.patch
 # >>> end of block driver series
 

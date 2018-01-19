@@ -1,4 +1,4 @@
-From 7b004822248c625a47526f0b8897572eaf018135 Mon Sep 17 00:00:00 2001
+From 50f2825535b456201297cf3846709183cb971a08 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 11 Jan 2018 09:07:08 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -41,7 +41,7 @@ iPXE uses the simple file protocol to load Grub or the Linux Kernel.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- common/board_r.c                  |   3 +
+ cmd/bootefi.c                     |   3 +
  drivers/block/blk-uclass.c        |   4 +-
  include/blk.h                     |   1 +
  include/config_fallbacks.h        |   1 +
@@ -58,21 +58,20 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  create mode 100644 lib/efi_driver/efi_block_device.c
  create mode 100644 lib/efi_driver/efi_uclass.c
 
-diff --git a/common/board_r.c b/common/board_r.c
-index 2baa47f3a0..4ad37ee31a 100644
---- a/common/board_r.c
-+++ b/common/board_r.c
-@@ -715,7 +715,10 @@ static init_fnc_t init_sequence_r[] = {
- 	set_cpu_clk_info, /* Setup clock information */
- #endif
- #ifdef CONFIG_EFI_LOADER
-+	/* Setup EFI memory before any other EFI related code */
- 	efi_memory_init,
-+	/* Install EFI drivers */
-+	efi_driver_init,
- #endif
- 	stdio_init_tables,
- 	initr_serial,
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 78ff109835..f16d56eb59 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -32,6 +32,9 @@ static void efi_init_obj_list(void)
+ {
+ 	efi_obj_list_initalized = 1;
+ 
++	/* Initialize EFI driver uclass */
++	efi_driver_init();
++
+ 	efi_console_register();
+ #ifdef CONFIG_PARTITIONS
+ 	efi_disk_register();
 diff --git a/drivers/block/blk-uclass.c b/drivers/block/blk-uclass.c
 index 010ed32d3a..bfda2211f0 100644
 --- a/drivers/block/blk-uclass.c
@@ -169,10 +168,10 @@ index 0000000000..2bbe26c6e3
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 711c901eda..a465175d1f 100644
+index 035b04fef4..8b11f30edf 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -273,6 +273,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+@@ -271,6 +271,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
  /* Adds a range into the EFI memory map */
  uint64_t efi_add_memory_map(uint64_t start, uint64_t pages, int memory_type,
  			    bool overlap_only_ram);
@@ -214,7 +213,7 @@ index 0000000000..e35529a952
 +endif
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..837787d563
+index 0000000000..f614560abc
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
 @@ -0,0 +1,175 @@
@@ -395,7 +394,7 @@ index 0000000000..837787d563
 +};
 diff --git a/lib/efi_driver/efi_uclass.c b/lib/efi_driver/efi_uclass.c
 new file mode 100644
-index 0000000000..798431ae74
+index 0000000000..90797f96d8
 --- /dev/null
 +++ b/lib/efi_driver/efi_uclass.c
 @@ -0,0 +1,330 @@
@@ -730,5 +729,5 @@ index 0000000000..798431ae74
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.11.0
+2.14.2
 
