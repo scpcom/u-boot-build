@@ -1,13 +1,24 @@
 From 4683720712509214e4556a3445311e6a9b475e38 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 16 Nov 2017 19:05:19 +0100
-Subject: [PATCH 1/1] efi_loader: implement OpenProtocolInformation
+Subject: [PATCH v4 1/1] efi_loader: implement OpenProtocolInformation
 
 efi_open_protocol_information provides the agent and controller
 handles as well as the attributes and open count of an protocol
 on a handle.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+This patch was originally in a patch series but Alex has already accepted
+the preceding patches.
+
+v4
+	Correct counting of valid entries in case
+	0 == item->info.open_count.
+v3
+	no change
+v2
+	no change
 ---
  lib/efi_loader/efi_boottime.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
  1 file changed, 42 insertions(+), 1 deletion(-)
