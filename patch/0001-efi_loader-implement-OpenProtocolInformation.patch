@@ -1,4 +1,4 @@
-From 0fe8e2f718d7d3942522e32090fa310ef0ddb0f0 Mon Sep 17 00:00:00 2001
+From 4683720712509214e4556a3445311e6a9b475e38 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 16 Nov 2017 19:05:19 +0100
 Subject: [PATCH 1/1] efi_loader: implement OpenProtocolInformation
@@ -9,14 +9,14 @@ on a handle.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_boottime.c | 41 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
+ lib/efi_loader/efi_boottime.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index a527e33141..44c9da0a7c 100644
+index a527e33141..efbf7e35f5 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1722,9 +1722,48 @@ static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
+@@ -1722,9 +1722,50 @@ static efi_status_t EFIAPI efi_open_protocol_information(efi_handle_t handle,
  			struct efi_open_protocol_info_entry **entry_buffer,
  			efi_uintn_t *entry_count)
  {
@@ -42,7 +42,8 @@ index a527e33141..44c9da0a7c 100644
 +	/* Count entries */
 +	count = 0;
 +	list_for_each_entry(item, &handler->open_infos, link) {
-+		++count;
++		if (item->info.open_count)
++			++count;
 +	}
 +	*entry_count = count;
 +	*entry_buffer = NULL;
@@ -57,9 +58,10 @@ index a527e33141..44c9da0a7c 100644
 +			      (void **)entry_buffer);
 +	if (r != EFI_SUCCESS)
 +		goto out;
-+	list_for_each_entry_reverse(item, &handler->open_infos, link) {
++	count = 0;
++	list_for_each_entry(item, &handler->open_infos, link) {
 +		if (item->info.open_count)
-+			(*entry_buffer)[--count] = item->info;
++			(*entry_buffer)[count++] = item->info;
 +	}
 +out:
 +	return EFI_EXIT(r);
@@ -67,5 +69,5 @@ index a527e33141..44c9da0a7c 100644
  
  /*
 -- 
-2.15.1
+2.14.2
 
