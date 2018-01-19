@@ -382,6 +382,11 @@ CONFIG_CMD_MISC=y
 CONFIG_CMD_QFW=y
 # CONFIG_CMD_TERMINAL is not set
 # CONFIG_CMD_UUID is not set
+
+#
+# TI specific command line interface
+#
+# CONFIG_CMD_DDR3 is not set
 CONFIG_CMD_BOOTSTAGE=y
 
 #

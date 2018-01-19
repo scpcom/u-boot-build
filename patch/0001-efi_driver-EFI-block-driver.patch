@@ -1,6 +1,6 @@
-From 8071e42737d736a586bd4bdd144c9e8a0dafe710 Mon Sep 17 00:00:00 2001
+From ebb9176a7c538119927430bca135bc2f3cbccbce Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Thu, 11 Jan 2018 09:07:08 +0100
+Date: Mon, 18 Dec 2017 18:57:48 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
 
 This patch provides
@@ -47,20 +47,19 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/config_fallbacks.h        |   1 +
  include/dm/uclass-id.h            |   1 +
  include/efi_driver.h              |  30 ++++
- include/efi_loader.h              |   4 +-
+ include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  13 ++
  lib/efi_driver/efi_block_device.c | 180 +++++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 330 ++++++++++++++++++++++++++++++++++++++
- lib/efi_loader/efi_boottime.c     |   1 -
- 12 files changed, 565 insertions(+), 4 deletions(-)
+ 11 files changed, 565 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
  create mode 100644 lib/efi_driver/efi_uclass.c
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 97a4f269ae..c230f6fdb9 100644
+index a30259c4c1..51213c0293 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -32,6 +32,9 @@ static void efi_init_obj_list(void)
@@ -169,19 +168,10 @@ index 0000000000..2bbe26c6e3
 +
 +#endif /* _EFI_DRIVER_H */
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index acf0409bef..21c03c5c28 100644
+index 563c7ba3cf..21c03c5c28 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -139,8 +139,6 @@ struct efi_object {
- 	struct list_head protocols;
- 	/* The object spawner can either use this for data or as identifier */
- 	void *handle;
--	/* Device */
--	struct udevice *dev;
- };
- 
- /**
-@@ -273,6 +271,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
+@@ -271,6 +271,8 @@ efi_status_t efi_get_memory_map(efi_uintn_t *memory_map_size,
  /* Adds a range into the EFI memory map */
  uint64_t efi_add_memory_map(uint64_t start, uint64_t pages, int memory_type,
  			    bool overlap_only_ram);
@@ -743,18 +733,6 @@ index 0000000000..90797f96d8
 +	.init		= efi_uc_init,
 +	.destroy	= efi_uc_destroy,
 +};
-diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 4748a4813c..39d8511fe3 100644
---- a/lib/efi_loader/efi_boottime.c
-+++ b/lib/efi_loader/efi_boottime.c
-@@ -363,7 +363,6 @@ efi_status_t efi_create_handle(efi_handle_t *handle)
- 			      (void **)&obj);
- 	if (r != EFI_SUCCESS)
- 		return r;
--	memset(obj, 0, sizeof(struct efi_object));
- 	efi_add_handle(obj);
- 	*handle = obj->handle;
- 	return r;
 -- 
 2.15.1
 

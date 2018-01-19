@@ -67,20 +67,19 @@ git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 # git am ../patch/0001-efi_loader-add-check_tpl-parameter-to-efi_signal_eve.patch
 # git am ../patch/0001-efi_loader-fix-ExitBootServices.patch
 # git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch
-git am ../patch/0001-efi_loader-provide-link-between-devices-and-EFI-hand.patch
 git am ../patch/0001-efi_driver-EFI-block-driver.patch
 git am ../patch/0001-efi_selftest-provide-a-test-for-block-io.patch
 # >>> end of block driver series
 
 # git am ../patch/0001-efi_loader-correctly-call-images.patch
-git am ../patch/0001-efi_selftest-test-start-image.patch
+# git am ../patch/0001-efi_selftest-test-start-image.patch
 
 git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
 git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 
 # git am ../patch/0001-efi_loader-text-output-for-device-path-end-node.patch
 
-git am ../patch/0001-efi_loader-store-DT-in-EFI_RUNTIME_SERVICES_DATA-mem.patch
+# git am ../patch/0001-efi_loader-store-DT-in-EFI_RUNTIME_SERVICES_DATA-mem.patch
 
 # Work in progress
 # git am ../patch/0001-efi_loader-debug-print-memory-map.patch
