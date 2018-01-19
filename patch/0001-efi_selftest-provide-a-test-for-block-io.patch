@@ -3,6 +3,14 @@ From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 18 Dec 2017 23:16:03 +0100
 Subject: [PATCH] efi_selftest: provide a test for block io
 
+This test checks the driver for block IO devices.
+A disk image is created in memory.
+A handle is created for the new block IO device.
+The block I/O protocol is installed on the handle.
+ConnectController is used to setup partitions and to install the simple
+file protocol.
+A known file is read from the file system and verified.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                    |   3 +
