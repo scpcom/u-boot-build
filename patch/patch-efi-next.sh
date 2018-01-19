@@ -57,7 +57,7 @@ git am ../patch/0001-efi_loader-correct-find-simple-file-system-protocol.patch
 git am ../patch/0001-efi_loader-print-device-path-when-entering-efi_load_.patch
 git am ../patch/0001-efi_loader-allocate-correct-memory-type-for-EFI-imag.patch
 git am ../patch/0001-efi_loader-check-tables-in-helloworld.efi.patch
-# git am ../patch/0001-efi_loader-fix-StartImage-bootservice.patch
+git am ../patch/0001-efi_loader-fix-StartImage-bootservice.patch
 git am ../patch/0001-efi_loader-efi_disk_register-correctly-determine-if_.patch
 git am ../patch/0001-efi_loader-make-efi_block_io_guid-a-global-symbol.patch
 git am ../patch/0001-efi_loader-provide-a-function-to-create-a-partition-.patch
@@ -68,7 +68,7 @@ git am ../patch/0001-efi_loader-provide-link-between-devices-and-EFI-hand.patch
 git am ../patch/0001-efi_driver-EFI-block-driver.patch
 git am ../patch/0001-efi_loader-add-check_tpl-parameter-to-efi_signal_eve.patch
 git am ../patch/0001-efi_loader-fix-ExitBootServices.patch
-# git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch
+git am ../patch/0001-tools-provide-a-tool-to-convert-a-binary-file-to-an-.patch
 git am ../patch/0001-efi_selftest-provide-a-test-for-block-io.patch
 # >>> end of block driver series
 
