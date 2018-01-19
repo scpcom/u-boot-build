@@ -1,0 +1,133 @@
+From dd50ab878d65cd2bf87cca122e642505c73d925c Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 19 Jan 2018 12:46:58 +0100
+Subject: [PATCH 1/1] efi_loader: add check_tpl parameter to efi_signal_event
+
+In ExitBootServices we need to signal events irrespective of the current
+TPL level. A new parameter check_tpl is added to efi_signal_event().
+
+Function efi_console_timer_notify() gets some comments.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h          |  2 +-
+ lib/efi_loader/efi_boottime.c | 15 ++++++++-------
+ lib/efi_loader/efi_console.c  | 14 +++++++++++---
+ 3 files changed, 20 insertions(+), 11 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 9725ebe37d..401023fcea 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -242,7 +242,7 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
+ 			   uint64_t trigger_time);
+ /* Call this to signal an event */
+-void efi_signal_event(struct efi_event *event);
++void efi_signal_event(struct efi_event *event, bool check_tpl);
+ 
+ /* open file system: */
+ struct efi_simple_file_system_protocol *efi_simple_file_system(
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index abb798ff34..0780cc2f0b 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -149,13 +149,14 @@ const char *__efi_nesting_dec(void)
+  * For the SignalEvent service see efi_signal_event_ext.
+  *
+  * @event	event to signal
++ * @check_tpl	check the TPL level
+  */
+-void efi_signal_event(struct efi_event *event)
++void efi_signal_event(struct efi_event *event, bool check_tpl)
+ {
+ 	if (event->notify_function) {
+ 		event->is_queued = true;
+ 		/* Check TPL */
+-		if (efi_tpl >= event->notify_tpl)
++		if (check_tpl && efi_tpl >= event->notify_tpl)
+ 			return;
+ 		EFI_CALL_VOID(event->notify_function(event,
+ 						     event->notify_context));
+@@ -566,7 +567,7 @@ void efi_timer_check(void)
+ 		if (!efi_events[i].type)
+ 			continue;
+ 		if (efi_events[i].is_queued)
+-			efi_signal_event(&efi_events[i]);
++			efi_signal_event(&efi_events[i], true);
+ 		if (!(efi_events[i].type & EVT_TIMER) ||
+ 		    now < efi_events[i].trigger_next)
+ 			continue;
+@@ -582,7 +583,7 @@ void efi_timer_check(void)
+ 			continue;
+ 		}
+ 		efi_events[i].is_signaled = true;
+-		efi_signal_event(&efi_events[i]);
++		efi_signal_event(&efi_events[i], true);
+ 	}
+ 	WATCHDOG_RESET();
+ }
+@@ -691,7 +692,7 @@ known_event:
+ 		if (!event[i]->type || event[i]->type & EVT_NOTIFY_SIGNAL)
+ 			return EFI_EXIT(EFI_INVALID_PARAMETER);
+ 		if (!event[i]->is_signaled)
+-			efi_signal_event(event[i]);
++			efi_signal_event(event[i], true);
+ 	}
+ 
+ 	/* Wait for signal */
+@@ -741,7 +742,7 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
+ 			break;
+ 		event->is_signaled = true;
+ 		if (event->type & EVT_NOTIFY_SIGNAL)
+-			efi_signal_event(event);
++			efi_signal_event(event, true);
+ 		break;
+ 	}
+ 	return EFI_EXIT(EFI_SUCCESS);
+@@ -798,7 +799,7 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+ 		if (!event->type || event->type & EVT_NOTIFY_SIGNAL)
+ 			break;
+ 		if (!event->is_signaled)
+-			efi_signal_event(event);
++			efi_signal_event(event, true);
+ 		if (event->is_signaled)
+ 			return EFI_EXIT(EFI_SUCCESS);
+ 		return EFI_EXIT(EFI_NOT_READY);
+diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
+index 56b079cee8..28d63635ec 100644
+--- a/lib/efi_loader/efi_console.c
++++ b/lib/efi_loader/efi_console.c
+@@ -482,18 +482,26 @@ static void EFIAPI efi_key_notify(struct efi_event *event, void *context)
+ {
+ }
+ 
++/*
++ * Notification function of the console timer event.
++ *
++ * event:	console timer event
++ * context:	not used
++ */
+ static void EFIAPI efi_console_timer_notify(struct efi_event *event,
+ 					    void *context)
+ {
+ 	EFI_ENTRY("%p, %p", event, context);
++
++	/* Check if input is available */
+ 	if (tstc()) {
++		/* Queue the wait for key event */
+ 		efi_con_in.wait_for_key->is_signaled = true;
+-		efi_signal_event(efi_con_in.wait_for_key);
+-		}
++		efi_signal_event(efi_con_in.wait_for_key, true);
++	}
+ 	EFI_EXIT(EFI_SUCCESS);
+ }
+ 
+-
+ /* This gets called from do_bootefi_exec(). */
+ int efi_console_register(void)
+ {
+-- 
+2.14.2
+
