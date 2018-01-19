@@ -29,15 +29,15 @@ git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 # git am ../patch/0001-efi_loader-list-of-open-protocol-infos.patch
 # git am ../patch/0001-efi_loader-open_info-in-OpenProtocol.patch
 # git am ../patch/0001-efi_loader-open_info-in-CloseProtocol.patch
-git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
-git am ../patch/0001-efi_loader-debug-output-installed-device-path.patch
-git am ../patch/0001-efi_loader-implement-ConnectController.patch
-git am ../patch/0001-efi_loader-fix-signature-of-efi_disconnect_controlle.patch 
-git am ../patch/0001-efi_loader-implement-DisconnectController.patch
-git am ../patch/0001-efi_loader-disconnect-controllers-in-UninstallProtoc.patch
-git am ../patch/0001-efi_selftest-remove-todo-in-manage-protocols.patch
-git am ../patch/0001-efi_selftest-remove-todo-in-device-path-test.patch
-git am ../patch/0001-efi_selftest-test-for-Dis-ConnectController.patch
+# git am ../patch/0001-efi_loader-implement-OpenProtocolInformation.patch
+# git am ../patch/0001-efi_loader-debug-output-installed-device-path.patch
+# git am ../patch/0001-efi_loader-implement-ConnectController.patch
+# git am ../patch/0001-efi_loader-fix-signature-of-efi_disconnect_controlle.patch 
+# git am ../patch/0001-efi_loader-implement-DisconnectController.patch
+# git am ../patch/0001-efi_loader-disconnect-controllers-in-UninstallProtoc.patch
+# git am ../patch/0001-efi_selftest-remove-todo-in-manage-protocols.patch
+# git am ../patch/0001-efi_selftest-remove-todo-in-device-path-test.patch
+# git am ../patch/0001-efi_selftest-test-for-Dis-ConnectController.patch
 # git am ../patch/0001-efi_loader-consistently-use-efi_handle_t-for-handles.patch
 # git am ../patch/0001-Debug-boottime.patch
 # >>> end of protocol series 4
