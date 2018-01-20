@@ -218,7 +218,7 @@ CONFIG_BOOTSTAGE_STASH_SIZE=0x1000
 CONFIG_BOOTDELAY=2
 # CONFIG_USE_BOOTARGS is not set
 CONFIG_USE_BOOTCOMMAND=y
-CONFIG_BOOTCOMMAND="run distro_bootcmd"
+CONFIG_BOOTCOMMAND="load mmc 0:1 0x13000000 snp.efi && bootefi 0x13000000"
 
 #
 # Console
@@ -434,6 +434,11 @@ CONFIG_CMD_MISC=y
 # CONFIG_CMD_QFW is not set
 # CONFIG_CMD_TERMINAL is not set
 # CONFIG_CMD_UUID is not set
+
+#
+# TI specific command line interface
+#
+# CONFIG_CMD_DDR3 is not set
 
 #
 # Power commands
