@@ -1,0 +1,108 @@
+From 06935ff74bc84baec789cc8aa19ffc22616c55ac Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 20 Jan 2018 17:58:56 +0000
+Subject: [PATCH 1/1] efi_loader: allow creation of more device part nodes
+
+Create device path nodes for UCLASS_ETH udevices.
+Create device path nodes of block device children of UCLASS_MMC udevices.
+Consistently use debug for unsupported nodes.
+Set the log level to error.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_device_path.c | 42 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 37 insertions(+), 5 deletions(-)
+
+diff --git a/lib/efi_loader/efi_device_path.c b/lib/efi_loader/efi_device_path.c
+index c941ea7717..262f8d9430 100644
+--- a/lib/efi_loader/efi_device_path.c
++++ b/lib/efi_loader/efi_device_path.c
+@@ -6,6 +6,8 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ 
++#define LOG_CATEGORY LOGL_ERR
++
+ #include <common.h>
+ #include <blk.h>
+ #include <dm.h>
+@@ -111,7 +113,6 @@ int efi_dp_match(const struct efi_device_path *a,
+ 	}
+ }
+ 
+-
+ /*
+  * See UEFI spec (section 3.1.2, about short-form device-paths..
+  * tl;dr: we can have a device-path that starts with a USB WWID
+@@ -184,7 +185,6 @@ static struct efi_object *find_obj(struct efi_device_path *dp, bool short_path,
+ 	return NULL;
+ }
+ 
+-
+ /*
+  * Find an efiobj from device-path, if 'rem' is not NULL, returns the
+  * remaining part of the device path after the matched object.
+@@ -378,6 +378,20 @@ static void *dp_fill(void *buf, struct udevice *dev)
+ 		*vdp = ROOT;
+ 		return &vdp[1];
+ 	}
++	case UCLASS_ETH: {
++		struct efi_device_path_mac_addr *dp =
++		dp_fill(buf, dev->parent);
++		struct eth_pdata *pdata = dev->platdata;
++
++		dp->dp.type = DEVICE_PATH_TYPE_MESSAGING_DEVICE;
++		dp->dp.sub_type = DEVICE_PATH_SUB_TYPE_MSG_MAC_ADDR;
++		memset(&dp->mac, 0, sizeof(dp->mac));
++		/* We only support IPv4 */
++		memcpy(&dp->mac, &pdata->enetaddr, ARP_HLEN);
++		/* Ethernet */
++		dp->if_type = 1;
++		return &dp[1];
++	}
+ #ifdef CONFIG_BLK
+ 	case UCLASS_BLK:
+ 		switch (dev->parent->uclass->uc_drv->id) {
+@@ -411,10 +425,27 @@ static void *dp_fill(void *buf, struct udevice *dev)
+ 			dp->target_id = desc->target;
+ 			return &dp[1];
+ 			}
++#endif
++#if defined(CONFIG_DM_MMC) && defined(CONFIG_MMC)
++		case UCLASS_MMC: {
++			struct efi_device_path_sd_mmc_path *sddp =
++				dp_fill(buf, dev->parent);
++			struct mmc *mmc = mmc_get_mmc_dev(dev);
++			struct blk_desc *desc = mmc_get_blk_desc(mmc);
++
++			sddp->dp.type     = DEVICE_PATH_TYPE_MESSAGING_DEVICE;
++			sddp->dp.sub_type = is_sd(desc) ?
++				DEVICE_PATH_SUB_TYPE_MSG_SD :
++				DEVICE_PATH_SUB_TYPE_MSG_MMC;
++			sddp->dp.length   = sizeof(*sddp);
++			sddp->slot_number = dev->seq;
++			return &sddp[1];
++			}
+ #endif
+ 		default:
+-			printf("unhandled parent class: %s (%u)\n",
+-			       dev->name, dev->driver->id);
++			debug("%s(%u) %s: unhandled parent class: %s (%u)\n",
++			      __FILE__, __LINE__, __func__,
++			      dev->name, dev->parent->uclass->uc_drv->id);
+ 			return dp_fill(buf, dev->parent);
+ 		}
+ #endif
+@@ -454,7 +485,8 @@ static void *dp_fill(void *buf, struct udevice *dev)
+ 		return &udp[1];
+ 	}
+ 	default:
+-		debug("unhandled device class: %s (%u)\n",
++		debug("%s(%u) %s: unhandled device class: %s (%u)\n",
++		      __FILE__, __LINE__, __func__,
+ 		      dev->name, dev->driver->id);
+ 		return dp_fill(buf, dev->parent);
+ 	}
+-- 
+2.15.1
+
