@@ -18,6 +18,7 @@ git am ../patch/0001-efi_selftest-provide-a-test-for-block-io.patch
 
 git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
 git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
+git am ../patch/0001-efi_loader-use-built-in-device-tree-in-bootefi-comma.patch
 
 # Work in progress
 # git am ../patch/0001-efi_loader-debug-print-memory-map.patch
