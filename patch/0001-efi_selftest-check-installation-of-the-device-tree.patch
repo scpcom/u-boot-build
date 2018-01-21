@@ -1,4 +1,4 @@
-From 5b3534362519defe92774ba9fce7cc65ea0bd920 Mon Sep 17 00:00:00 2001
+From f81f320eca448ede2b23b02cdaf3dc282288bad8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 21 Jan 2018 20:49:53 +0100
 Subject: [PATCH 1/1] efi_selftest: check installation of the device tree
@@ -7,19 +7,23 @@ The unit test checks if a device tree is installed. It requires that the
 compatible property of the root node exists. If available it prints the
 serial-number property.
 
-The serial-number property is derived form the environment variable
+The serial-number property is derived from the environment variable
 'serial#'. This can be used to check if the image_setup_libfdt() function
 is executed.
 
 With this patch the same routine is used to install the device tree both
-for loading an external image and for bootefi selftest.
+for loading an external image and for running bootefi selftest.
+
+A Python test is supplied. It sets a value for serial# and checks that the
+selftest shows this as serial-number.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                       |  69 +++++++++-------
+ cmd/bootefi.c                       |  69 ++++++++------
  lib/efi_selftest/Makefile           |   1 +
- lib/efi_selftest/efi_selftest_fdt.c | 152 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 194 insertions(+), 28 deletions(-)
+ lib/efi_selftest/efi_selftest_fdt.c | 182 ++++++++++++++++++++++++++++++++++++
+ test/py/tests/test_efi_selftest.py  |  13 +++
+ 4 files changed, 237 insertions(+), 28 deletions(-)
  create mode 100644 lib/efi_selftest/efi_selftest_fdt.c
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
@@ -137,10 +141,10 @@ index 90246f7827..8160de0f89 100644
  efi_selftest_snp.o \
 diff --git a/lib/efi_selftest/efi_selftest_fdt.c b/lib/efi_selftest/efi_selftest_fdt.c
 new file mode 100644
-index 0000000000..807736d4a8
+index 0000000000..9b3b83ba71
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_fdt.c
-@@ -0,0 +1,152 @@
+@@ -0,0 +1,182 @@
 +/*
 + * efi_selftest_pos
 + *
@@ -171,7 +175,8 @@ index 0000000000..807736d4a8
 + * @val		FDT value
 + * @return	converted value
 + */
-+static uint32_t f2h(fdt32_t val) {
++static uint32_t f2h(fdt32_t val)
++{
 +	char *buf = (char *)&val;
 +	char i;
 +
@@ -183,12 +188,12 @@ index 0000000000..807736d4a8
 +}
 +
 +/*
-+ * Return the value of a property of an FDT node.
++ * Return the value of a property of the FDT root node.
 + *
 + * @name	name of the property
 + * @return	value of the property
 + */
-+static const char *get_property(const u16 *property)
++static char *get_property(const u16 *property)
 +{
 +	struct fdt_header *header = (struct fdt_header *)fdt;
 +	const fdt32_t *pos;
@@ -196,42 +201,59 @@ index 0000000000..807736d4a8
 +
 +	if (!header)
 +		return NULL;
-+	
-+	if (FDT_MAGIC != f2h(header->magic)) {
++
++	if (f2h(header->magic) != FDT_MAGIC) {
 +		printf("Wrong magic\n");
 +		return NULL;
 +	}
 +
-+	pos = (fdt32_t *)(fdt + f2h(header->off_dt_struct)); 
++	pos = (fdt32_t *)(fdt + f2h(header->off_dt_struct));
 +	strings = fdt + f2h(header->off_dt_strings);
 +
 +	for (;;) {
 +		switch (f2h(pos[0])) {
-+			case FDT_BEGIN_NODE: {
-+				char *c = (char *)&pos[1];
-+				size_t i;
++		case FDT_BEGIN_NODE: {
++			char *c = (char *)&pos[1];
++			size_t i;
 +
-+				for (i = 0; c[i]; ++i);
-+				pos = &pos[2 + (i >> 2)];
-+				break;
++			for (i = 0; c[i]; ++i)
++				;
++			pos = &pos[2 + (i >> 2)];
++			break;
++		}
++		case FDT_PROP: {
++			struct fdt_property *prop = (struct fdt_property *)pos;
++			const char *label = &strings[f2h(prop->nameoff)];
++			efi_status_t ret;
++
++			/* Check if this the property to be returned */
++			if (!efi_st_strcmp_16_8(property, label)) {
++				char *str;
++				efi_uintn_t len = f2h(prop->len);
++
++				/*
++				 * The string may not be 0 terminated.
++				 * So we need a copy.
++				 */
++				ret = boottime->allocate_pool(
++					EFI_LOADER_DATA, len + 1,
++					(void **)&str);
++				if (ret != EFI_SUCCESS)
++					return NULL;
++				boottime->copy_mem(&str, &pos[3], len);
++				str[len] = 0;
++
++				return str;
 +			}
-+			case FDT_PROP: {
-+				struct fdt_property *prop =
-+					(struct fdt_property *)pos;
-+				const char *label =
-+					&strings[f2h(prop->nameoff)];
 +
-+				if (!efi_st_strcmp_16_8(property, label))
-+					return (char *)&pos[3];
-+
-+				pos = &pos[3 + ((f2h(prop->len) + 3) >> 2)];
-+				break;
-+			}
-+			case FDT_NOP:
-+				pos = &pos[1];
-+				break;
-+			default:
-+				return NULL;
++			pos = &pos[3 + ((f2h(prop->len) + 3) >> 2)];
++			break;
++		}
++		case FDT_NOP:
++			pos = &pos[1];
++			break;
++		default:
++			return NULL;
 +		}
 +	}
 +}
@@ -271,18 +293,30 @@ index 0000000000..807736d4a8
 + */
 +static int execute(void)
 +{
-+	const char *str;
++	char *str;
++	efi_status_t ret;
 +
 +	str = get_property(L"compatible");
 +	if (str) {
 +		efi_st_printf("compatible: %s\n", str);
++		ret = boottime->free_pool(str);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("FreePool failed\n");
++			return EFI_ST_FAILURE;
++		}
 +	} else {
 +		efi_st_printf("Missing property 'compatible'\n");
 +		return EFI_ST_FAILURE;
 +	}
 +	str = get_property(L"serial-number");
-+	if (str)
++	if (str) {
 +		efi_st_printf("serial-number: %s\n", str);
++		ret = boottime->free_pool(str);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("FreePool failed\n");
++			return EFI_ST_FAILURE;
++		}
++	}
 +
 +	return EFI_ST_SUCCESS;
 +}
@@ -293,6 +327,30 @@ index 0000000000..807736d4a8
 +	.setup = setup,
 +	.execute = execute,
 +};
+diff --git a/test/py/tests/test_efi_selftest.py b/test/py/tests/test_efi_selftest.py
+index 66b799bed6..f7eaf8d59d 100644
+--- a/test/py/tests/test_efi_selftest.py
++++ b/test/py/tests/test_efi_selftest.py
+@@ -24,6 +24,19 @@ def test_efi_selftest(u_boot_console):
+ 		raise Exception('Reset failed during the EFI selftest')
+ 	u_boot_console.restart_uboot();
+ 
++@pytest.mark.buildconfigspec('cmd_bootefi_selftest')
++def test_efi_selftest_device_tree(u_boot_console):
++	u_boot_console.run_command(cmd='setenv efi_selftest list')
++	output = u_boot_console.run_command('bootefi selftest')
++	assert '\'device tree\'' in output
++	u_boot_console.run_command(cmd='setenv efi_selftest device tree')
++	u_boot_console.run_command(cmd='setenv -f serial# Testing DT')
++	u_boot_console.run_command(cmd='bootefi selftest', wait_for_prompt=False)
++	m = u_boot_console.p.expect(['serial-number: Testing DT', 'U-Boot'])
++	if m != 0:
++		raise Exception('Reset failed in \'device tree\' test')
++	u_boot_console.restart_uboot();
++
+ @pytest.mark.buildconfigspec('cmd_bootefi_selftest')
+ def test_efi_selftest_watchdog_reboot(u_boot_console):
+ 	u_boot_console.run_command(cmd='setenv efi_selftest list')
 -- 
-2.15.1
+2.14.2
 
