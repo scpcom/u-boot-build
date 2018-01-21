@@ -1,4 +1,4 @@
-From 2794d640dbd3287d27163e438d0b6d413e75b5ea Mon Sep 17 00:00:00 2001
+From 5fa8d675b31fa467b0718a17eb215cf94976a4b2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 18 Dec 2017 18:57:48 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -50,9 +50,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  13 ++
- lib/efi_driver/efi_block_device.c | 198 +++++++++++++++++++++++
+ lib/efi_driver/efi_block_device.c | 205 +++++++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 330 ++++++++++++++++++++++++++++++++++++++
- 11 files changed, 583 insertions(+), 1 deletion(-)
+ 11 files changed, 590 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -213,10 +213,10 @@ index 0000000000..e35529a952
 +endif
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..81898cf441
+index 0000000000..8143d9ccae
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,198 @@
+@@ -0,0 +1,205 @@
 +/*
 + *  EFI block driver
 + *
@@ -250,8 +250,6 @@ index 0000000000..81898cf441
 +
 +#include <efi_driver.h>
 +#include <dm/root.h>
-+
-+static int efi_blk_max_devnum;
 +
 +/*
 + * EFI attributes of the udevice handled by this driver.
@@ -352,7 +350,7 @@ index 0000000000..81898cf441
 +{
 +	struct udevice *bdev, *parent = dm_root();
 +	int ret, devnum;
-+	char name[20];
++	char *name;
 +	struct efi_object *obj = efi_search_obj(handle);
 +	struct efi_block_io *io = interface;
 +	int disks;
@@ -363,9 +361,18 @@ index 0000000000..81898cf441
 +	if (!obj)
 +		return -ENOENT;
 +
-+	devnum = efi_blk_max_devnum++;
-+	sprintf(name, "efi#%d", devnum);
++	devnum = blk_find_max_devnum(IF_TYPE_EFI);
++	if (devnum == -ENODEV)
++		devnum = 0;
++	else if (devnum < 0)
++		return devnum;
 +
++	name = calloc(1, 18);
++	if (!name)
++		return -ENOMEM;
++	sprintf(name, "efiblk#%d", devnum);
++
++	/* Create driver model udevice for the EFI block io device */
 +	ret = blk_create_device(parent, "efi_blk", name, IF_TYPE_EFI, devnum,
 +				io->media->block_size,
 +				(lbaint_t)io->media->last_block, &bdev);
@@ -396,10 +403,10 @@ index 0000000000..81898cf441
 +
 +/* Identify as block device driver */
 +U_BOOT_DRIVER(efi_blk) = {
-+	.name		= "efi_blk",
-+	.id		= UCLASS_BLK,
-+	.ops		= &efi_blk_ops,
-+	.priv_auto_alloc_size = sizeof(struct efi_blk_priv),
++	.name			= "efi_blk",
++	.id			= UCLASS_BLK,
++	.ops			= &efi_blk_ops,
++	.priv_auto_alloc_size	= sizeof(struct efi_blk_priv),
 +};
 +
 +/* EFI driver operators */
