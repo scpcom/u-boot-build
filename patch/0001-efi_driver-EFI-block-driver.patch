@@ -1,4 +1,4 @@
-From 5fa8d675b31fa467b0718a17eb215cf94976a4b2 Mon Sep 17 00:00:00 2001
+From 6b9a307fd4b707e546f47fdca56bf6518f702f21 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 18 Dec 2017 18:57:48 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -50,9 +50,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  13 ++
- lib/efi_driver/efi_block_device.c | 205 +++++++++++++++++++++++
+ lib/efi_driver/efi_block_device.c | 210 ++++++++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 330 ++++++++++++++++++++++++++++++++++++++
- 11 files changed, 590 insertions(+), 1 deletion(-)
+ 11 files changed, 595 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -213,10 +213,10 @@ index 0000000000..e35529a952
 +endif
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..8143d9ccae
+index 0000000000..90f7581cfa
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,205 @@
+@@ -0,0 +1,210 @@
 +/*
 + *  EFI block driver
 + *
@@ -249,6 +249,7 @@ index 0000000000..8143d9ccae
 + */
 +
 +#include <efi_driver.h>
++#include <dm/device-internal.h>
 +#include <dm/root.h>
 +
 +/*
@@ -380,6 +381,10 @@ index 0000000000..8143d9ccae
 +		return ret;
 +	if (!bdev)
 +		return -ENOENT;
++	/* Allocate priv */
++	ret = device_probe(bdev);
++	if (ret)
++		return ret;
 +	EFI_PRINT("%s: block device '%s' created\n", __func__, bdev->name);
 +
 +	priv = bdev->priv;
