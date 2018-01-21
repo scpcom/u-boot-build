@@ -1,0 +1,198 @@
+From 1e3ed89b256b165a1668ef4d6487207c91c968a8 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 21 Jan 2018 20:49:53 +0100
+Subject: [PATCH 1/1] efi_selftest: check installation of the device tree
+
+This unit test checks if a device tree is installed. It requires that the
+compatible property of the root node exists. If available it prints the
+serial-number property.
+
+The serial-number property is derived form the environment variable
+'serial#'. This can be used to check if the image_setup_libfdt() function
+is executed.
+
+This test only applies to the arm and arm64 architectures.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/Makefile           |   4 +
+ lib/efi_selftest/efi_selftest_fdt.c | 152 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 156 insertions(+)
+ create mode 100644 lib/efi_selftest/efi_selftest_fdt.c
+
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index 90246f7827..e4c266c946 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -25,6 +25,10 @@ efi_selftest_tpl.o \
+ efi_selftest_util.o \
+ efi_selftest_watchdog.o
+ 
++ifeq ($(CONFIG_ARM),y)
++obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += efi_selftest_fdt.o
++endif
++
+ ifeq ($(CONFIG_BLK)$(CONFIG_PARTITIONS),yy)
+ obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += efi_selftest_block_device.o
+ endif
+diff --git a/lib/efi_selftest/efi_selftest_fdt.c b/lib/efi_selftest/efi_selftest_fdt.c
+new file mode 100644
+index 0000000000..988ef8db35
+--- /dev/null
++++ b/lib/efi_selftest/efi_selftest_fdt.c
+@@ -0,0 +1,152 @@
++/*
++ * efi_selftest_pos
++ *
++ * Copyright (c) 2018 Heinrich Schuchardt <xypron.glpk@gmx.de>
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ *
++ * Test the EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL.
++ *
++ * The following services are tested:
++ * OutputString, TestString, SetAttribute.
++ */
++
++#include <efi_selftest.h>
++#include <fdt.h>
++
++static struct efi_boot_services *boottime;
++static const char *fdt;
++
++/* This should be sufficent for */
++#define BUFFERSIZE 0x100000
++
++static efi_guid_t fdt_guid = EFI_FDT_GUID;
++
++/*
++ * Convert FDT value to host endianness.
++ *
++ * @val		FDT value
++ * @return	converted value
++ */
++static uint32_t f2h(fdt32_t val) {
++	char *buf = (char *)&val;
++	char i;
++
++#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
++	i = buf[0]; buf[0] = buf[3]; buf[3] = i;
++	i = buf[1]; buf[1] = buf[2]; buf[2] = i;
++#endif
++	return *(uint32_t *)buf;
++}
++
++/*
++ * Return the value of a property of an FDT node.
++ *
++ * @name	name of the property
++ * @return	value of the property
++ */
++static const char *get_property(const u16 *property)
++{
++	struct fdt_header *header = (struct fdt_header *)fdt;
++	const fdt32_t *pos;
++	const char *strings;
++
++	if (!header)
++		return NULL;
++	
++	if (FDT_MAGIC != f2h(header->magic)) {
++		printf("Wrong magic\n");
++		return NULL;
++	}
++
++	pos = (fdt32_t *)(fdt + f2h(header->off_dt_struct)); 
++	strings = fdt + f2h(header->off_dt_strings);
++
++	for (;;) {
++		switch (f2h(pos[0])) {
++			case FDT_BEGIN_NODE: {
++				char *c = (char *)&pos[1];
++				size_t i;
++
++				for (i = 0; c[i]; ++i);
++				pos = &pos[2 + (i >> 2)];
++				break;
++			}
++			case FDT_PROP: {
++				struct fdt_property *prop =
++					(struct fdt_property *)pos;
++				const char *label =
++					&strings[f2h(prop->nameoff)];
++
++				if (!efi_st_strcmp_16_8(property, label))
++					return (char *)&pos[3];
++
++				pos = &pos[3 + ((f2h(prop->len) + 3) >> 2)];
++				break;
++			}
++			case FDT_NOP:
++				pos = &pos[1];
++				break;
++			default:
++				return NULL;
++		}
++	}
++}
++
++/*
++ * Setup unit test.
++ *
++ * @handle:	handle of the loaded image
++ * @systable:	system table
++ * @return:	EFI_ST_SUCCESS for success
++ */
++static int setup(const efi_handle_t img_handle,
++		 const struct efi_system_table *systable)
++{
++	efi_uintn_t i;
++
++	boottime = systable->boottime;
++
++	/* Find configuration tables */
++	for (i = 0; i < systable->nr_tables; ++i) {
++		if (!efi_st_memcmp(&systable->tables[i].guid, &fdt_guid,
++				   sizeof(efi_guid_t)))
++			fdt = systable->tables[i].table;
++	}
++	if (!fdt) {
++		efi_st_error("Missing device tree\n");
++		return EFI_ST_FAILURE;
++	}
++
++	return EFI_ST_SUCCESS;
++}
++
++/*
++ * Execute unit test.
++ *
++ * @return:	EFI_ST_SUCCESS for success
++ */
++static int execute(void)
++{
++	const char *str;
++
++	str = get_property(L"compatible");
++	if (str) {
++		efi_st_printf("compatible: %s\n", str);
++	} else {
++		efi_st_printf("Missing property 'compatible'\n");
++		return EFI_ST_FAILURE;
++	}
++	str = get_property(L"serial-number");
++	if (str)
++		efi_st_printf("serial-number: %s\n", str);
++
++	return EFI_ST_SUCCESS;
++}
++
++EFI_UNIT_TEST(fdt) = {
++	.name = "device tree",
++	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++};
+-- 
+2.15.1
+
