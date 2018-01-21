@@ -240,7 +240,7 @@ index 0000000000..9b3b83ba71
 +					(void **)&str);
 +				if (ret != EFI_SUCCESS)
 +					return NULL;
-+				boottime->copy_mem(&str, &pos[3], len);
++				boottime->copy_mem(str, &pos[3], len);
 +				str[len] = 0;
 +
 +				return str;
