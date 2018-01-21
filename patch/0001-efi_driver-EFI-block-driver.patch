@@ -1,4 +1,4 @@
-From ebb9176a7c538119927430bca135bc2f3cbccbce Mon Sep 17 00:00:00 2001
+From 2794d640dbd3287d27163e438d0b6d413e75b5ea Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 18 Dec 2017 18:57:48 +0100
 Subject: [PATCH 1/1] efi_driver: EFI block driver
@@ -50,9 +50,9 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  include/efi_loader.h              |   2 +
  lib/Makefile                      |   1 +
  lib/efi_driver/Makefile           |  13 ++
- lib/efi_driver/efi_block_device.c | 180 +++++++++++++++++++++
+ lib/efi_driver/efi_block_device.c | 198 +++++++++++++++++++++++
  lib/efi_driver/efi_uclass.c       | 330 ++++++++++++++++++++++++++++++++++++++
- 11 files changed, 565 insertions(+), 1 deletion(-)
+ 11 files changed, 583 insertions(+), 1 deletion(-)
  create mode 100644 include/efi_driver.h
  create mode 100644 lib/efi_driver/Makefile
  create mode 100644 lib/efi_driver/efi_block_device.c
@@ -213,10 +213,10 @@ index 0000000000..e35529a952
 +endif
 diff --git a/lib/efi_driver/efi_block_device.c b/lib/efi_driver/efi_block_device.c
 new file mode 100644
-index 0000000000..fa0c939238
+index 0000000000..81898cf441
 --- /dev/null
 +++ b/lib/efi_driver/efi_block_device.c
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,198 @@
 +/*
 + *  EFI block driver
 + *
@@ -254,6 +254,17 @@ index 0000000000..fa0c939238
 +static int efi_blk_max_devnum;
 +
 +/*
++ * EFI attributes of the udevice handled by this driver.
++ *
++ * handle	handle of the controller on which this driver is installed
++ * io		block io protocol proxied by this driver
++ */
++struct efi_blk_priv {
++	efi_handle_t		handle;
++	struct efi_block_io	*io;
++};
++
++/*
 + * Read from block device
 + *
 + * @dev		device
@@ -265,7 +276,8 @@ index 0000000000..fa0c939238
 +static ulong efi_bl_read(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
 +			 void *buffer)
 +{
-+	struct efi_block_io *io = dev->platdata;
++	struct efi_blk_priv *priv = dev->priv;
++	struct efi_block_io *io = priv->io;
 +	efi_status_t ret;
 +
 +	EFI_PRINT("%s: read '%s', from block " LBAFU ", " LBAFU " blocks\n",
@@ -293,7 +305,8 @@ index 0000000000..fa0c939238
 +static ulong efi_bl_write(struct udevice *dev, lbaint_t blknr, lbaint_t blkcnt,
 +			  const void *buffer)
 +{
-+	struct efi_block_io *io = dev->platdata;
++	struct efi_blk_priv *priv = dev->priv;
++	struct efi_block_io *io = priv->io;
 +	efi_status_t ret;
 +
 +	EFI_PRINT("%s: write '%s', from block " LBAFU ", " LBAFU " blocks\n",
@@ -343,6 +356,7 @@ index 0000000000..fa0c939238
 +	struct efi_object *obj = efi_search_obj(handle);
 +	struct efi_block_io *io = interface;
 +	int disks;
++	struct efi_blk_priv *priv;
 +
 +	EFI_PRINT("%s: handle %p, interface %p\n", __func__, handle, io);
 +
@@ -360,7 +374,10 @@ index 0000000000..fa0c939238
 +	if (!bdev)
 +		return -ENOENT;
 +	EFI_PRINT("%s: block device '%s' created\n", __func__, bdev->name);
-+	bdev->platdata = interface;
++
++	priv = bdev->priv;
++	priv->handle = handle;
++	priv->io = interface;
 +
 +	ret = blk_prepare_device(bdev);
 +
@@ -382,6 +399,7 @@ index 0000000000..fa0c939238
 +	.name		= "efi_blk",
 +	.id		= UCLASS_BLK,
 +	.ops		= &efi_blk_ops,
++	.priv_auto_alloc_size = sizeof(struct efi_blk_priv),
 +};
 +
 +/* EFI driver operators */
@@ -734,5 +752,5 @@ index 0000000000..90797f96d8
 +	.destroy	= efi_uc_destroy,
 +};
 -- 
-2.15.1
+2.14.2
 
