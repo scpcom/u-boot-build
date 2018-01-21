@@ -21,6 +21,7 @@ git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 git am ../patch/0001-log-add-category-LOGC_EFI.patch
 git am ../patch/0001-efi_loader-allow-creation-of-more-device-part-nodes.patch
 git am ../patch/0001-efi_selftest-reduce-noise-in-test-output-for-device-.patch
+git am ../patch/0001-efi_selftest-add-missing-LF-in-test-output.patch
 git am ../patch/0001-efi_loader-use-built-in-device-tree-in-bootefi-comma.patch
 git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
 
