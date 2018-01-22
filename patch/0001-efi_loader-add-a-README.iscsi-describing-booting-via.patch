@@ -1,4 +1,4 @@
-From c0776534873868acd58ecc4e3ffc1c87fa0396f0 Mon Sep 17 00:00:00 2001
+From 6162c47cc7b9bce74221c7190148235802cff728 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 22 Jan 2018 18:59:11 +0100
 Subject: [PATCH 1/1] efi_loader: add a README.iscsi describing booting via
@@ -7,24 +7,40 @@ Subject: [PATCH 1/1] efi_loader: add a README.iscsi describing booting via
 The appended README explains how U-Boot and iPXE can be used
 to boot a diskless system from an iSCSI SAN.
 
+The maintainer for README.efi and README.iscsi is set.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- doc/README.iscsi | 177 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 177 insertions(+)
+ MAINTAINERS      |   2 +
+ doc/README.iscsi | 178 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 180 insertions(+)
  create mode 100644 doc/README.iscsi
 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index d459153503..6e94cee5d3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -286,6 +286,8 @@ EFI PAYLOAD
+ M:	Alexander Graf <agraf@suse.de>
+ S:	Maintained
+ T:	git git://github.com/agraf/u-boot.git
++F:	doc/README.efi
++F:	doc/README.iscsi
+ F:	include/efi*
+ F:	lib/efi*/
+ F:	test/py/tests/test_efi*
 diff --git a/doc/README.iscsi b/doc/README.iscsi
 new file mode 100644
-index 0000000000..dfac6c7d25
+index 0000000000..f095ad1ddf
 --- /dev/null
 +++ b/doc/README.iscsi
-@@ -0,0 +1,177 @@
+@@ -0,0 +1,178 @@
 +# iSCSI booting with U-Boot and iPXE
 +
 +## Motivation
 +
 +U-Boot has only a reduced set of supported network protocols. A major gap is
-+the lack of an TCP stack.
++the lack of a TCP stack.
 +
 +For booting a diskless computer this leaves us with BOOTP or DHCP to get the
 +address of a boot script. TFTP can be used to load the boot script and the
@@ -35,26 +51,26 @@ index 0000000000..dfac6c7d25
 +client.
 +
 +Furthermore the services providing the operating system loader or kernel are
-+not the ones that the operatin system will use. Especially in a SAN environment
-+this makes updating the operating system a hazzle. After installing a new
++not the ones that the operating system will use. Especially in a SAN environment
++this makes updating the operating system a hassle. After installing a new
 +kernel version the boot files have to be copied to the TFTP server directory.
 +
-+The https protocol provides certificate based validation of servers. Sensitive
-+data like pathwords can be securely transmitted.
++The HTTPS protocol provides certificate based validation of servers. Sensitive
++data like passwords can be securely transmitted.
 +
 +The iSCSI protocol is used for connecting storage attached networks. It
 +provides mutual authentication using the CHAP protocol. It typically runs on
 +a TCP transport.
 +
 +Thus a better solution than DHCP/TFTP boot would be to load a boot script via
-+https and to download any other files neeed for booting via iSCSI.
++HTTPS and to download any other files needed for booting via iSCSI.
 +
 +An alternative to implementing these protocols in U-Boot is to use an existing
 +software that can run on top of U-Boot. iPXE is the "swiss army knife" of
-+network booting. It supports both https and iSCSI. It has a script engine for
++network booting. It supports both HTTPS and iSCSI. It has a script engine for
 +fine grained control of the boot process and can provide a command shell.
 +
-+iPXE can be built as an EFI appication (named snp.efi) which can be loaded and
++iPXE can be built as an EFI application (named snp.efi) which can be loaded and
 +run by U-Boot.
 +
 +## Boot sequence
@@ -64,17 +80,18 @@ index 0000000000..dfac6c7d25
 +U-Boot.
 +
 +iPXE executes its internal script. This script may optionally chain load a
-+secondary boot script via https. Or open a shell.
++secondary boot script via HTTPS or open a shell.
 +
 +For the further boot process iPXE connects to the iSCSI server. This includes
 +the mutual authentication using the CHAP protocol. After the authentication iPXE
 +has access to the iSCSI targets.
 +
-+For a selected iSCSI target iPXE sets up a handle with the block IO protcol. It
++For a selected iSCSI target iPXE sets up a handle with the block IO protocol. It
 +uses the ConnectController boot service of U-Boot to request U-Boot to connect a
 +file system driver. U-Boot reads from the iSCSI drive via the block IO protocol
 +offered by iPXE. It creates the partition handles and install the simple file
-+protocol. Now iPXE can use the simple file protocol to load Grub.
++protocol. Now iPXE can call the simple file protocol to load Grub. U-Boot uses
++the block IO protocol offered by iPXE to fulfill the request.
 +
 +Once Grub is started it uses the same simple file protocol to load Linux. Via
 +the EFI stub Linux is called as an EFI application.
@@ -163,11 +180,11 @@ index 0000000000..dfac6c7d25
 +
 +The available commands for the boot script are documented at:
 +
-+    http://ipxe.org/cmd
++http://ipxe.org/cmd
 +
 +Credentials are managed as environment variables. These are described here:
 +
-+    http://ipxe.org/cfg
++http://ipxe.org/cfg
 +
 +iPXE by default will put the CPU to rest when waiting for input. U-Boot does
 +not wake it up due to missing interrupt support. To avoid this behavior create
@@ -190,12 +207,12 @@ index 0000000000..dfac6c7d25
 +    #define DOWNLOAD_PROTO_HTTPS    /* Secure Hypertext Transfer Protocol */
 +    #define DOWNLOAD_PROTO_FTP      /* File Transfer Protocol */
 +    #define DOWNLOAD_PROTO_NFS      /* Network File System Protocol */
-+    #define DOWNLOAD_PROTO_FILE     /* Local filesystem access */
++    #define DOWNLOAD_PROTO_FILE     /* Local file system access */
 +
 +## Links
 +
-+https://ipxe.org - iPXE open source boot firmware
-+https://www.gnu.org/software/grub/ - GNU Grub (Grand Unified Bootloader)
++* https://ipxe.org - iPXE open source boot firmware
++* https://www.gnu.org/software/grub/ - GNU Grub (Grand Unified Bootloader)
 -- 
 2.11.0
 
