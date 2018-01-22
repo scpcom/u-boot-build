@@ -1,0 +1,143 @@
+From 2b9bed90132db61c3c53a924276f73ec8ce60d5e Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 22 Jan 2018 18:59:11 +0100
+Subject: [PATCH 1/1] efi_loader: add a README.iscsi describing booting via
+ iSCSI
+
+The appended README explains how U-Boot and iPXE can be used
+to boot a diskless system from an iSCSI SAN.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ doc/README.iscsi | 119 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 119 insertions(+)
+ create mode 100644 doc/README.iscsi
+
+diff --git a/doc/README.iscsi b/doc/README.iscsi
+new file mode 100644
+index 0000000000..650912a9ad
+--- /dev/null
++++ b/doc/README.iscsi
+@@ -0,0 +1,119 @@
++# iSCSI booting with U-Boot and iPXE
++
++U-Boot can be used in conjunction with iPXE to boot a diskless system.
++
++The network diagram below shows the setup. The operating system for a diskless
++workstation is served via the iSCSI protocol from a SAN using the iSCSI
++protocol. To protect data the iSCSI protocol can be run on a separate virtual
++LAN.
++
++```
++                       +-----------+ 
++                       |           |
++                       |           |
++                       |   iSCSI   |
++                       |   Server  |
++                       |           |
++                       |           |
++                       +-----------+ 
++                             |
++                             |iSCSI
++                             |
+++-----------+          +-----------+          +-----------+
++|           |  VLAN 2  |     *     |          |           |
++|           |----------|******     |          |           |
++|  Diskless |          |  Managed  |          | Firewall  |
++|  Computer |  VLAN 1  |  Switch   |   HTTP   |           |
++|           |==========|***********|==========|***********|=====$
++|           |          |           |          |           |
+++-----------+          +-----------+          +-----------+
++```
++
++The sequence diagram shows the boot process.
++
++U-Boot loads the EFI application iPXE snp.efi using the bootefi command. This
++application has network access via the simple network protocol offered by
++U-Boot.
++
++After setting the IP address via DHCP iPXE connects to the iSCSI server. It sets
++up a handle with the block IO protcol. It uses the ConnectController boot
++service of U-Boot to request U-Boot to connect a file system driver. U-Boot
++reads from the iSCSI drive via the block IO protocol offered by iPXE. It creates
++the partition handles and install the simple file protocol. Now iPXE can use the
++simple file protocol to load Grub.
++
++Once Grub is started it uses the same simple file protocol to load Linux. Via
++the EFI stub Linux is called as an EFI application.
++
++```
++               +--------+          +--------+
++               |        | Runs     |        |
++               | U-Boot |=========>| iPXE   |
++               | EFI    |          | snp.efi|
+++--------+     |        | DHCP     |        |
++|        |<====|********|<=========|        |
++| DHCP   |     |        | Request  |        |
++| Server |     |        |          |        |
++|        |====>|********|=========>|        |
+++--------+     |        | Response |        |
++               |        |          |        |
++               |        |          |        |
+++--------+     |        | iSCSI    |        |
++|        |<====|********|<=========|        |
++| iSCSI  |     |        | Auth     |        |
++| Server |====>|********|=========>|        |
++|        |     |        |          |        |
++|        |     |        | Loads    |        |
++|        |<====|********|<=========|        |        +--------+
++|        |     |        | Grub     |        | Runs   |        |
++|        |====>|********|=========>|        |=======>| Grub   |
++|        |     |        |          |        |        |        |
++|        |     |        |          |        |        |        |
++|        |     |        |          |        | Loads  |        |
++|        |<====|********|<=========|********|<=======|        |      +--------+
++|        |     |        |          |        | Linux  |        | Runs |        |
++|        |====>|********|=========>|********|=======>|        |=====>| Linux  |
++|        |     |        |          |        |        |        |      |        |
+++--------+     +--------+          +--------+        +--------+      |        |
++                                                                     |        |
++                                                                     |        |
++                                                                     | ~ ~ ~ ~|
++```
++
++## Configuration
++
++### iPXE
++
++For running iPXE on arm64 the bin-arm64-efi/snp.efi has to be built.
++
++iPXE by default will put the CPU to rest when waiting for input. U-Boot does
++not wake it up due to missing interrupt support. To avoid this behavior create
++file src/config/local/nap.h.
++
++```
++/* nap.h */
++#undef NAP_EFIX86
++#undef NAP_EFIARM
++#define NAP_NULL
++```
++
++The supported commands in iPXE are also controlled by includes. Putting the
++following into src/config/local/general.h is sufficient for most use cases.
++
++```
++/* general.h */
++#define NSLOOKUP_CMD            /* Name resolution command */
++#define PING_CMD                /* Ping command */
++#define NTP_CMD                 /* NTP commands */
++#define VLAN_CMD                /* VLAN commands */
++#define IMAGE_EFI               /* EFI image support */
++#define DOWNLOAD_PROTO_HTTPS    /* Secure Hypertext Transfer Protocol */
++#define DOWNLOAD_PROTO_FTP      /* File Transfer Protocol */
++#define DOWNLOAD_PROTO_NFS      /* Network File System Protocol */
++#define DOWNLOAD_PROTO_FILE     /* Local filesystem access */
++```
++
++## Links
++
++https://ipxe.org - iPXE open source boot firmware
++https://www.gnu.org/software/grub/ - GNU Grub (Grand Unified Bootloader)
+-- 
+2.11.0
+
