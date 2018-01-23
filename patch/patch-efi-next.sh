@@ -24,7 +24,9 @@ git am ../patch/0001-log-add-category-LOGC_EFI.patch
 # git am ../patch/0001-efi_selftest-add-missing-LF-in-test-output.patch
 git am ../patch/0001-efi_loader-use-built-in-device-tree-in-bootefi-comma.patch
 git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
+
 git am ../patch/0001-efi_loader-add-a-README.iscsi-describing-booting-via.patch
+git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 
 # Work in progress
 # git am ../patch/0001-efi_loader-debug-print-memory-map.patch
