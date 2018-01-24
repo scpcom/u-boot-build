@@ -837,11 +837,28 @@ CONFIG_USB_EHCI_PCI=y
 # CONFIG_USB_DWC3 is not set
 
 #
+# Legacy MUSB Support
+#
+# CONFIG_USB_MUSB_HCD is not set
+# CONFIG_USB_MUSB_UDC is not set
+# CONFIG_USB_DAVINCI is not set
+
+#
 # MUSB Controller Driver
 #
 # CONFIG_USB_MUSB_HOST is not set
 # CONFIG_USB_MUSB_GADGET is not set
 # CONFIG_USB_MUSB_TI is not set
+# CONFIG_USB_MUSB_AM35X is not set
+# CONFIG_USB_MUSB_DSPS is not set
+# CONFIG_USB_MUSB_PIO_ONLY is not set
+
+#
+# USB Phy
+#
+# CONFIG_TWL4030_USB is not set
+# CONFIG_OMAP_USB_PHY is not set
+# CONFIG_ROCKCHIP_USB2_PHY is not set
 
 #
 # ULPI drivers
@@ -946,6 +963,8 @@ CONFIG_CONSOLE_SCROLL_LINES=5
 #
 # CONFIG_FS_BTRFS is not set
 # CONFIG_FS_CBFS is not set
+CONFIG_FS_EXT4=y
+CONFIG_EXT4_WRITE=y
 CONFIG_FS_FAT=y
 # CONFIG_FAT_WRITE is not set
 CONFIG_FS_FAT_MAX_CLUSTSIZE=65536
