@@ -24,6 +24,7 @@ git am ../patch/0001-log-add-category-LOGC_EFI.patch
 # git am ../patch/0001-efi_selftest-add-missing-LF-in-test-output.patch
 git am ../patch/0001-efi_loader-use-built-in-device-tree-in-bootefi-comma.patch
 git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
+git am ../patch/0001-efi_loader-fix-comments-indent_string.patch
 
 git am ../patch/0001-efi_loader-always-call-Exit-after-an-image-returns.patch
 git am ../patch/0001-efi_loader-add-a-README.iscsi-describing-booting-via.patch
