@@ -21,7 +21,7 @@ index e7714bcbc6..8acd26a93b 100644
  /*
 - * Two spaces per indent level, maxing out at 10.. which ought to be
 - * enough for anyone ;-)
-+ * Return a string for indenting with two space per level. A maximum of ten
++ * Return a string for indenting with two spaces per level. A maximum of ten
 + * indent levels is supported. Higher indent levels will be truncated.
 + *
 + * @level	indent level

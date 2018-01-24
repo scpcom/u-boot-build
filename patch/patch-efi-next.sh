@@ -1,5 +1,6 @@
 #!/bin/sh
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
+git am 0001-cmd-bdinfo-print-relocation-info-on-X86.patch
 
 # git am ../patch/0001-Test-vexpress-only.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
@@ -22,8 +23,10 @@ git am ../patch/0001-log-add-category-LOGC_EFI.patch
 # git am ../patch/0001-efi_loader-allow-creation-of-more-device-part-nodes.patch
 # git am ../patch/0001-efi_selftest-reduce-noise-in-test-output-for-device-.patch
 # git am ../patch/0001-efi_selftest-add-missing-LF-in-test-output.patch
-git am ../patch/0001-efi_loader-use-built-in-device-tree-in-bootefi-comma.patch
-git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
+
+# Rebasing needed
+# git am ../patch/0001-efi_loader-use-built-in-device-tree-in-bootefi-comma.patch
+# git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
 git am ../patch/0001-efi_loader-fix-comments-indent_string.patch
 
 git am ../patch/0001-efi_loader-always-call-Exit-after-an-image-returns.patch
