@@ -1,0 +1,36 @@
+From 6ae6e593d3270e398fb4bf43c93de5d82a714c36 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 24 Jan 2018 20:18:05 +0100
+Subject: [PATCH 1/1] efi_loader: catch misspelled bootefi subcommand
+
+If 'bootefi hello' or 'bootefi selftest' can be executed depends on the
+configuration.
+
+If an invalid non-numeric 1st argument is passed to bootefi, e.g.
+'bootefi hola', this string is converted to 0 and U-Boot jumps to
+this typically invalid address.
+
+With the patch the online help is shown instead.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 545cfecc12..db3ebe32cd 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -373,6 +373,9 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ 		saddr = argv[1];
+ 
+ 		addr = simple_strtoul(saddr, NULL, 16);
++		/* Check that a numeric value was passed */
++		if (!addr && *saddr != '0')
++			return CMD_RET_USAGE;
+ 
+ 		if (argc > 2) {
+ 			sfdt = argv[2];
+-- 
+2.14.2
+
