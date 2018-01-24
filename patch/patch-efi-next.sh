@@ -1,6 +1,6 @@
 #!/bin/sh
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
-git am 0001-cmd-bdinfo-print-relocation-info-on-X86.patch
+git am ../patch/0001-cmd-bdinfo-print-relocation-info-on-X86.patch
 
 # git am ../patch/0001-Test-vexpress-only.patch
 git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
