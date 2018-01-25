@@ -30,7 +30,7 @@ git am ../patch/0001-log-add-category-LOGC_EFI.patch
 git am ../patch/0001-efi_loader-fix-comments-indent_string.patch
 git am ../patch/0001-efi_loader-catch-mispelled-bootefi-subcommand.patch
 
-git am ../patch/0001-efi_loader-always-call-Exit-after-an-image-returns.patch
+# git am ../patch/0001-efi_loader-always-call-Exit-after-an-image-returns.patch
 git am ../patch/0001-efi_loader-add-a-README.iscsi-describing-booting-via.patch
 git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 git am ../patch/0001-efi_loader-rewrite-README.efi.patch
