@@ -1,0 +1,48 @@
+From a8f90d75d58b3154cb13a05894f926797f4a4dcf Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 26 Jan 2018 06:41:05 +0100
+Subject: [PATCH 1/1] efi_loader: do not install NULL as device path
+
+In an image is loaded from memory we do not have a device path.
+Do not install NULL as device path in this case.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 4a36b62828..da93498b36 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1367,16 +1367,18 @@ efi_status_t efi_setup_loaded_image(
+ 	obj->handle = info;
+ 
+ 	info->file_path = file_path;
+-	if (device_path)
+-		info->device_handle = efi_dp_find_obj(device_path, NULL);
+ 
+-	/*
+-	 * When asking for the device path interface, return
+-	 * bootefi_device_path
+-	 */
+-	ret = efi_add_protocol(obj->handle, &efi_guid_device_path, device_path);
+-	if (ret != EFI_SUCCESS)
+-		goto failure;
++	if (device_path) {
++		info->device_handle = efi_dp_find_obj(device_path, NULL);
++		/*
++		 * When asking for the device path interface, return
++		 * bootefi_device_path
++		 */
++		ret = efi_add_protocol(obj->handle, &efi_guid_device_path,
++				       device_path);
++		if (ret != EFI_SUCCESS)
++			goto failure;
++	}
+ 
+ 	/*
+ 	 * When asking for the loaded_image interface, just
+-- 
+2.15.1
+
