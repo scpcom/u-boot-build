@@ -1,4 +1,4 @@
-From f28c929e2aa5784458734f2e23b16b25ce7245b4 Mon Sep 17 00:00:00 2001
+From 314885f426a3bdbc5a28ff470e71adb7c31f013c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 26 Jan 2018 07:09:34 +0100
 Subject: [PATCH 1/1] efi_loader: consistently use %pD to print device paths
@@ -8,16 +8,18 @@ logic for printing device paths in other places.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_bootmgr.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ lib/efi_loader/efi_bootmgr.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/lib/efi_loader/efi_bootmgr.c b/lib/efi_loader/efi_bootmgr.c
-index 857d88a879..4266440cf6 100644
+index 857d88a879..c96b9d48c5 100644
 --- a/lib/efi_loader/efi_bootmgr.c
 +++ b/lib/efi_loader/efi_bootmgr.c
-@@ -122,9 +122,8 @@ static void *try_load_entry(uint16_t n, struct efi_device_path **device_path,
+@@ -120,11 +120,9 @@ static void *try_load_entry(uint16_t n, struct efi_device_path **device_path,
+ 
+ 	if (lo.attributes & LOAD_OPTION_ACTIVE) {
  		efi_status_t ret;
- 		u16 *str = NULL;
+-		u16 *str = NULL;
  
 -		debug("%s: trying to load \"%ls\" from: %ls\n", __func__,
 -		      lo.label, (str = efi_dp_str(lo.file_path)));
