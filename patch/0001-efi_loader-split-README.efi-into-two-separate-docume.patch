@@ -10,6 +10,9 @@ README.efi describes two different concepts:
 This patch splits the document in two.
 Religious references are removed.
 
+The separation of the concepts makes sense before detailing the internals
+of U-Boot exposing the UEFI API in a future patch.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  MAINTAINERS              |   1 +
