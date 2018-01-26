@@ -636,6 +636,7 @@ CONFIG_QFW=y
 # MMC Host controller Support
 #
 # CONFIG_MMC is not set
+# CONFIG_MMC_BROKEN_CD is not set
 CONFIG_DM_MMC=y
 
 #

@@ -91,13 +91,14 @@ iso:
 
 liv:
 	qemu-system-x86_64 -m 1G -bios denx/u-boot.rom \
-	-display sdl -vga cirrus \
+	-display sdl -vga cirrus -gdb tcp::1234 \
 	-net nic,vlan=0,macaddr=12:A1:00:12:34:02 \
 	-net tap,vlan=0,ifname=tap0,script=no,downscript=no \
 	-machine pc-i440fx-2.8 -drive file=img,if=ide,format=raw
 
 lav:
 	qemu-system-i386 -m 1G -bios denx/u-boot.rom -nographic \
+	-gdb tcp::1234 \
 	-net nic,vlan=0,macaddr=12:A1:00:12:34:02 \
 	-net tap,vlan=0,ifname=tap0,script=no,downscript=no \
 	-machine pc-i440fx-2.8 -drive file=img,if=ide,format=raw
