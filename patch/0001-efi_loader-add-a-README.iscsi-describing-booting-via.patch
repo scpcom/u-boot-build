@@ -1,18 +1,17 @@
 From f1f0b0d945b82e2bb9c43954d16683437023e070 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 22 Jan 2018 18:59:11 +0100
-Subject: [PATCH 1/1] efi_loader: add a README.iscsi describing booting via
+Subject: [PATCH v4 1/1] efi_loader: add a README.iscsi describing booting via
  iSCSI
 
 The appended README explains how U-Boot and iPXE can be used
 to boot a diskless system from an iSCSI SAN.
 
-The maintainer for README.efi and README.iscsi is set.
-
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v4
+	Adjust commit message.
 v3
-	Remove MAINTAINERS update for doc/README.efi.
 	Remove non-related changes.
 	Fix a typo.
 v2

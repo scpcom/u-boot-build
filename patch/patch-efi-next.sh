@@ -17,7 +17,6 @@ git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 # git am ../patch/0001-efi_selftest-provide-a-test-for-block-io.patch
 # >>> end of block driver series
 
-git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
 git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 git am ../patch/0001-log-add-category-LOGC_EFI.patch
 # git am ../patch/0001-efi_loader-allow-creation-of-more-device-part-nodes.patch
@@ -43,6 +42,7 @@ git am ../patch/0001-efi_loader-add-a-README.iscsi-describing-booting-via.patch
 git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
+git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
 # Has to be rebased
 # git am ../patch/0001-efi_loader-use-always-same-signature-for-EFI-entry-p.patch
 
