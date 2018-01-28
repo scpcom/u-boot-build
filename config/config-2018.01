@@ -470,7 +470,6 @@ CONFIG_ENV_IS_NOWHERE=y
 # CONFIG_ENV_IS_IN_FAT is not set
 # CONFIG_ENV_IS_IN_EXT4 is not set
 # CONFIG_ENV_IS_IN_FLASH is not set
-# CONFIG_ENV_IS_IN_MMC is not set
 # CONFIG_ENV_IS_IN_NAND is not set
 # CONFIG_ENV_IS_IN_NVRAM is not set
 # CONFIG_ENV_IS_IN_ONENAND is not set
@@ -590,7 +589,7 @@ CONFIG_DM_GPIO=y
 # CONFIG_VYBRID_GPIO is not set
 # CONFIG_DM_74X164 is not set
 # CONFIG_DM_PCA953X is not set
-# CONFIG_MPC85XX_GPIO is not set
+# CONFIG_MPC8XXX_GPIO is not set
 
 #
 # I2C support
@@ -757,6 +756,7 @@ CONFIG_DM_SERIAL=y
 # CONFIG_MVEBU_A3700_UART is not set
 # CONFIG_NULLDEV_SERIAL is not set
 CONFIG_SYS_NS16550=y
+# CONFIG_PL01X_SERIAL is not set
 # CONFIG_MSM_SERIAL is not set
 # CONFIG_PXA_SERIAL is not set
 

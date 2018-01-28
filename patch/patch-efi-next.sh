@@ -43,8 +43,11 @@ git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
+git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
 git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
-# Has to be rebased
+git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
+
+# Superseded
 # git am ../patch/0001-efi_loader-use-always-same-signature-for-EFI-entry-p.patch
 
 # Work in progress

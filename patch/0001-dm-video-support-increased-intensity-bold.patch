@@ -1,0 +1,87 @@
+From fe969c9e35199b4dd00a7ba25ab5ccd2a2dd104a Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 28 Jan 2018 23:56:18 +0100
+Subject: [PATCH 1/1] dm: video: support increased intensity (bold)
+
+Support special rendition code 0 - reset attributes.
+Support special rendition code 1 - increased intensity (bold).
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/video/video-uclass.c |  5 ++++-
+ include/video.h              |  2 ++
+ include/video_console.h      | 12 ++++++++++--
+ 3 files changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/video/video-uclass.c b/drivers/video/video-uclass.c
+index 945b20ddfd..43ab6f6b32 100644
+--- a/drivers/video/video-uclass.c
++++ b/drivers/video/video-uclass.c
+@@ -117,9 +117,12 @@ void video_clear(struct udevice *dev)
+ void video_set_default_colors(struct video_priv *priv)
+ {
+ #ifdef CONFIG_SYS_WHITE_ON_BLACK
+-	priv->colour_fg = vid_console_color(priv, VID_WHITE);
++	/* White is used when switching to bold, use light gray here */
++	priv->fg = VID_LIGHT_GRAY;
++	priv->colour_fg = vid_console_color(priv, VID_LIGHT_GRAY);
+ 	priv->colour_bg = vid_console_color(priv, VID_BLACK);
+ #else
++	priv->fg = VID_BLACK;
+ 	priv->colour_fg = vid_console_color(priv, VID_BLACK);
+ 	priv->colour_bg = vid_console_color(priv, VID_WHITE);
+ #endif
+diff --git a/include/video.h b/include/video.h
+index 841f3dc56b..3101459d2a 100644
+--- a/include/video.h
++++ b/include/video.h
+@@ -67,6 +67,7 @@ enum video_log2_bpp {
+  * @flush_dcache:	true to enable flushing of the data cache after
+  *		the LCD is updated
+  * @cmap:	Colour map for 8-bit-per-pixel displays
++ * @fg:		Foreground color code (bit 3 = bold, bit 0-2 = color)
+  */
+ struct video_priv {
+ 	/* Things set up by the driver: */
+@@ -88,6 +89,7 @@ struct video_priv {
+ 	u32 colour_bg;
+ 	bool flush_dcache;
+ 	ushort *cmap;
++	u8 fg;
+ };
+ 
+ /* Placeholder - there are no video operations at present */
+diff --git a/include/video_console.h b/include/video_console.h
+index abcec7df63..d0a4710a32 100644
+--- a/include/video_console.h
++++ b/include/video_console.h
+@@ -15,16 +15,24 @@
+ #define VID_TO_POS(x)	((x) * VID_FRAC_DIV)
+ 
+ /*
+- * The 8 colors supported by the console
++ * The 16 colors supported by the console
+  */
+ enum color_idx {
+ 	VID_BLACK = 0,
+ 	VID_RED,
+ 	VID_GREEN,
+-	VID_YELLOW,
++	VID_BROWN,
+ 	VID_BLUE,
+ 	VID_MAGENTA,
+ 	VID_CYAN,
++	VID_LIGHT_GRAY,
++	VID_GRAY,
++	VID_LIGHT_RED,
++	VID_LIGTH_GREEN,
++	VID_YELLOW,
++	VID_LIGHT_BLUE,
++	VID_LIGHT_MAGENTA,
++	VID_LIGHT_CYAN,
+ 	VID_WHITE,
+ 
+ 	VID_COLOR_COUNT
+-- 
+2.14.2
+

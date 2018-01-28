@@ -1,34 +1,24 @@
-From 66fe2165922b2e2ef34a711c5d11f8c3463af722 Mon Sep 17 00:00:00 2001
+From 585e1b3b6b9efedfbad9b3bf080ddd501f8824b0 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 12 Jan 2018 23:15:35 +0100
-Subject: [PATCH] dm: video: Correct color ANSI escape sequence support
+Subject: [PATCH 1/1] dm: video: use constants to refer to colors
 
-Support special rendition code 0 - reset attributes.
-Support special rendition code 1 - increased intensity (bold).
-Do not set reserved bits.
-Use u32 instead of unsigned for color bit mask.
-
-qemu-system-i386 -display sdl -vga virtio and
-qemu-system-i386 -display sdl -vga cirrus
-now display the same colors as
-qemu-system-i386 -nographic
-
-Testing is possible via
-
-	setenv efi_selftest test output
-	bootefi selftest
+Use constants to refer to colors.
+Adjust initialization of foreground and background color to avoid
+setting reserved bits.
+Consistently u32 instead of unsigned for color bit mask.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- drivers/video/vidconsole-uclass.c | 86 ++++++++++++++++++++++++++-------------
- drivers/video/video-uclass.c      | 38 +++++++++++++----
- include/video.h                   | 13 +++++-
- include/video_console.h           | 39 ++++++++++++++++++
+ drivers/video/vidconsole-uclass.c | 55 +++++++++++++++++++++++----------------
+ drivers/video/video-uclass.c      | 19 +++++++++-----
+ include/video.h                   | 11 ++++++--
+ include/video_console.h           | 31 ++++++++++++++++++++++
  test/dm/video.c                   |  2 +-
- 5 files changed, 138 insertions(+), 40 deletions(-)
+ 5 files changed, 86 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/video/vidconsole-uclass.c b/drivers/video/vidconsole-uclass.c
-index 5f63c12d6c..a878eb402a 100644
+index 8a2a377161..44f557c46a 100644
 --- a/drivers/video/vidconsole-uclass.c
 +++ b/drivers/video/vidconsole-uclass.c
 @@ -15,6 +15,15 @@
@@ -47,7 +37,7 @@ index 5f63c12d6c..a878eb402a 100644
  /* By default we scroll by a single line */
  #ifndef CONFIG_CONSOLE_SCROLL_LINES
  #define CONFIG_CONSOLE_SCROLL_LINES 1
-@@ -108,37 +117,45 @@ static void vidconsole_newline(struct udevice *dev)
+@@ -108,11 +117,7 @@ static void vidconsole_newline(struct udevice *dev)
  	video_sync(dev->parent);
  }
  
@@ -58,25 +48,9 @@ index 5f63c12d6c..a878eb402a 100644
 -} colors[] = {
 +static const struct vid_rgb colors[VID_COLOR_COUNT] = {
  	{ 0x00, 0x00, 0x00 },  /* black */
--	{ 0xff, 0x00, 0x00 },  /* red */
--	{ 0x00, 0xff, 0x00 },  /* green */
-+	{ 0xc0, 0x00, 0x00 },  /* red */
-+	{ 0x00, 0xc0, 0x00 },  /* green */
-+	{ 0xc0, 0x60, 0x00 },  /* brown */
-+	{ 0x00, 0x00, 0xc0 },  /* blue */
-+	{ 0xc0, 0x00, 0xc0 },  /* magenta */
-+	{ 0x00, 0xc0, 0xc0 },  /* cyan */
-+	{ 0xc0, 0xc0, 0xc0 },  /* light gray */
-+	{ 0x80, 0x80, 0x80 },  /* gray */
-+	{ 0xff, 0x00, 0x00 },  /* bright red */
-+	{ 0x00, 0xff, 0x00 },  /* bright green */
- 	{ 0xff, 0xff, 0x00 },  /* yellow */
--	{ 0x00, 0x00, 0xff },  /* blue */
--	{ 0xff, 0x00, 0xff },  /* magenta */
--	{ 0x00, 0xff, 0xff },  /* cyan */
-+	{ 0x00, 0x00, 0xff },  /* bright blue */
-+	{ 0xff, 0x00, 0xff },  /* bright magenta */
-+	{ 0x00, 0xff, 0xff },  /* bright cyan */
+ 	{ 0xff, 0x00, 0x00 },  /* red */
+ 	{ 0x00, 0xff, 0x00 },  /* green */
+@@ -123,22 +128,26 @@ static const struct {
  	{ 0xff, 0xff, 0xff },  /* white */
  };
  
@@ -114,29 +88,16 @@ index 5f63c12d6c..a878eb402a 100644
  	}
  }
  
-@@ -270,18 +286,30 @@ static void vidconsole_escape_char(struct udevice *dev, char ch)
- 			s++;
+@@ -270,17 +279,17 @@ static void vidconsole_escape_char(struct udevice *dev, char ch)
  
  			switch (val) {
-+			case 0:
-+				/* all attributes off */
-+				video_set_default_colors(vid_priv);
-+				break;
-+			case 1:
-+				/* bold */
-+				vid_priv->fg |= 8;
-+				vid_priv->colour_fg = vid_console_color(
-+							vid_priv, vid_priv->fg);
-+				break;
  			case 30 ... 37:
 -				/* fg color */
 -				set_color(vid_priv, val - 30,
 -					  (unsigned *)&vid_priv->colour_fg);
 +				/* foreground color */
-+				vid_priv->fg &= ~7;
-+				vid_priv->fg |= val - 30;
 +				vid_priv->colour_fg = vid_console_color(
-+							vid_priv, vid_priv->fg);
++							vid_priv, val - 30);
  				break;
  			case 40 ... 47:
 -				/* bg color */
@@ -153,47 +114,19 @@ index 5f63c12d6c..a878eb402a 100644
  			}
  		}
 diff --git a/drivers/video/video-uclass.c b/drivers/video/video-uclass.c
-index dcaceed42c..43ab6f6b32 100644
+index 9a980ea3a1..945b20ddfd 100644
 --- a/drivers/video/video-uclass.c
 +++ b/drivers/video/video-uclass.c
-@@ -91,17 +91,43 @@ void video_clear(struct udevice *dev)
- {
- 	struct video_priv *priv = dev_get_uclass_priv(dev);
- 
--	if (priv->bpix == VIDEO_BPP32) {
-+	switch (priv->bpix) {
-+	case VIDEO_BPP16: {
-+		u16 *ppix = priv->fb;
-+		u16 *end = priv->fb + priv->fb_size;
-+
-+		while (ppix < end)
-+			*ppix++ = priv->colour_bg;
-+		break;
-+	}
-+	case VIDEO_BPP32: {
- 		u32 *ppix = priv->fb;
- 		u32 *end = priv->fb + priv->fb_size;
- 
- 		while (ppix < end)
- 			*ppix++ = priv->colour_bg;
--	} else {
-+		break;
-+	}
-+	default:
- 		memset(priv->fb, priv->colour_bg, priv->fb_size);
-+		break;
+@@ -114,6 +114,17 @@ void video_clear(struct udevice *dev)
  	}
  }
  
 +void video_set_default_colors(struct video_priv *priv)
 +{
 +#ifdef CONFIG_SYS_WHITE_ON_BLACK
-+	/* White is used when switching to bold, use light gray here */
-+	priv->fg = VID_LIGHT_GRAY;
-+	priv->colour_fg = vid_console_color(priv, VID_LIGHT_GRAY);
++	priv->colour_fg = vid_console_color(priv, VID_WHITE);
 +	priv->colour_bg = vid_console_color(priv, VID_BLACK);
 +#else
-+	priv->fg = VID_BLACK;
 +	priv->colour_fg = vid_console_color(priv, VID_BLACK);
 +	priv->colour_bg = vid_console_color(priv, VID_WHITE);
 +#endif
@@ -202,7 +135,7 @@ index dcaceed42c..43ab6f6b32 100644
  /* Flush video activity to the caches */
  void video_sync(struct udevice *vid)
  {
-@@ -191,12 +217,8 @@ static int video_post_probe(struct udevice *dev)
+@@ -203,12 +214,8 @@ static int video_post_probe(struct udevice *dev)
  	priv->line_length = priv->xsize * VNBYTES(priv->bpix);
  	priv->fb_size = priv->line_length * priv->ysize;
  
@@ -218,18 +151,10 @@ index dcaceed42c..43ab6f6b32 100644
  	if (!CONFIG_IS_ENABLED(NO_FB_CLEAR))
  		video_clear(dev);
 diff --git a/include/video.h b/include/video.h
-index 61ff653121..3101459d2a 100644
+index 61ff653121..841f3dc56b 100644
 --- a/include/video.h
 +++ b/include/video.h
-@@ -67,6 +67,7 @@ enum video_log2_bpp {
-  * @flush_dcache:	true to enable flushing of the data cache after
-  *		the LCD is updated
-  * @cmap:	Colour map for 8-bit-per-pixel displays
-+ * @fg:		Foreground color code (bit 3 = bold, bit 0-2 = color)
-  */
- struct video_priv {
- 	/* Things set up by the driver: */
-@@ -84,10 +85,11 @@ struct video_priv {
+@@ -84,8 +84,8 @@ struct video_priv {
  	void *fb;
  	int fb_size;
  	int line_length;
@@ -239,11 +164,8 @@ index 61ff653121..3101459d2a 100644
 +	u32 colour_bg;
  	bool flush_dcache;
  	ushort *cmap;
-+	u8 fg;
  };
- 
- /* Placeholder - there are no video operations at present */
-@@ -183,6 +185,13 @@ int video_get_ysize(struct udevice *dev);
+@@ -183,6 +183,13 @@ int video_get_ysize(struct udevice *dev);
   */
  void video_set_flush_dcache(struct udevice *dev, bool flush);
  
@@ -258,10 +180,10 @@ index 61ff653121..3101459d2a 100644
  
  #ifndef CONFIG_DM_VIDEO
 diff --git a/include/video_console.h b/include/video_console.h
-index 9dce234bd9..d0a4710a32 100644
+index 9dce234bd9..abcec7df63 100644
 --- a/include/video_console.h
 +++ b/include/video_console.h
-@@ -7,11 +7,37 @@
+@@ -7,11 +7,29 @@
  #ifndef __video_console_h
  #define __video_console_h
  
@@ -273,24 +195,16 @@ index 9dce234bd9..d0a4710a32 100644
  #define VID_TO_POS(x)	((x) * VID_FRAC_DIV)
  
 +/*
-+ * The 16 colors supported by the console
++ * The 8 colors supported by the console
 + */
 +enum color_idx {
 +	VID_BLACK = 0,
 +	VID_RED,
 +	VID_GREEN,
-+	VID_BROWN,
++	VID_YELLOW,
 +	VID_BLUE,
 +	VID_MAGENTA,
 +	VID_CYAN,
-+	VID_LIGHT_GRAY,
-+	VID_GRAY,
-+	VID_LIGHT_RED,
-+	VID_LIGTH_GREEN,
-+	VID_YELLOW,
-+	VID_LIGHT_BLUE,
-+	VID_LIGHT_MAGENTA,
-+	VID_LIGHT_CYAN,
 +	VID_WHITE,
 +
 +	VID_COLOR_COUNT
@@ -299,7 +213,7 @@ index 9dce234bd9..d0a4710a32 100644
  /**
   * struct vidconsole_priv - uclass-private data about a console device
   *
-@@ -196,4 +222,17 @@ int vidconsole_put_char(struct udevice *dev, char ch);
+@@ -196,4 +214,17 @@ int vidconsole_put_char(struct udevice *dev, char ch);
  void vidconsole_position_cursor(struct udevice *dev, unsigned col,
  				unsigned row);
  
@@ -308,7 +222,7 @@ index 9dce234bd9..d0a4710a32 100644
 + * representation
 + *
 + * The caller has to guarantee that the color index is less than
-+ * VID_COLOR_COUNT (= 16).
++ * VID_COLOR_COUNT.
 + *
 + * @priv	private data of the console device
 + * @idx		color index
@@ -318,7 +232,7 @@ index 9dce234bd9..d0a4710a32 100644
 +
  #endif
 diff --git a/test/dm/video.c b/test/dm/video.c
-index 29917d0c2d..caca496902 100644
+index d158f1fcb3..caca496902 100644
 --- a/test/dm/video.c
 +++ b/test/dm/video.c
 @@ -186,7 +186,7 @@ static int dm_test_video_ansi(struct unit_test_state *uts)

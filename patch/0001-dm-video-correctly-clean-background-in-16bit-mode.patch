@@ -1,0 +1,49 @@
+From 82664fa5dde1e4b8aac371deb36771f192a41153 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 12 Jan 2018 23:15:35 +0100
+Subject: [PATCH 1/1] dm: video: correctly clean background in 16bit mode
+
+In 16 bit mode we have to copy two bytes per pixels repeatedly and not
+four. Otherwise we will see a striped pattern.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/video/video-uclass.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/video-uclass.c b/drivers/video/video-uclass.c
+index dcaceed42c..9a980ea3a1 100644
+--- a/drivers/video/video-uclass.c
++++ b/drivers/video/video-uclass.c
+@@ -91,14 +91,26 @@ void video_clear(struct udevice *dev)
+ {
+ 	struct video_priv *priv = dev_get_uclass_priv(dev);
+ 
+-	if (priv->bpix == VIDEO_BPP32) {
++	switch (priv->bpix) {
++	case VIDEO_BPP16: {
++		u16 *ppix = priv->fb;
++		u16 *end = priv->fb + priv->fb_size;
++
++		while (ppix < end)
++			*ppix++ = priv->colour_bg;
++		break;
++	}
++	case VIDEO_BPP32: {
+ 		u32 *ppix = priv->fb;
+ 		u32 *end = priv->fb + priv->fb_size;
+ 
+ 		while (ppix < end)
+ 			*ppix++ = priv->colour_bg;
+-	} else {
++		break;
++	}
++	default:
+ 		memset(priv->fb, priv->colour_bg, priv->fb_size);
++		break;
+ 	}
+ }
+ 
+-- 
+2.14.2
+
