@@ -1,4 +1,4 @@
-From fe969c9e35199b4dd00a7ba25ab5ccd2a2dd104a Mon Sep 17 00:00:00 2001
+From 30a4b560c747b9bf8b18724d680954ad4e0c45d4 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 28 Jan 2018 23:56:18 +0100
 Subject: [PATCH 1/1] dm: video: support increased intensity (bold)
@@ -8,11 +8,67 @@ Support special rendition code 1 - increased intensity (bold).
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- drivers/video/video-uclass.c |  5 ++++-
- include/video.h              |  2 ++
- include/video_console.h      | 12 ++++++++++--
- 3 files changed, 16 insertions(+), 3 deletions(-)
+ drivers/video/vidconsole-uclass.c | 32 ++++++++++++++++++++++++++------
+ drivers/video/video-uclass.c      |  5 ++++-
+ include/video.h                   |  2 ++
+ include/video_console.h           | 12 ++++++++++--
+ test/dm/video.c                   |  2 +-
+ 5 files changed, 43 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/video/vidconsole-uclass.c b/drivers/video/vidconsole-uclass.c
+index 44f557c46a..a878eb402a 100644
+--- a/drivers/video/vidconsole-uclass.c
++++ b/drivers/video/vidconsole-uclass.c
+@@ -119,12 +119,20 @@ static void vidconsole_newline(struct udevice *dev)
+ 
+ static const struct vid_rgb colors[VID_COLOR_COUNT] = {
+ 	{ 0x00, 0x00, 0x00 },  /* black */
+-	{ 0xff, 0x00, 0x00 },  /* red */
+-	{ 0x00, 0xff, 0x00 },  /* green */
++	{ 0xc0, 0x00, 0x00 },  /* red */
++	{ 0x00, 0xc0, 0x00 },  /* green */
++	{ 0xc0, 0x60, 0x00 },  /* brown */
++	{ 0x00, 0x00, 0xc0 },  /* blue */
++	{ 0xc0, 0x00, 0xc0 },  /* magenta */
++	{ 0x00, 0xc0, 0xc0 },  /* cyan */
++	{ 0xc0, 0xc0, 0xc0 },  /* light gray */
++	{ 0x80, 0x80, 0x80 },  /* gray */
++	{ 0xff, 0x00, 0x00 },  /* bright red */
++	{ 0x00, 0xff, 0x00 },  /* bright green */
+ 	{ 0xff, 0xff, 0x00 },  /* yellow */
+-	{ 0x00, 0x00, 0xff },  /* blue */
+-	{ 0xff, 0x00, 0xff },  /* magenta */
+-	{ 0x00, 0xff, 0xff },  /* cyan */
++	{ 0x00, 0x00, 0xff },  /* bright blue */
++	{ 0xff, 0x00, 0xff },  /* bright magenta */
++	{ 0x00, 0xff, 0xff },  /* bright cyan */
+ 	{ 0xff, 0xff, 0xff },  /* white */
+ };
+ 
+@@ -278,10 +286,22 @@ static void vidconsole_escape_char(struct udevice *dev, char ch)
+ 			s++;
+ 
+ 			switch (val) {
++			case 0:
++				/* all attributes off */
++				video_set_default_colors(vid_priv);
++				break;
++			case 1:
++				/* bold */
++				vid_priv->fg |= 8;
++				vid_priv->colour_fg = vid_console_color(
++							vid_priv, vid_priv->fg);
++				break;
+ 			case 30 ... 37:
+ 				/* foreground color */
++				vid_priv->fg &= ~7;
++				vid_priv->fg |= val - 30;
+ 				vid_priv->colour_fg = vid_console_color(
+-							vid_priv, val - 30);
++							vid_priv, vid_priv->fg);
+ 				break;
+ 			case 40 ... 47:
+ 				/* background color */
 diff --git a/drivers/video/video-uclass.c b/drivers/video/video-uclass.c
 index 945b20ddfd..43ab6f6b32 100644
 --- a/drivers/video/video-uclass.c
@@ -52,7 +108,7 @@ index 841f3dc56b..3101459d2a 100644
  
  /* Placeholder - there are no video operations at present */
 diff --git a/include/video_console.h b/include/video_console.h
-index abcec7df63..d0a4710a32 100644
+index 9505db1dc3..a3ff176269 100644
 --- a/include/video_console.h
 +++ b/include/video_console.h
 @@ -15,16 +15,24 @@
@@ -82,6 +138,19 @@ index abcec7df63..d0a4710a32 100644
  	VID_WHITE,
  
  	VID_COLOR_COUNT
+diff --git a/test/dm/video.c b/test/dm/video.c
+index d158f1fcb3..caca496902 100644
+--- a/test/dm/video.c
++++ b/test/dm/video.c
+@@ -186,7 +186,7 @@ static int dm_test_video_ansi(struct unit_test_state *uts)
+ 	/* test colors (30-37 fg color, 40-47 bg color) */
+ 	vidconsole_put_string(con, ANSI_ESC"[30;41mfoo"); /* black on red */
+ 	vidconsole_put_string(con, ANSI_ESC"[33;44mbar"); /* yellow on blue */
+-	ut_asserteq(267, compress_frame_buffer(dev));
++	ut_asserteq(265, compress_frame_buffer(dev));
+ 
+ 	return 0;
+ }
 -- 
 2.14.2
 
