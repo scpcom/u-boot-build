@@ -1,9 +1,10 @@
-From c69d6be1e7922d81aa254909d0d858e5ebcec5c8 Mon Sep 17 00:00:00 2001
+From 8208c98c58329974b78f355922bca0191c2ec5d3 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 28 Jan 2018 22:38:34 +0100
 Subject: [PATCH 1/1] dm: video: show correct colors in graphical console
 
 Get RGB sequence in pixels right (swap blue and red).
+Do not set reserved bits.
 
 qemu-system-i386 -display sdl -vga virtio and
 qemu-system-i386 -display sdl -vga cirrus
@@ -17,15 +18,15 @@ Testing is possible via
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- drivers/video/vidconsole-uclass.c | 12 ++++++------
+ drivers/video/vidconsole-uclass.c | 13 ++++++-------
  test/dm/video.c                   |  2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/video/vidconsole-uclass.c b/drivers/video/vidconsole-uclass.c
-index 5f63c12d6c..83af89fb5b 100644
+index 5f63c12d6c..8a2a377161 100644
 --- a/drivers/video/vidconsole-uclass.c
 +++ b/drivers/video/vidconsole-uclass.c
-@@ -127,15 +127,15 @@ static void set_color(struct video_priv *priv, unsigned idx, unsigned *c)
+@@ -127,15 +127,14 @@ static void set_color(struct video_priv *priv, unsigned idx, unsigned *c)
  {
  	switch (priv->bpix) {
  	case VIDEO_BPP16:
@@ -37,11 +38,11 @@ index 5f63c12d6c..83af89fb5b 100644
 +		     ((colors[idx].b >> 3) <<  0);
  		break;
  	case VIDEO_BPP32:
- 		*c = 0xff000000 |
+-		*c = 0xff000000 |
 -		     (colors[idx].r << 0) |
 -		     (colors[idx].g << 8) |
 -		     (colors[idx].b << 16);
-+		     (colors[idx].r << 16) |
++		*c = (colors[idx].r << 16) |
 +		     (colors[idx].g <<  8) |
 +		     (colors[idx].b <<  0);
  		break;

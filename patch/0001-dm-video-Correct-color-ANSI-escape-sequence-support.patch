@@ -5,7 +5,6 @@ Subject: [PATCH] dm: video: Correct color ANSI escape sequence support
 
 Support special rendition code 0 - reset attributes.
 Support special rendition code 1 - increased intensity (bold).
-Get RGB sequence in pixels right (swap blue and red).
 Do not set reserved bits.
 Use u32 instead of unsigned for color bit mask.
 
@@ -48,7 +47,7 @@ index 5f63c12d6c..a878eb402a 100644
  /* By default we scroll by a single line */
  #ifndef CONFIG_CONSOLE_SCROLL_LINES
  #define CONFIG_CONSOLE_SCROLL_LINES 1
-@@ -108,38 +117,45 @@ static void vidconsole_newline(struct udevice *dev)
+@@ -108,37 +117,45 @@ static void vidconsole_newline(struct udevice *dev)
  	video_sync(dev->parent);
  }
  
@@ -94,8 +93,7 @@ index 5f63c12d6c..a878eb402a 100644
 +		       ((colors[idx].g >> 2) <<  5) |
 +		       ((colors[idx].b >> 3) <<  0);
  	case VIDEO_BPP32:
--		*c = 0xff000000 |
--		     (colors[idx].r << 16) |
+-		*c = (colors[idx].r << 16) |
 -		     (colors[idx].g <<  8) |
 -		     (colors[idx].b <<  0);
 -		break;
