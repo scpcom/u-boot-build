@@ -1,7 +1,7 @@
-From 065002d6e7aa29d325d8129ff829409614414301 Mon Sep 17 00:00:00 2001
+From f1f0b0d945b82e2bb9c43954d16683437023e070 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 22 Jan 2018 18:59:11 +0100
-Subject: [PATCH v2 1/1] efi_loader: add a README.iscsi describing booting via
+Subject: [PATCH 1/1] efi_loader: add a README.iscsi describing booting via
  iSCSI
 
 The appended README explains how U-Boot and iPXE can be used
@@ -11,33 +11,35 @@ The maintainer for README.efi and README.iscsi is set.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v3
+	Remove MAINTAINERS update for doc/README.efi.
+	Remove non-related changes.
+	Fix a typo.
 v2
 	mention work on TCP and wget
 	remove VLAN drawing
 	fix reference of EFI service used by Grub
 ---
- MAINTAINERS               |   2 +
- doc/README.iscsi          | 159 ++++++++++++++++++++++++++++++++++++++++++++++
- lib/efi_loader/efi_file.c |   9 +++
- 3 files changed, 170 insertions(+)
+ MAINTAINERS      |   1 +
+ doc/README.iscsi | 159 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 160 insertions(+)
  create mode 100644 doc/README.iscsi
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index d459153503..6e94cee5d3 100644
+index d459153503..0ff787866d 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -286,6 +286,8 @@ EFI PAYLOAD
+@@ -286,6 +286,7 @@ EFI PAYLOAD
  M:	Alexander Graf <agraf@suse.de>
  S:	Maintained
  T:	git git://github.com/agraf/u-boot.git
-+F:	doc/README.efi
 +F:	doc/README.iscsi
  F:	include/efi*
  F:	lib/efi*/
  F:	test/py/tests/test_efi*
 diff --git a/doc/README.iscsi b/doc/README.iscsi
 new file mode 100644
-index 0000000000..a731c06feb
+index 0000000000..0f4d88ab0d
 --- /dev/null
 +++ b/doc/README.iscsi
 @@ -0,0 +1,159 @@
@@ -151,9 +153,9 @@ index 0000000000..a731c06feb
 +## Security
 +
 +The iSCSI protocol is not encrypted. The traffic could be secured using IPsec
-+but neither U-Boot nor iPXE does not support this. So we should at least
-+separate the iSCSI traffic from all other network traffic. This can be achieved
-+using a virtual local area network (VLAN).
++but neither U-Boot nor iPXE does support this. So we should at least separate
++the iSCSI traffic from all other network traffic. This can be achieved using a
++virtual local area network (VLAN).
 +
 +## Configuration
 +
@@ -200,46 +202,6 @@ index 0000000000..a731c06feb
 +
 +* https://ipxe.org - iPXE open source boot firmware
 +* https://www.gnu.org/software/grub/ - GNU Grub (Grand Unified Bootloader)
-diff --git a/lib/efi_loader/efi_file.c b/lib/efi_loader/efi_file.c
-index 52a4e7438e..bc2fdb330d 100644
---- a/lib/efi_loader/efi_file.c
-+++ b/lib/efi_loader/efi_file.c
-@@ -6,12 +6,17 @@
-  *  SPDX-License-Identifier:     GPL-2.0+
-  */
- 
-+#define DEBUG 1
-+
- #include <common.h>
- #include <charset.h>
- #include <efi_loader.h>
- #include <malloc.h>
- #include <fs.h>
- 
-+#undef _DEBUG
-+#define _DEBUG 1
-+
- struct file_system {
- 	struct efi_simple_file_system_protocol base;
- 	struct efi_device_path *dp;
-@@ -188,6 +193,8 @@ error:
- 	return NULL;
- }
- 
-+#undef _DEBUG
-+#define _DEBUG 1
- static efi_status_t EFIAPI efi_file_open(struct efi_file_handle *file,
- 		struct efi_file_handle **new_handle,
- 		s16 *file_name, u64 open_mode, u64 attributes)
-@@ -210,6 +217,8 @@ static efi_status_t file_close(struct file_handle *fh)
- 	free(fh);
- 	return EFI_SUCCESS;
- }
-+#undef _DEBUG
-+#define _DEBUG 0
- 
- static efi_status_t EFIAPI efi_file_close(struct efi_file_handle *file)
- {
 -- 
 2.14.2
 

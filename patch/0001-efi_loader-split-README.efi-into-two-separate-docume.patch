@@ -1,4 +1,4 @@
-From c2b43ab525bb74c19066609ea8708e2c7f8df5f4 Mon Sep 17 00:00:00 2001
+From d9df63e1cbf62472441aa5d6aa9ec3c3836d102f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 23 Jan 2018 18:59:31 +0100
 Subject: [PATCH 1/1] efi_loader: split README.efi into two separate documents
@@ -22,17 +22,17 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  create mode 100644 doc/README.u-boot_on_efi
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 6e94cee5d3..bc4f4fcfc7 100644
+index 0ff787866d..6e94cee5d3 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -288,6 +288,7 @@ S:	Maintained
+@@ -286,6 +286,7 @@ EFI PAYLOAD
+ M:	Alexander Graf <agraf@suse.de>
+ S:	Maintained
  T:	git git://github.com/agraf/u-boot.git
- F:	doc/README.efi
++F:	doc/README.efi
  F:	doc/README.iscsi
-+F:	doc/README.u-boot_on_efi
  F:	include/efi*
  F:	lib/efi*/
- F:	test/py/tests/test_efi*
 diff --git a/doc/README.efi b/doc/README.efi
 index 66259f3e26..956f5bfa0c 100644
 --- a/doc/README.efi
@@ -598,5 +598,5 @@ index 0000000000..298b94e342
 +[1] http://www.qemu.org
 +[2] http://www.tianocore.org/ovmf/
 -- 
-2.11.0
+2.14.2
 
