@@ -1,4 +1,4 @@
-From 30a4b560c747b9bf8b18724d680954ad4e0c45d4 Mon Sep 17 00:00:00 2001
+From 9cd551094fe76f16adfec34e66f4b5bbab4c4dc7 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 28 Jan 2018 23:56:18 +0100
 Subject: [PATCH 1/1] dm: video: support increased intensity (bold)
@@ -12,8 +12,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  drivers/video/video-uclass.c      |  5 ++++-
  include/video.h                   |  2 ++
  include/video_console.h           | 12 ++++++++++--
- test/dm/video.c                   |  2 +-
- 5 files changed, 43 insertions(+), 10 deletions(-)
+ 4 files changed, 42 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/video/vidconsole-uclass.c b/drivers/video/vidconsole-uclass.c
 index 44f557c46a..a878eb402a 100644
@@ -138,19 +137,6 @@ index 9505db1dc3..a3ff176269 100644
  	VID_WHITE,
  
  	VID_COLOR_COUNT
-diff --git a/test/dm/video.c b/test/dm/video.c
-index d158f1fcb3..caca496902 100644
---- a/test/dm/video.c
-+++ b/test/dm/video.c
-@@ -186,7 +186,7 @@ static int dm_test_video_ansi(struct unit_test_state *uts)
- 	/* test colors (30-37 fg color, 40-47 bg color) */
- 	vidconsole_put_string(con, ANSI_ESC"[30;41mfoo"); /* black on red */
- 	vidconsole_put_string(con, ANSI_ESC"[33;44mbar"); /* yellow on blue */
--	ut_asserteq(267, compress_frame_buffer(dev));
-+	ut_asserteq(265, compress_frame_buffer(dev));
- 
- 	return 0;
- }
 -- 
 2.14.2
 
