@@ -1,0 +1,141 @@
+From bc4fb2c4686df839de975689b00413d6a7aa5fe8 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 29 Jan 2018 19:17:51 +0100
+Subject: [PATCH 1/1] efi_loader: remove deprecated ConsoleControlProtocol
+
+The console control protocol is not defined in the UEFI standard.
+
+It exists in EDK2's EdkCompatiblityPkg package. But this package
+is deprecated according to
+https://github.com/tianocore/tianocore.github.io/wiki/Differences-between-EDK-and-EDK-II
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h             | 18 -----------------
+ lib/efi_loader/efi_boottime.c |  5 -----
+ lib/efi_loader/efi_console.c  | 46 -------------------------------------------
+ 3 files changed, 69 deletions(-)
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index 205f8f1f70..a2706a0ae4 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -542,24 +542,6 @@ struct efi_simple_input_interface {
+ 	struct efi_event *wait_for_key;
+ };
+ 
+-#define CONSOLE_CONTROL_GUID \
+-	EFI_GUID(0xf42f7782, 0x12e, 0x4c12, \
+-		 0x99, 0x56, 0x49, 0xf9, 0x43, 0x4, 0xf7, 0x21)
+-#define EFI_CONSOLE_MODE_TEXT	0
+-#define EFI_CONSOLE_MODE_GFX	1
+-
+-struct efi_console_control_protocol
+-{
+-	efi_status_t (EFIAPI *get_mode)(
+-			struct efi_console_control_protocol *this, int *mode,
+-			char *uga_exists, char *std_in_locked);
+-	efi_status_t (EFIAPI *set_mode)(
+-			struct efi_console_control_protocol *this, int mode);
+-	efi_status_t (EFIAPI *lock_std_in)(
+-			struct efi_console_control_protocol *this,
+-			uint16_t *password);
+-};
+-
+ #define EFI_DEVICE_PATH_TO_TEXT_PROTOCOL_GUID \
+ 	EFI_GUID(0x8b843e20, 0x8132, 0x4852, \
+ 		 0x90, 0xcc, 0x55, 0x1a, 0x4e, 0x4a, 0x7f, 0x1c)
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index da93498b36..599f0c597d 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1388,11 +1388,6 @@ efi_status_t efi_setup_loaded_image(
+ 	if (ret != EFI_SUCCESS)
+ 		goto failure;
+ 
+-	ret = efi_add_protocol(obj->handle, &efi_guid_console_control,
+-			       (void *)&efi_console_control);
+-	if (ret != EFI_SUCCESS)
+-		goto failure;
+-
+ 	ret = efi_add_protocol(obj->handle,
+ 			       &efi_guid_device_path_to_text_protocol,
+ 			       (void *)&efi_device_path_to_text);
+diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
+index 28d63635ec..3cb580e3ed 100644
+--- a/lib/efi_loader/efi_console.c
++++ b/lib/efi_loader/efi_console.c
+@@ -45,7 +45,6 @@ static struct cout_mode efi_cout_modes[] = {
+ 	},
+ };
+ 
+-const efi_guid_t efi_guid_console_control = CONSOLE_CONTROL_GUID;
+ const efi_guid_t efi_guid_text_output_protocol =
+ 			EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID;
+ const efi_guid_t efi_guid_text_input_protocol =
+@@ -54,43 +53,6 @@ const efi_guid_t efi_guid_text_input_protocol =
+ #define cESC '\x1b'
+ #define ESC "\x1b"
+ 
+-static efi_status_t EFIAPI efi_cin_get_mode(
+-			struct efi_console_control_protocol *this,
+-			int *mode, char *uga_exists, char *std_in_locked)
+-{
+-	EFI_ENTRY("%p, %p, %p, %p", this, mode, uga_exists, std_in_locked);
+-
+-	if (mode)
+-		*mode = EFI_CONSOLE_MODE_TEXT;
+-	if (uga_exists)
+-		*uga_exists = 0;
+-	if (std_in_locked)
+-		*std_in_locked = 0;
+-
+-	return EFI_EXIT(EFI_SUCCESS);
+-}
+-
+-static efi_status_t EFIAPI efi_cin_set_mode(
+-			struct efi_console_control_protocol *this, int mode)
+-{
+-	EFI_ENTRY("%p, %d", this, mode);
+-	return EFI_EXIT(EFI_UNSUPPORTED);
+-}
+-
+-static efi_status_t EFIAPI efi_cin_lock_std_in(
+-			struct efi_console_control_protocol *this,
+-			uint16_t *password)
+-{
+-	EFI_ENTRY("%p, %p", this, password);
+-	return EFI_EXIT(EFI_UNSUPPORTED);
+-}
+-
+-struct efi_console_control_protocol efi_console_control = {
+-	.get_mode = efi_cin_get_mode,
+-	.set_mode = efi_cin_set_mode,
+-	.lock_std_in = efi_cin_lock_std_in,
+-};
+-
+ /* Default to mode 0 */
+ static struct simple_text_output_mode efi_con_mode = {
+ 	.max_mode = 1,
+@@ -506,18 +468,10 @@ static void EFIAPI efi_console_timer_notify(struct efi_event *event,
+ int efi_console_register(void)
+ {
+ 	efi_status_t r;
+-	struct efi_object *efi_console_control_obj;
+ 	struct efi_object *efi_console_output_obj;
+ 	struct efi_object *efi_console_input_obj;
+ 
+ 	/* Create handles */
+-	r = efi_create_handle((efi_handle_t *)&efi_console_control_obj);
+-	if (r != EFI_SUCCESS)
+-		goto out_of_memory;
+-	r = efi_add_protocol(efi_console_control_obj->handle,
+-			     &efi_guid_console_control, &efi_console_control);
+-	if (r != EFI_SUCCESS)
+-		goto out_of_memory;
+ 	r = efi_create_handle((efi_handle_t *)&efi_console_output_obj);
+ 	if (r != EFI_SUCCESS)
+ 		goto out_of_memory;
+-- 
+2.14.2
+
