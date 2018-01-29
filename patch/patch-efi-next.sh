@@ -45,11 +45,8 @@ git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
 git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
-git am ../patch/0001-dm-video-Correct-color-ANSI-escape-sequence-support.patch
+git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
-
-# Superseded
-# git am ../patch/0001-efi_loader-use-always-same-signature-for-EFI-entry-p.patch
 
 # Work in progress
 # git am ../patch/0001-efi_loader-debug-print-memory-map.patch
