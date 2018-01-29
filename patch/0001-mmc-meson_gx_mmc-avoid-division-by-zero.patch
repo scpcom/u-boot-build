@@ -1,10 +1,9 @@
 From 0131ee32348d058803eb460e9f723feed96be343 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 29 Jan 2018 00:16:11 +0000
-Subject: [PATCH 1/1] mmc: meson_gx_mmc: avoid dereferencing NULL
+Subject: [PATCH 1/1] mmc: meson_gx_mmc: avoid division by zero
 
-We should not dereference a pointer which is possibly NULL before
-checking it.
+Add a check for the divisor.
 
 Suggested-by: Jaehoon Chung <jh80.chung@samsung.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
