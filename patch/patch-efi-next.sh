@@ -40,13 +40,16 @@ git am ../patch/0001-log-add-category-LOGC_EFI.patch
 # git am ../patch/0001-efi_loader-always-call-Exit-after-an-image-returns.patch
 # git am ../patch/0001-efi_loader-add-a-README.iscsi-describing-booting-via.patch
 
-git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
-git am ../patch/0001-efi_loader-rewrite-README.efi.patch
-
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
 git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
 git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
+
+git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch
+git am ../patch/0001-efi_loader-call-efi_setup_loaded_image-first.patch
+
+git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
+git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
 # Work in progress
 # git am ../patch/0001-efi_loader-debug-print-memory-map.patch

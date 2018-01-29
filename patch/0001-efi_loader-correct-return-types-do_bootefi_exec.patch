@@ -1,0 +1,47 @@
+From efeb7bdc42844ba3f9257ead701ab91b16abd3ca Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 29 Jan 2018 18:57:57 +0100
+Subject: [PATCH 1/1] efi_loader: correct return types do_bootefi_exec()
+
+do_bootefi_exec() returns a value of type efi_status_t so we should only
+return status codes defined by the EFI spec.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 4233d36b72..23baa4f043 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -161,7 +161,7 @@ static efi_status_t do_bootefi_exec(void *efi, void *fdt,
+ 	struct efi_loaded_image loaded_image_info = {};
+ 	struct efi_object loaded_image_info_obj = {};
+ 	struct efi_device_path *memdp = NULL;
+-	ulong ret;
++	efi_status_t ret;
+ 
+ 	EFIAPI efi_status_t (*entry)(efi_handle_t image_handle,
+ 				     struct efi_system_table *st);
+@@ -202,7 +202,7 @@ static efi_status_t do_bootefi_exec(void *efi, void *fdt,
+ 
+ 		if (image_setup_libfdt(&img, fdt, 0, NULL)) {
+ 			printf("ERROR: Failed to process device tree\n");
+-			return -EINVAL;
++			return EFI_LOAD_ERROR;
+ 		}
+ 
+ 		/* Link to it in the efi tables */
+@@ -227,7 +227,7 @@ static efi_status_t do_bootefi_exec(void *efi, void *fdt,
+ 	/* Load the EFI payload */
+ 	entry = efi_load_pe(efi, &loaded_image_info);
+ 	if (!entry) {
+-		ret = -ENOENT;
++		ret = EFI_LOAD_ERROR;
+ 		goto exit;
+ 	}
+ 
+-- 
+2.14.2
+
