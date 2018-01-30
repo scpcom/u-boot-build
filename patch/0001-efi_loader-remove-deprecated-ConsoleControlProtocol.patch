@@ -1,4 +1,4 @@
-From 40ad0c913fec6978896b37826b3fad36038c0516 Mon Sep 17 00:00:00 2001
+From b91321a7fabbf31f0c6e331b30cf720e3d243af2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 29 Jan 2018 19:17:51 +0100
 Subject: [PATCH 1/1] efi_loader: remove deprecated ConsoleControlProtocol
@@ -17,10 +17,10 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  3 files changed, 69 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
-index 26572f1cd2..b9fee4a74d 100644
+index 205f8f1f70..a2706a0ae4 100644
 --- a/include/efi_api.h
 +++ b/include/efi_api.h
-@@ -543,24 +543,6 @@ struct efi_simple_input_interface {
+@@ -542,24 +542,6 @@ struct efi_simple_input_interface {
  	struct efi_event *wait_for_key;
  };
  
@@ -46,21 +46,21 @@ index 26572f1cd2..b9fee4a74d 100644
  	EFI_GUID(0x8b843e20, 0x8132, 0x4852, \
  		 0x90, 0xcc, 0x55, 0x1a, 0x4e, 0x4a, 0x7f, 0x1c)
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 717231ce1a..dd4978a168 100644
+index da93498b36..599f0c597d 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
-@@ -1386,11 +1386,6 @@ efi_status_t efi_setup_loaded_image(
+@@ -1388,11 +1388,6 @@ efi_status_t efi_setup_loaded_image(
  	if (ret != EFI_SUCCESS)
  		goto failure;
  
--	ret = efi_add_protocol(handle, &efi_guid_console_control,
+-	ret = efi_add_protocol(obj->handle, &efi_guid_console_control,
 -			       (void *)&efi_console_control);
 -	if (ret != EFI_SUCCESS)
 -		goto failure;
 -
- 	ret = efi_add_protocol(handle, &efi_guid_device_path_to_text_protocol,
+ 	ret = efi_add_protocol(obj->handle,
+ 			       &efi_guid_device_path_to_text_protocol,
  			       (void *)&efi_device_path_to_text);
- 	if (ret != EFI_SUCCESS)
 diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
 index 28d63635ec..3cb580e3ed 100644
 --- a/lib/efi_loader/efi_console.c
@@ -137,5 +137,5 @@ index 28d63635ec..3cb580e3ed 100644
  	if (r != EFI_SUCCESS)
  		goto out_of_memory;
 -- 
-2.14.2
+2.15.1
 
