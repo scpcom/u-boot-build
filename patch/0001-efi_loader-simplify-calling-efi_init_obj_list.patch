@@ -1,0 +1,64 @@
+From 6be1e9c446ccc8313aa2243f5d0fa3f7673a1990 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 30 Jan 2018 20:21:22 +0100
+Subject: [PATCH 1/1] efi_loader: simplify calling efi_init_obj_list
+
+efi_init_obj_list() should be executed only once.
+
+Rather than having the caller check this variable and the callee set it,
+move all access to the variable inside the function. This reduces the
+logic needed to call efi_init_obj_list().
+
+Suggested-by: Simon Glass <sjg@chromium.org>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 2106ed9c8c..cec3591a42 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -30,6 +30,9 @@ static struct efi_device_path *bootefi_device_path;
+ /* Initialize and populate EFI object list */
+ static void efi_init_obj_list(void)
+ {
++	/* Initilize once only */
++	if (efi_obj_list_initalized)
++		return;
+ 	efi_obj_list_initalized = 1;
+ 
+ 	/* Initialize EFI driver uclass */
+@@ -184,8 +187,7 @@ static efi_status_t do_bootefi_exec(void *efi, void *fdt,
+ 	}
+ 
+ 	/* Initialize and populate EFI object list */
+-	if (!efi_obj_list_initalized)
+-		efi_init_obj_list();
++	efi_init_obj_list();
+ 
+ 	efi_setup_loaded_image(&loaded_image_info, &loaded_image_info_obj,
+ 			       device_path, image_path);
+@@ -284,8 +286,7 @@ static int do_bootefi_bootmgr_exec(unsigned long fdt_addr)
+ 	efi_status_t r;
+ 
+ 	/* Initialize and populate EFI object list */
+-	if (!efi_obj_list_initalized)
+-		efi_init_obj_list();
++	efi_init_obj_list();
+ 
+ 	/*
+ 	 * gd lives in a fixed register which may get clobbered while we execute
+@@ -350,8 +351,7 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+ 		 */
+ 		efi_save_gd();
+ 		/* Initialize and populate EFI object list */
+-		if (!efi_obj_list_initalized)
+-			efi_init_obj_list();
++		efi_init_obj_list();
+ 		/* Transfer environment variable efi_selftest as load options */
+ 		set_load_options(&loaded_image_info, "efi_selftest");
+ 		/* Execute the test */
+-- 
+2.11.0
+

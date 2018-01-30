@@ -27,6 +27,8 @@ git am ../patch/0001-efi_loader-fix-the-online-help-for-bootefi-bootmgr.patch
 git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
+git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
+
 # git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
 # git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch
 # git am ../patch/0001-efi_loader-call-efi_setup_loaded_image-first.patch
