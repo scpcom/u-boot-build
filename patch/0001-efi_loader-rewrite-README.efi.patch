@@ -1,4 +1,4 @@
-From c820b1b809ecef1a1a75747839b8345748c6fbfe Mon Sep 17 00:00:00 2001
+From a7e8a5739e90ab6087c82200858c949c688d8c4c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 24 Jan 2018 19:04:52 +0100
 Subject: [PATCH 1/1] efi_loader: rewrite README.efi
@@ -11,14 +11,14 @@ Provides information about
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- doc/README.efi | 316 ++++++++++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 258 insertions(+), 58 deletions(-)
+ doc/README.efi | 322 ++++++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 264 insertions(+), 58 deletions(-)
 
 diff --git a/doc/README.efi b/doc/README.efi
-index 956f5bfa0c..7a87afea6c 100644
+index 956f5bfa0c..ea1facc431 100644
 --- a/doc/README.efi
 +++ b/doc/README.efi
-@@ -1,86 +1,286 @@
+@@ -1,86 +1,292 @@
 -#
 -# Copyright (C) 2015 Google, Inc
 -#
@@ -45,10 +45,10 @@ index 956f5bfa0c..7a87afea6c 100644
 -Future work
 +The Unified Extensible Firmware Interface Specification (UEFI) has become the
 +default for booting on AArch64 and x86 systems. It provides a stable API for the
-+interaction between and firmware and the drivers and applications that the
-+firmware loads. The API provides access to block storage, network, and console
-+to name a few. The Linux kernel and boot loaders like Grub or the FreeBSD loader
-+can be executed.
++interaction between the firmware and the drivers and applications loaded by the
++firmware. The API provides access to block storage, network, and console to name
++a few. The Linux kernel and boot loaders like Grub or the FreeBSD loader can be
++executed.
  
 +## Building for EFI
  
@@ -139,10 +139,11 @@ index 956f5bfa0c..7a87afea6c 100644
  
 -Future work
 ------------
-+### Executing the built in hello world application
++### Executing the boot manager
  
 -Of course, there are still a few things one could do on top:
-+For testing the bootefi command can be used to start a hello world application.
++The UEFI specfication forsees to define boot entries and boot sequence via EFI
++variables. Booting according to these variables is possible via
  
 -   - Improve disk media detection (don't scan, use what information we
 -have)
@@ -152,10 +153,17 @@ index 956f5bfa0c..7a87afea6c 100644
 -   - Network device support
 -   - Support for payload exit
 -   - Payload Watchdog support
-+    bootefi hello [fdt address]
++    bootefi bootmgr [fdt address]
  
 -[1] http://uefi.org/
-+* fdt address - the memory address of the flattened device tree
++As of U-Boot v2018.03 EFI variables cannot be set by the operating system. So
++this development is not usable yet.
++
++### Executing the built in hello world application
++
++For testing the bootefi command can be used to start a hello world application.
++
++    bootefi hello [fdt address]
 +
 +Below you find the output of an example session.
 +
@@ -173,8 +181,6 @@ index 956f5bfa0c..7a87afea6c 100644
 +test.
 +
 +    bootefi selftest [fdt address]
-+
-+* fdt address - the memory address of the flattened device tree
 +
 +The environment variable 'efi_selftest' can be used to select a single test. If
 +it is not provided all tests are executed except those marked as 'on request'.
