@@ -1,7 +1,7 @@
-From ad593fd985ee4982181071e4d4dc83d9288d5451 Mon Sep 17 00:00:00 2001
+From 301aed79023c53a7301f44edfe20bb25b4e7c7e7 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 30 Jan 2018 20:50:49 +0100
-Subject: [PATCH 1/1] efi_loader: efi_smbios_register should have a return
+Subject: [PATCH v2 1/1] efi_loader: efi_smbios_register should have a return
  value
 
 Errors may occur inside efi_smbios_register().
@@ -13,10 +13,12 @@ Errors may occur inside efi_smbios_register().
 Suggested-by: Simon Glass <sjg@chromium.org>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v2
+	remove a change in unrelated code
+---
  include/efi_loader.h        |  2 +-
- lib/efi_loader/efi_smbios.c | 18 ++++++++++++------
- lib/smbios.c                |  2 ++
- 3 files changed, 15 insertions(+), 7 deletions(-)
+ lib/efi_loader/efi_smbios.c | 23 +++++++++++++++--------
+ 2 files changed, 16 insertions(+), 9 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index 21c03c5c28..eb86853924 100644
@@ -32,19 +34,20 @@ index 21c03c5c28..eb86853924 100644
  struct efi_simple_file_system_protocol *
  efi_fs_from_path(struct efi_device_path *fp);
 diff --git a/lib/efi_loader/efi_smbios.c b/lib/efi_loader/efi_smbios.c
-index 67f71892ca..62e9697902 100644
+index ac412e7362..9ff7651683 100644
 --- a/lib/efi_loader/efi_smbios.c
 +++ b/lib/efi_loader/efi_smbios.c
-@@ -13,16 +13,22 @@
+@@ -13,20 +13,27 @@
  
  static const efi_guid_t smbios_guid = SMBIOS_TABLE_GUID;
  
+-void efi_smbios_register(void)
 +/*
 + * Install the SMBIOS table as a configuration table.
 + *
 + * @return	status code
 + */
- efi_status_t efi_smbios_register(void)
++efi_status_t efi_smbios_register(void)
  {
  	/* Map within the low 32 bits, to allow for 32bit SMBIOS tables */
 -	uint64_t dmi = 0xffffffff;
@@ -55,7 +58,7 @@ index 67f71892ca..62e9697902 100644
 +	efi_status_t ret;
  
 -	if (efi_allocate_pages(1, memtype, pages, &dmi) != EFI_SUCCESS)
--		return EFI_OUT_OF_RESOURCES;
+-		return;
 +	/* Reserve 4kiB page for SMBIOS */
 +	ret = efi_allocate_pages(EFI_ALLOCATE_MAX_ADDRESS,
 +				 EFI_RUNTIME_SERVICES_DATA, 1, &dmi);
@@ -64,18 +67,12 @@ index 67f71892ca..62e9697902 100644
  
  	/* Generate SMBIOS tables */
  	write_smbios_table(dmi);
-diff --git a/lib/smbios.c b/lib/smbios.c
-index 8f19ad89c1..5389ca66e7 100644
---- a/lib/smbios.c
-+++ b/lib/smbios.c
-@@ -301,5 +301,7 @@ ulong write_smbios_table(ulong addr)
- 	se->intermediate_checksum = table_compute_checksum(istart, isize);
- 	se->checksum = table_compute_checksum(se, sizeof(struct smbios_entry));
  
-+	printf("smbios table size: %d\n", isize);
-+
- 	return addr;
+ 	/* And expose them to our EFI payload */
+-	efi_install_configuration_table(&smbios_guid, (void*)(uintptr_t)dmi);
++	return efi_install_configuration_table(&smbios_guid,
++					       (void *)(uintptr_t)dmi);
  }
 -- 
-2.11.0
+2.15.1
 
