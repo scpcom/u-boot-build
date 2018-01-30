@@ -1,18 +1,24 @@
-From 90c65836aa659c506ac6d1b096fcc8ee70e1c1a3 Mon Sep 17 00:00:00 2001
+From c820b1b809ecef1a1a75747839b8345748c6fbfe Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 24 Jan 2018 19:04:52 +0100
 Subject: [PATCH 1/1] efi_loader: rewrite README.efi
 
+Provides information about
+
+- usage of the bootefi command
+- overview of UEFI
+- interaction between U-Boot and EFI drivers
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- doc/README.efi                | 101 +++++++++++++++++-------------------------
- 2 files changed, 44 insertions(+), 63 deletions(-)
+ doc/README.efi | 316 ++++++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 258 insertions(+), 58 deletions(-)
 
 diff --git a/doc/README.efi b/doc/README.efi
-index 956f5bfa0c..55063917c7 100644
+index 956f5bfa0c..7a87afea6c 100644
 --- a/doc/README.efi
 +++ b/doc/README.efi
-@@ -1,86 +1,65 @@
+@@ -1,86 +1,286 @@
 -#
 -# Copyright (C) 2015 Google, Inc
 -#
@@ -41,7 +47,7 @@ index 956f5bfa0c..55063917c7 100644
 +default for booting on AArch64 and x86 systems. It provides a stable API for the
 +interaction between and firmware and the drivers and applications that the
 +firmware loads. The API provides access to block storage, network, and console
-+to name a few. The Linux kernel and bootloaders like Grub or the FreeBSD loader
++to name a few. The Linux kernel and boot loaders like Grub or the FreeBSD loader
 +can be executed.
  
 +## Building for EFI
@@ -65,7 +71,7 @@ index 956f5bfa0c..55063917c7 100644
 -EFI support for 32bit ARM and AArch64 is already included in U-Boot. All you
 -need to do is enable
 +Support for attaching virtual block devices, e.g. iSCSI drives connected by the
-+loaded EFI application requires
++loaded EFI application, requires
  
 -  CONFIG_CMD_BOOTEFI=y
 -  CONFIG_EFI_LOADER=y
@@ -75,7 +81,7 @@ index 956f5bfa0c..55063917c7 100644
 -in your .config file and you will automatically get a bootefi command to run
 -an efi application as well as snippet in the default distro boot script that
 -scans for removable media efi binaries as fallback.
-+A hello world EFI app can be built with
++A hello world EFI application can be built with
  
 -Status
 -------
@@ -99,33 +105,45 @@ index 956f5bfa0c..55063917c7 100644
  
 -Simple use cases like "Plug this SD card into my ARM device and it just
 -boots into grub which boots into Linux", work very well.
-+## The EFI life cycle
++## The bootefi command
  
++### Executing an EFI binary
  
 -Running HelloWord.efi
 ----------------------
++The bootefi command is used to start EFI applications or to install EFI drivers.
++It takes two parameters
  
 -You can run a simple 'hello world' EFI program in U-Boot.
 -Enable the option CONFIG_CMD_BOOTEFI_HELLO.
++    bootefi <image address> [fdt address]
  
 -Then you can boot into U-Boot and type:
-+## Executing EFI binaries
++* image address - the memory address of the EFI binary
++* fdt address - the memory address of the flattened device tree
  
 -   > bootefi hello
-+Three variants of EFI binaries exist:
++Below you find the output of an example session starting Grub.
  
 -The 'hello world EFI' program will then run, print a message and exit.
-+* applications
-+* boot time drivers
-+* runtime drivers
++    => load mmc 0:2 ${fdt_addr_r} boot/dtb
++    29830 bytes read in 14 ms (2 MiB/s)
++    => load mmc 0:1 ${kernel_addr_r} efi/debian/grubaa64.efi
++    reading efi/debian/grubaa64.efi
++    120832 bytes read in 7 ms (16.5 MiB/s)
++    => bootefi ${kernel_addr_r} ${fdt_addr_r}
  
-+## Open issues
++The environment variable 'bootargs' is passed as load options in the EFI system
++table. The Linux kernel EFI stub uses the load options as command line
++arguments.
  
 -Future work
 ------------
--
++### Executing the built in hello world application
+ 
 -Of course, there are still a few things one could do on top:
--
++For testing the bootefi command can be used to start a hello world application.
+ 
 -   - Improve disk media detection (don't scan, use what information we
 -have)
 -   - Add EFI variable support using NVRAM
@@ -134,11 +152,217 @@ index 956f5bfa0c..55063917c7 100644
 -   - Network device support
 -   - Support for payload exit
 -   - Payload Watchdog support
--
++    bootefi hello [fdt address]
+ 
 -[1] http://uefi.org/
-+* Manage events in a linux linked list. Currently it is an array.
-+* Manage configuration tables in a linux linked list.  Currently it is an array.
-+* Support DisconnectController for EFI block devices.
++* fdt address - the memory address of the flattened device tree
++
++Below you find the output of an example session.
++
++    => bootefi hello
++    ## Starting EFI application at 01000000 ...
++    WARNING: Invalid device tree, expect boot to fail
++    Hello, world!
++    Have SMBIOS table
++    Load options: root=/dev/sdb3 init=/sbin/init rootwait ro
++    ## Application terminated, r = 0
++
++### Executing the built in hello world application
++
++For testing the EFI implementation bootefi command can be used to start a self
++test.
++
++    bootefi selftest [fdt address]
++
++* fdt address - the memory address of the flattened device tree
++
++The environment variable 'efi_selftest' can be used to select a single test. If
++it is not provided all tests are executed except those marked as 'on request'.
++If the environment variable is set to 'list' a list of all tests is shown.
++
++Below you find the output of an example session.
++
++    => setenv efi_selftest simple network protocol
++    => bootefi selftest
++    Testing EFI API implementation
++    Selected test: 'simple network protocol'
++    Setting up 'simple network protocol'
++    Setting up 'simple network protocol' succeeded
++    Executing 'simple network protocol'
++    DHCP Discover
++    DHCP reply received from 192.168.76.2 (52:55:c0:a8:4c:02)
++      as broadcast message.
++    Executing 'simple network protocol' succeeded
++    Tearing down 'simple network protocol'
++    Tearing down 'simple network protocol' succeeded
++    Boot services terminated
++    Summary: 0 failures
++    Preparing for reset. Press any key.
++
++## The EFI life cycle
++
++After the U-Boot platform has been initialized the UEFI API provides two kinds
++of services
++
++* boot services and
++* runtime services.
++
++The API can be enhanced by loading EFI drivers which come in two variants
++
++* boot drivers and
++* runtime drivers.
++
++EFI drivers are installed with U-Boot's bootefi command. With the same command
++EFI applications can be run.
++
++Loaded images of EFI drivers stay in memory after returning to U-Boot while
++loaded images of applications are removed from memory.
++
++After an EFI application calls ExitBootServices
++
++* boot services are not available anymore
++* timer events are stopped
++* the memory used by U-Boot except for runtime services is released
++* the memory used by boot time drivers is released
++
++So this is the point of no return where the EFI application takes charge of the
++system. Afterwards it can only return to U-Boot by rebooting.
++
++## The EFI object model
++
++EFI offers a flexible and expandable object model. The objects in the EFI API
++are devices, drivers, and loaded images. These objects are referenced by
++handles.
++
++The interfaces implemented by the objects are referred to as protocols. These
++are identified by GUIDs. They can be installed and uninstalled by calling the
++appropriate boot services.
++
++Handles are created by the InstallProtocolInterface or the
++InstallMultipleProtocolinterfaces service if NULL is passed as handle.
++
++Handles are deleted when the last protocol has been removed with the
++UninstallProtocolInterface or the UninstallMultipleProtocolInterfaces service.
++
++Devices offer the EFI_DEVICE_PATH_PROTOCOL. A device path is the concatenation
++of device nodes. By their device paths all devices of a system are arranged in a
++tree.
++
++Drivers offer the EFI_DRIVER_BINDING_PROTOCOL. This protocol is used to connect
++a drivers to devices (which are referenced as controllers in this context).
++
++Loaded images offer the EFI_LOADED_IMAGE_PROTOCOL. This protocol provides meta
++information about the image and the unload callback function.
++
++## The EFI events
++
++In the UEFI terminology an event is a data object referencing a notification
++function which is queued for calling when the event is signaled. The following
++types of events exist:
++
++* periodic and single shot timer events
++* exit boot services events, triggered by calling the ExitBootServices() service
++* virtual address change events (not yet implemented in U-Boot)
++* events that are only triggered programmatically
++
++Events can be created with the CreateEvent service and deleted with CloseEvent
++service.
++
++## The EFI driver model
++
++The device for which a driver is installed is called the controller.
++
++A driver is specific for a single protocol installed on a device. To install a
++driver on a device the ConnectController service is called.
++
++The EFI_DRIVER_BINDING_PROTOCOL of the driver has three functions:
++
++* supported - determines if the driver is compatible with the device
++* start - installs the driver by opening the relevant protocol with
++  attribute EFI_OPEN_PROTOCOL_BY_DRIVER
++* stop - uninstalls the driver
++
++The driver may create child controllers (child devices). E.g. a driver for block
++IO devices will create the device handles for the partitions. The child
++controllers  will open the supported protocol with attribute
++EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER.
++
++A driver can be detached from a device with the DisconnectController service.
++
++## EFI uclass
++
++An EFI uclass driver (lib/efi_driver/efi_uclass.c) has been created that
++maintains a list of all EFI drivers supplied by U-Boot. The uclass is
++responsible for creating a handle for each of the drivers and installing and
++handling the EFI_DRIVER_BINDING_PROTOCOL.
++
++## U-Boot devices mapped as EFI devices
++
++Some of the U-Boot devices are mapped as EFI devices
++
++* block IO devices
++* console
++* graphical output
++* network adapter
++
++As of U-Boot 2018.03 the logic for doing this is hard coded.
++
++The development target is to integrate the setup of these EFI devices with the
++U-Boot driver model. So when an U-Boot device is discovered a handle should be
++created and the device path protocol and the relevant IO protocol should be
++installed. The EFI driver then would be attached by calling ConnectController.
++When an U-Boot device is removed DisconnectController should be called.
++
++## EFI devices mapped as U-Boot devices
++
++EFI drivers and applications may create new (virtual) devices, install a
++protocol and call the ConnectController service. Now the matching EFI driver can
++be determined.
++
++It is the task of the EFI driver to create a corresponding U-Boot device and to
++proxy calls for this U-Boot device to the controller.
++
++In U-Boot 2018.03 this has only been implemented for block IO devices.
++
++### EFI block IO driver
++
++The EFI block IO driver supports devices exposing the EFI_BLOCK_IO_PROTOCOL.
++
++When connected it creates a new U-Boot block IO device with interface type
++IF_TYPE_EFI, adds child controllers mapping the partitions, and installs the
++EFI_SIMPLE_FILE_SYSTEM_PROTOCOL on these. This can be used together with the
++software iPXE to boot from iSCSI network drives (see doc/README.iscsi).
++
++The driver is only available if U-Boot is configured with
++
++    CONFIG_BLK=y
++    CONFIG_PARTITIONS=y
++
++## Open issues as of U-Boot 2018.03
++
++* unimplemented or incompletely implemented boot services
++** Exit - call unload function, unload applications only
++** ReinstallProtocolInterface
++** UnloadImage
++
++* unimplemented events
++** EVT_RUNTIME
++** EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE
++
++* data model
++** manage events in a linked list
++** manage configuration tables in a linked list
++
++* EFI drivers
++** support DisconnectController for EFI block devices.
++
++* Sandbox support for CONFIG_EFI_LOADER
++
++## Links
++
++http://uefi.org/specifications - UEFI specifications
++doc/driver-model/README.txt - Driver model
++doc/README.iscsi - iSCSI booting with U-Boot and iPXE
 -- 
 2.11.0
 

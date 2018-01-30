@@ -26,9 +26,9 @@ git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 
 git am ../patch/0001-efi_loader-remove-deprecated-ConsoleControlProtocol.patch
-git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
-git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch
-git am ../patch/0001-efi_loader-call-efi_setup_loaded_image-first.patch
+# git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
+# git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch
+# git am ../patch/0001-efi_loader-call-efi_setup_loaded_image-first.patch
 
 git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 git am ../patch/0001-efi_loader-rewrite-README.efi.patch
