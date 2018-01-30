@@ -1,0 +1,29 @@
+From f29abd20ce7e17c95a4cbb69542cf28eefec0a38 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 30 Jan 2018 19:44:27 +0100
+Subject: [PATCH 1/1] efi_loader: fix the online help for bootefi bootmgr
+
+The bootefi command is missing in the online help for
+bootefi bootmgr.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ cmd/bootefi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 4233d36b72..2106ed9c8c 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -411,7 +411,7 @@ static char bootefi_help_text[] =
+ 	"    Use environment variable efi_selftest to select a single test.\n"
+ 	"    Use 'setenv efi_selftest list' to enumerate all tests.\n"
+ #endif
+-	"bootmgr [fdt addr]\n"
++	"bootefi bootmgr [fdt addr]\n"
+ 	"  - load and boot EFI payload based on BootOrder/BootXXXX variables.\n"
+ 	"\n"
+ 	"    If specified, the device tree located at <fdt address> gets\n"
+-- 
+2.11.0
+
