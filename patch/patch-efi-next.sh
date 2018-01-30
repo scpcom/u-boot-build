@@ -1,6 +1,5 @@
 #!/bin/sh
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
-git am ../patch/0001-cmd-bdinfo-print-relocation-info-on-X86.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
 
 # git am ../patch/0001-Test-vexpress-only.patch
@@ -8,8 +7,6 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 
 # Fix building u-boot.rom for qemu-x86_64_defconfig
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
-
-git am ../patch/0001-configs-x86-allow-to-override-CONFIG_BOOTCOMMAND.patch
 
 git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 
