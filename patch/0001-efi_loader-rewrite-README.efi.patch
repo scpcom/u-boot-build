@@ -1,4 +1,4 @@
-From a7e8a5739e90ab6087c82200858c949c688d8c4c Mon Sep 17 00:00:00 2001
+From 30bf040baec9399dce607fa46a0499944db7437c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 24 Jan 2018 19:04:52 +0100
 Subject: [PATCH 1/1] efi_loader: rewrite README.efi
@@ -11,14 +11,14 @@ Provides information about
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- doc/README.efi | 322 ++++++++++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 264 insertions(+), 58 deletions(-)
+ doc/README.efi | 324 ++++++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 266 insertions(+), 58 deletions(-)
 
 diff --git a/doc/README.efi b/doc/README.efi
-index 956f5bfa0c..ea1facc431 100644
+index 956f5bfa0c..211d31e3d2 100644
 --- a/doc/README.efi
 +++ b/doc/README.efi
-@@ -1,86 +1,292 @@
+@@ -1,86 +1,294 @@
 -#
 -# Copyright (C) 2015 Google, Inc
 -#
@@ -347,28 +347,30 @@ index 956f5bfa0c..ea1facc431 100644
 +## Open issues as of U-Boot 2018.03
 +
 +* unimplemented or incompletely implemented boot services
-+** Exit - call unload function, unload applications only
-+** ReinstallProtocolInterface
-+** UnloadImage
++* * Exit - call unload function, unload applications only
++* * ReinstallProtocolInterface
++* * UnloadImage
 +
 +* unimplemented events
-+** EVT_RUNTIME
-+** EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE
++* * EVT_RUNTIME
++* * EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE
 +
 +* data model
-+** manage events in a linked list
-+** manage configuration tables in a linked list
++* * manage events in a linked list
++* * manage configuration tables in a linked list
 +
 +* EFI drivers
-+** support DisconnectController for EFI block devices.
++* * support DisconnectController for EFI block devices.
 +
 +* Sandbox support for CONFIG_EFI_LOADER
 +
++* persisted EFI variables
++
 +## Links
 +
-+http://uefi.org/specifications - UEFI specifications
-+doc/driver-model/README.txt - Driver model
-+doc/README.iscsi - iSCSI booting with U-Boot and iPXE
++* http://uefi.org/specifications - UEFI specifications
++* doc/driver-model/README.txt - Driver model
++* doc/README.iscsi - iSCSI booting with U-Boot and iPXE
 -- 
 2.11.0
 
