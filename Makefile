@@ -24,6 +24,8 @@ prepare:
 	test -d denx || git clone -v \
 	http://git.denx.de/u-boot.git denx
 	cd denx && (git fetch origin || true)
+	cd denx && \
+	  (git remote add agraf https://github.com/agraf/u-boot.git || true)
 	gpg --list-keys 87F9F635D31D7652 || \
 	gpg --keyserver keys.gnupg.net --recv-key 87F9F635D31D7652
 	test -d ipxe || git clone -v \
