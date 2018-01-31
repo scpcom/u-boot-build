@@ -1,6 +1,6 @@
-From 3b96d52980f59e9b42f57e8d9ba0b29f82b283be Mon Sep 17 00:00:00 2001
+From 532e545372fc2cfdd96398a175f58bbebd178550 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Wed, 31 Jan 2018 18:08:33 +0000
+Date: Wed, 31 Jan 2018 18:45:35 +0000
 Subject: [PATCH 1/1] efi_loader: fix building crt0 on arm
 
 Before the patch an undefined constant EFI_SUBSYSTEM was used in the
@@ -12,14 +12,23 @@ The necessary constant IMAGE_SUBSYSTEM_EFI_APPLICATION is already
 defined in pe.h. So let's factor out asm-generic/pe.h for the
 image subsystem constants and use it in our assembler code.
 
+IMAGE_SUBSYSTEM_SAL_RUNTIME_DRIVER does not exist in the specification
+let's use IMAGE_SUBSYSTEM_EFI_ROM instead.
+
+The include pe.h is only used in code maintained by Alex so let him be the
+maintainer here too.
+
+Reported-by: Andre Przywara <andre.przywara@arm.com>
+Cc: Alexander Graf <agraf@suse.de>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- MAINTAINERS                     |  2 ++
- arch/arm/lib/crt0_aarch64_efi.S |  4 +++-
- arch/arm/lib/crt0_arm_efi.S     |  4 +++-
- include/asm-generic/pe.h        | 21 +++++++++++++++++++++
- include/pe.h                    |  8 ++------
- 5 files changed, 31 insertions(+), 8 deletions(-)
+ MAINTAINERS                       |  2 ++
+ arch/arm/lib/crt0_aarch64_efi.S   |  4 +++-
+ arch/arm/lib/crt0_arm_efi.S       |  4 +++-
+ include/asm-generic/pe.h          | 21 +++++++++++++++++++++
+ include/pe.h                      |  8 ++------
+ lib/efi_loader/efi_image_loader.c |  2 +-
+ 6 files changed, 32 insertions(+), 9 deletions(-)
  create mode 100644 include/asm-generic/pe.h
 
 diff --git a/MAINTAINERS b/MAINTAINERS
@@ -81,7 +90,7 @@ index 967c885982..af55bba4ba 100644
  	.long	0				/* SizeOfStackCommit */
 diff --git a/include/asm-generic/pe.h b/include/asm-generic/pe.h
 new file mode 100644
-index 0000000000..3ec1a5eb8e
+index 0000000000..d1683f238a
 --- /dev/null
 +++ b/include/asm-generic/pe.h
 @@ -0,0 +1,21 @@
@@ -132,6 +141,19 @@ index 4ef3e92efa..c3a19cef76 100644
  typedef struct _IMAGE_OPTIONAL_HEADER64 {
  	uint16_t Magic; /* 0x20b */
  	uint8_t  MajorLinkerVersion;
+diff --git a/lib/efi_loader/efi_image_loader.c b/lib/efi_loader/efi_image_loader.c
+index 9d2214b481..cac64ba9fe 100644
+--- a/lib/efi_loader/efi_image_loader.c
++++ b/lib/efi_loader/efi_image_loader.c
+@@ -94,7 +94,7 @@ static void efi_set_code_and_data_type(
+ 		loaded_image_info->image_data_type = EFI_BOOT_SERVICES_DATA;
+ 		break;
+ 	case IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER:
+-	case IMAGE_SUBSYSTEM_SAL_RUNTIME_DRIVER:
++	case IMAGE_SUBSYSTEM_EFI_ROM:
+ 		loaded_image_info->image_code_type = EFI_RUNTIME_SERVICES_CODE;
+ 		loaded_image_info->image_data_type = EFI_RUNTIME_SERVICES_DATA;
+ 		break;
 -- 
 2.15.1
 
