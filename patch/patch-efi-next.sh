@@ -1,4 +1,6 @@
 #!/bin/sh
+git am ../patch/0001-efi_loader-fix-building-crt0-on-arm.patch
+
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
 
