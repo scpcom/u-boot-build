@@ -32,7 +32,7 @@ index 0ff787866d..6e94cee5d3 100644
 +F:	doc/README.efi
  F:	doc/README.iscsi
  F:	include/efi*
- F:	lib/efi*/
+ F:	include/pe.h
 diff --git a/doc/README.efi b/doc/README.efi
 index 66259f3e26..956f5bfa0c 100644
 --- a/doc/README.efi
