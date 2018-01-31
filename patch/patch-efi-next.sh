@@ -1,5 +1,8 @@
 #!/bin/sh
+
+# Accepted by Alex
 git am ../patch/0001-efi_loader-fix-building-crt0-on-arm.patch
+git am ../patch/0001-efi_loader-fix-the-online-help-for-bootefi-bootmgr.patch
 
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
@@ -28,9 +31,8 @@ git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 
 git am ../patch/0001-efi_loader-remove-deprecated-ConsoleControlProtocol.patch
-git am ../patch/0001-efi_loader-fix-the-online-help-for-bootefi-bootmgr.patch
-# git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
-# git am ../patch/0001-efi_loader-rewrite-README.efi.patch
+git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
+git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
 git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
