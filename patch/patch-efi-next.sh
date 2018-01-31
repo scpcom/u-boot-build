@@ -15,6 +15,9 @@ git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 git am ../patch/0001-log-add-category-LOGC_EFI.patch
 
+git am ../patch/0001-rockchip-gpio-remove-dead-code.patch
+git am ../patch/0001-i2c-mvtwsi.c-Avoid-NULL-dereference.patch
+
 # Rebasing needed
 # git am ../patch/0001-efi_loader-use-built-in-device-tree-in-bootefi-comma.patch
 # git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
