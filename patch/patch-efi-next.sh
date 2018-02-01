@@ -6,7 +6,10 @@ git am ../patch/0001-efi_loader-fix-the-online-help-for-bootefi-bootmgr.patch
 ## Open
 git am ../patch/0001-efi_driver-return-type-of-efi_driver_init.patch
 
-git am ../patch/0001-dm-mmc-sunxi-Add-support-for-driver-model.patch patch
+# Support EFI block device on BananaPi
+git am ../patch/0001-mmc-sunxi-support-cd-inverted.patch
+git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
+
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
 
@@ -16,7 +19,6 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 # Fix building u-boot.rom for qemu-x86_64_defconfig
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
-git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 
 git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 git am ../patch/0001-log-add-category-LOGC_EFI.patch
