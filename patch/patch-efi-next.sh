@@ -1,8 +1,11 @@
 #!/bin/sh
 
-# Accepted by Alex
+# EFI for v2018.03
+## Accepted by Alex
 git am ../patch/0001-efi_loader-fix-building-crt0-on-arm.patch
 git am ../patch/0001-efi_loader-fix-the-online-help-for-bootefi-bootmgr.patch
+## Open
+git am ../patch/0001-efi_driver-return-type-of-efi_driver_init.patch
 
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
