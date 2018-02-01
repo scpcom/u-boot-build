@@ -1,0 +1,32 @@
+From d645ec679ce7b24e80c0cd7f076f38442c00bf42 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 2 Feb 2018 00:56:26 +0100
+Subject: [PATCH 1/1] efi_selftest: use correct compiler flags for miniapps
+
+For EFI binaries we need special CFLAGS.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/Makefile | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index 90246f7827..c4bdbdf6c0 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -7,8 +7,10 @@
+ # This file only gets included with CONFIG_EFI_LOADER set, so all
+ # object inclusion implicitly depends on it
+ 
+-CFLAGS_efi_selftest_miniapp.o := $(CFLAGS_EFI) -Os -ffreestanding
+-CFLAGS_REMOVE_efi_selftest_miniapp.o := $(CFLAGS_NON_EFI) -Os
++CFLAGS_efi_selftest_miniapp_exit.o := $(CFLAGS_EFI) -Os -ffreestanding
++CFLAGS_REMOVE_efi_selftest_miniapp_exit.o := $(CFLAGS_NON_EFI) -Os
++CFLAGS_efi_selftest_miniapp_return.o := $(CFLAGS_EFI) -Os -ffreestanding
++CFLAGS_REMOVE_efi_selftest_miniapp_return.o := $(CFLAGS_NON_EFI) -Os
+ 
+ obj-$(CONFIG_CMD_BOOTEFI_SELFTEST) += \
+ efi_selftest.o \
+-- 
+2.14.2
+
