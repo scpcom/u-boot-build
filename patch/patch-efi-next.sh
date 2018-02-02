@@ -6,6 +6,8 @@ git am ../patch/0001-efi_loader-fix-the-online-help-for-bootefi-bootmgr.patch
 ## Open
 git am ../patch/0001-efi_selftest-use-correct-compiler-flags-for-miniapps.patch
 git am ../patch/0001-efi_driver-return-type-of-efi_driver_init.patch
+git am ../patch/0001-efi_loader-add-missing-EFI_RESET_PLATFORM_SPECIFIC.patch
+git am ../patch/0001-efi_loader-add-missing-runtime-services-stubs.patch
 
 # Support EFI block device on BananaPi
 git am ../patch/0001-mmc-sunxi-support-cd-inverted.patch
