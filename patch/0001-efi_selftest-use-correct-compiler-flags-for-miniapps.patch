@@ -5,7 +5,11 @@ Subject: [PATCH 1/1] efi_selftest: use correct compiler flags for miniapps
 
 For EFI binaries we need special CFLAGS.
 
+They were specified for an object file that since has been replaced.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+Alex, could you, please, forsee this patch for your rc2 pull request.
 ---
  lib/efi_selftest/Makefile | 6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)

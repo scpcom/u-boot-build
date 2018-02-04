@@ -1,0 +1,91 @@
+From 9a7fdabc6f9aba735b68723c7bcf8655f4e66c4d Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 4 Feb 2018 22:56:24 +0100
+Subject: [PATCH 1/1][for v2018.03] efi_loader: create stub for CreateEventEx
+
+Currently we set the function pointer for the CreateEventEx boot service
+to NULL. When called this would lead to an immediate failure.
+
+A function stub is provided which handles the case that the boot service
+is called without an event group and returns EFI_UNSUPPORTED otherwise.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h             |  9 ++++++++-
+ lib/efi_loader/efi_boottime.c | 33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 1 deletion(-)
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index a2706a0ae42..d51fb1b6216 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -166,7 +166,14 @@ struct efi_boot_services {
+ 	void (EFIAPI *copy_mem)(void *destination, const void *source,
+ 			size_t length);
+ 	void (EFIAPI *set_mem)(void *buffer, size_t size, uint8_t value);
+-	void *create_event_ex;
++	efi_status_t (EFIAPI *create_event_ex)(
++				uint32_t type, efi_uintn_t notify_tpl,
++				void (EFIAPI *notify_function) (
++					struct efi_event *event,
++					void *context),
++				void *notify_context,
++				efi_guid_t *event_group,
++				struct efi_event **event);
+ };
+ 
+ /* Types and defines for EFI ResetSystem */
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 599f0c597d6..013e0353c3a 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -525,6 +525,38 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ 	return EFI_OUT_OF_RESOURCES;
+ }
+ 
++/*
++ * Create an event in a group.
++ *
++ * This function implements the CreateEventEx service.
++ * See the Unified Extensible Firmware Interface (UEFI) specification
++ * for details.
++ * TODO: Support event groups
++ *
++ * @type		type of the event to create
++ * @notify_tpl		task priority level of the event
++ * @notify_function	notification function of the event
++ * @notify_context	pointer passed to the notification function
++ * @event		created event
++ * @event_group		event group
++ * @return		status code
++ */
++efi_status_t EFIAPI efi_create_event_ex(uint32_t type, efi_uintn_t notify_tpl,
++					void (EFIAPI *notify_function) (
++							struct efi_event *event,
++							void *context),
++					void *notify_context,
++					efi_guid_t *event_group,
++					struct efi_event **event)
++{
++	EFI_ENTRY("%d, 0x%zx, %p, %p, %pUl", type, notify_tpl, notify_function,
++		  notify_context, event_group);
++	if (event_group)
++		return EFI_EXIT(EFI_UNSUPPORTED);
++	return EFI_EXIT(efi_create_event(type, notify_tpl, notify_function,
++					 notify_context, event));
++}
++
+ /*
+  * Create an event.
+  *
+@@ -2846,6 +2878,7 @@ static const struct efi_boot_services efi_boot_services = {
+ 	.calculate_crc32 = efi_calculate_crc32,
+ 	.copy_mem = efi_copy_mem,
+ 	.set_mem = efi_set_mem,
++	.create_event_ex = efi_create_event_ex,
+ };
+ 
+ 
+-- 
+2.14.2
+
