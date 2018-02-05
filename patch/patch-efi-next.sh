@@ -23,9 +23,6 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 # Fix building u-boot.rom for qemu-x86_64_defconfig
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
-# Rework needed
-# git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
-
 git am ../patch/0001-rockchip-gpio-remove-dead-code.patch
 git am ../patch/0001-i2c-mvtwsi.c-Avoid-NULL-dereference.patch
 
@@ -57,6 +54,12 @@ git am ../patch/0001-efi_loader-do-not-use-2.0.5-as-UEFI-revision-number.patch
 git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 
 git am ../patch/0001-efi_loader-efi_get_time_init-should-return-status-co.patch
+git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
+git am ../patch/0001-efi_loader-do_bootefi_exec-should-always-return-an-E.patch
+git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
+
+# To be reworked
+# git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 
 # git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
 # git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch

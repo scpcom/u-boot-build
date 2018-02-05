@@ -1,4 +1,4 @@
-From b69268c4388befca255800f31797b91e20f5d99a Mon Sep 17 00:00:00 2001
+From f790bc87becfd31440a6e53b8b21f0723088cc2e Mon Sep 17 00:00:00 2001
 From: Simon Glass <sjg@chromium.org>
 Date: Mon, 4 Dec 2017 14:28:21 -0700
 Subject: [PATCH 1/1] efi: Correct header order in efi_memory
@@ -7,7 +7,7 @@ The headers are not in the correct order. Fix this. Also drop libfdt_env.h
 since it is not needed.
 
 Signed-off-by: Simon Glass <sjg@chromium.org>
-Reviewed-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_loader/efi_memory.c | 5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
@@ -32,5 +32,5 @@ index d980e730ffa..95f9ff0a140 100644
  DECLARE_GLOBAL_DATA_PTR;
  
 -- 
-2.14.2
+2.15.1
 
