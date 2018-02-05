@@ -23,8 +23,8 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 # Fix building u-boot.rom for qemu-x86_64_defconfig
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
-
-git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
+# Rework needed
+# git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 
 git am ../patch/0001-rockchip-gpio-remove-dead-code.patch
 git am ../patch/0001-i2c-mvtwsi.c-Avoid-NULL-dereference.patch
@@ -47,6 +47,7 @@ git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
 git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
 git am ../patch/0001-efi_loader-exit-status-for-efi_reset_system_init.patch
+git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 
 # From Robert's Shell support series 
 git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
