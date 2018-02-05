@@ -48,6 +48,7 @@ git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
 git am ../patch/0001-efi_loader-exit-status-for-efi_reset_system_init.patch
 
 git am ../patch/0001-efi_loader-do-not-use-2.0.5-as-UEFI-revision-number.patch
+git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 
 # git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
 # git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch

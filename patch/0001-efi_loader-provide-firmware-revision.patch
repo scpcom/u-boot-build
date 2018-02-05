@@ -1,0 +1,26 @@
+From 78c1d65aef402f6ad74156d47bb12f1b16dc7e57 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 5 Feb 2018 12:12:54 +0100
+Subject: [PATCH 1/1] efi_loader: provide firmware revision
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile b/Makefile
+index ab3453dcebd..7e509377682 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1381,6 +1381,8 @@ prepare: prepare0
+ define filechk_version.h
+ 	(echo \#define PLAIN_VERSION \"$(UBOOTRELEASE)\"; \
+ 	echo \#define U_BOOT_VERSION \"U-Boot \" PLAIN_VERSION; \
++	echo \#define MAJOR_VERSION $(VERSION); \
++	echo \#define MINOR_VERSION $$(echo $(PATCHLEVEL) | sed 's/^0*//'); \
+ 	echo \#define CC_VERSION_STRING \"$$(LC_ALL=C $(CC) --version | head -n 1)\"; \
+ 	echo \#define LD_VERSION_STRING \"$$(LC_ALL=C $(LD) --version | head -n 1)\"; )
+ endef
+-- 
+2.14.2
+
