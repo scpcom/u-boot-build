@@ -1,0 +1,213 @@
+From 18816306e3501e489043a5c1905a106de6cb7d0e Mon Sep 17 00:00:00 2001
+From: Leif Lindholm <leif.lindholm@linaro.org>
+Date: Tue, 10 Oct 2017 08:22:57 -0400
+Subject: [PATCH 1/1] efi_loader: Initial EFI_DEVICE_PATH_UTILITIES_PROTOCOL
+
+Not complete, but enough for Shell.efi and SCT.efi.  We'll implement the
+rest as needed or once we have SCT running properly so there is a way to
+validate the interface against the conformance test suite.
+
+Initial skeleton written by Leif, and then implementation by Rob.
+
+Rebased on v2018.03-rc1.
+
+Suggested-by: Leif Lindholm <leif.lindholm@linaro.org>
+Suggested-by: Rob Clark <robdclark@gmail.com>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_api.h                          | 29 ++++++++++
+ include/efi_loader.h                       |  2 +
+ lib/efi_loader/Makefile                    |  3 +-
+ lib/efi_loader/efi_boottime.c              |  6 ++
+ lib/efi_loader/efi_device_path_utilities.c | 88 ++++++++++++++++++++++++++++++
+ 5 files changed, 127 insertions(+), 1 deletion(-)
+ create mode 100644 lib/efi_loader/efi_device_path_utilities.c
+
+diff --git a/include/efi_api.h b/include/efi_api.h
+index 559e58e5501..993e8231fca 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -588,6 +588,35 @@ struct efi_device_path_to_text_protocol
+ 			bool allow_shortcuts);
+ };
+ 
++#define EFI_DEVICE_PATH_UTILITIES_PROTOCOL_GUID \
++	EFI_GUID(0x0379be4e, 0xd706, 0x437d, \
++		 0xb0, 0x37, 0xed, 0xb8, 0x2f, 0xb7, 0x72, 0xa4)
++
++struct efi_device_path_utilities_protocol {
++	efi_uintn_t (EFIAPI *get_device_path_size)(
++		const struct efi_device_path *device_path);
++	struct efi_device_path *(EFIAPI *duplicate_device_path)(
++		const struct efi_device_path *device_path);
++	struct efi_device_path *(EFIAPI *append_device_path)(
++		const struct efi_device_path *src1,
++		const struct efi_device_path *src2);
++	struct efi_device_path *(EFIAPI *append_device_node)(
++		const struct efi_device_path *device_path,
++		const struct efi_device_path *device_node);
++	struct efi_device_path *(EFIAPI *append_device_path_instance)(
++		const struct efi_device_path *device_path,
++		const struct efi_device_path *device_path_instance);
++	struct efi_device_path *(EFIAPI *get_next_device_path_instance)(
++		struct efi_device_path **device_path_instance,
++		efi_uintn_t *device_path_instance_size);
++	bool (EFIAPI *is_device_path_multi_instance)(
++		const struct efi_device_path *device_path);
++	struct efi_device_path *(EFIAPI *create_device_node)(
++		uint8_t node_type,
++		uint8_t node_sub_type,
++		uint16_t node_length);
++};
++
+ #define EFI_GOP_GUID \
+ 	EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, \
+ 		 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a)
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 7caae97ea70..bc6ce6c9031 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -83,6 +83,7 @@ extern struct efi_simple_text_output_protocol efi_con_out;
+ extern struct efi_simple_input_interface efi_con_in;
+ extern struct efi_console_control_protocol efi_console_control;
+ extern const struct efi_device_path_to_text_protocol efi_device_path_to_text;
++extern const struct efi_device_path_utilities_protocol efi_device_path_utilities;
+ 
+ uint16_t *efi_dp_str(struct efi_device_path *dp);
+ 
+@@ -97,6 +98,7 @@ extern const efi_guid_t efi_guid_loaded_image;
+ extern const efi_guid_t efi_guid_device_path_to_text_protocol;
+ extern const efi_guid_t efi_simple_file_system_protocol_guid;
+ extern const efi_guid_t efi_file_info_guid;
++extern const efi_guid_t efi_guid_device_path_utilities_protocol;
+ 
+ extern unsigned int __efi_runtime_start, __efi_runtime_stop;
+ extern unsigned int __efi_runtime_rel_start, __efi_runtime_rel_stop;
+diff --git a/lib/efi_loader/Makefile b/lib/efi_loader/Makefile
+index 2722265ee3d..55c97c04766 100644
+--- a/lib/efi_loader/Makefile
++++ b/lib/efi_loader/Makefile
+@@ -17,7 +17,8 @@ endif
+ obj-$(CONFIG_CMD_BOOTEFI_HELLO) += helloworld_efi.o
+ obj-y += efi_image_loader.o efi_boottime.o efi_runtime.o efi_console.o
+ obj-y += efi_memory.o efi_device_path_to_text.o efi_device_path.o
+-obj-y += efi_file.o efi_variable.o efi_bootmgr.o efi_watchdog.o
++obj-y += efi_device_path_utilities.o efi_file.o efi_variable.o efi_bootmgr.o
++obj-y += efi_watchdog.o
+ obj-$(CONFIG_LCD) += efi_gop.o
+ obj-$(CONFIG_DM_VIDEO) += efi_gop.o
+ obj-$(CONFIG_PARTITIONS) += efi_disk.o
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 42f4baf741a..e34261c6dae 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1426,6 +1426,12 @@ efi_status_t efi_setup_loaded_image(
+ 	if (ret != EFI_SUCCESS)
+ 		goto failure;
+ 
++	ret = efi_add_protocol(obj->handle,
++			       &efi_guid_device_path_utilities_protocol,
++			       (void *)&efi_device_path_utilities);
++	if (ret != EFI_SUCCESS)
++		goto failure;
++
+ 	return ret;
+ failure:
+ 	printf("ERROR: Failure to install protocols for loaded image\n");
+diff --git a/lib/efi_loader/efi_device_path_utilities.c b/lib/efi_loader/efi_device_path_utilities.c
+new file mode 100644
+index 00000000000..9d90f14ee48
+--- /dev/null
++++ b/lib/efi_loader/efi_device_path_utilities.c
+@@ -0,0 +1,88 @@
++/*
++ *  EFI device path interface
++ *
++ *  Copyright (c) 2017 Leif Lindholm
++ *
++ *  SPDX-License-Identifier:     GPL-2.0+
++ */
++
++#include <common.h>
++#include <efi_loader.h>
++
++const efi_guid_t efi_guid_device_path_utilities_protocol =
++		EFI_DEVICE_PATH_UTILITIES_PROTOCOL_GUID;
++
++static efi_uintn_t EFIAPI get_device_path_size(
++	const struct efi_device_path *device_path)
++{
++	efi_uintn_t sz = 0;
++	EFI_ENTRY("%p", device_path);
++	/* size includes the END node: */
++	if (device_path)
++		sz = efi_dp_size(device_path) + sizeof(struct efi_device_path);
++	return EFI_EXIT(sz);
++}
++
++static struct efi_device_path * EFIAPI duplicate_device_path(
++	const struct efi_device_path *device_path)
++{
++	EFI_ENTRY("%p", device_path);
++	return EFI_EXIT(efi_dp_dup(device_path));
++}
++
++static struct efi_device_path * EFIAPI append_device_path(
++	const struct efi_device_path *src1,
++	const struct efi_device_path *src2)
++{
++	EFI_ENTRY("%p, %p", src1, src2);
++	return EFI_EXIT(efi_dp_append(src1, src2));
++}
++
++static struct efi_device_path * EFIAPI append_device_node(
++	const struct efi_device_path *device_path,
++	const struct efi_device_path *device_node)
++{
++	EFI_ENTRY("%p, %p", device_path, device_node);
++	return EFI_EXIT(efi_dp_append_node(device_path, device_node));
++}
++
++static struct efi_device_path * EFIAPI append_device_path_instance(
++	const struct efi_device_path *device_path,
++	const struct efi_device_path *device_path_instance)
++{
++	EFI_ENTRY("%p, %p", device_path, device_path_instance);
++	return EFI_EXIT(NULL);
++}
++
++static struct efi_device_path * EFIAPI get_next_device_path_instance(
++	struct efi_device_path **device_path_instance,
++	efi_uintn_t *device_path_instance_size)
++{
++	EFI_ENTRY("%p, %p", device_path_instance, device_path_instance_size);
++	return EFI_EXIT(NULL);
++}
++
++static bool EFIAPI is_device_path_multi_instance(
++	const struct efi_device_path *device_path)
++{
++	EFI_ENTRY("%p", device_path);
++	return EFI_EXIT(false);
++}
++
++static struct efi_device_path * EFIAPI create_device_node(
++	uint8_t node_type, uint8_t node_sub_type, uint16_t node_length)
++{
++	EFI_ENTRY("%u, %u, %u", node_type, node_sub_type, node_length);
++	return EFI_EXIT(NULL);
++}
++
++const struct efi_device_path_utilities_protocol efi_device_path_utilities = {
++	.get_device_path_size = get_device_path_size,
++	.duplicate_device_path = duplicate_device_path,
++	.append_device_path = append_device_path,
++	.append_device_node = append_device_node,
++	.append_device_path_instance = append_device_path_instance,
++	.get_next_device_path_instance = get_next_device_path_instance,
++	.is_device_path_multi_instance = is_device_path_multi_instance,
++	.create_device_node = create_device_node,
++};
+-- 
+2.14.2
+

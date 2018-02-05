@@ -42,13 +42,19 @@ git am ../patch/0001-efi_loader-remove-deprecated-ConsoleControlProtocol.patch
 git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
+# From Simon's Sandbox support series
 git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
 git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
 git am ../patch/0001-efi_loader-exit-status-for-efi_reset_system_init.patch
 
+# From Robert's Shell support series 
+git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
+
 git am ../patch/0001-efi_loader-do-not-use-2.0.5-as-UEFI-revision-number.patch
 git am ../patch/0001-efi_loader-provide-firmware-revision.patch
+
+
 
 # git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
 # git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch
