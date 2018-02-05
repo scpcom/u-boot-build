@@ -1,4 +1,4 @@
-From 18816306e3501e489043a5c1905a106de6cb7d0e Mon Sep 17 00:00:00 2001
+From 5c1469bb57ea1e1df513f904c8d1743c657321d2 Mon Sep 17 00:00:00 2001
 From: Leif Lindholm <leif.lindholm@linaro.org>
 Date: Tue, 10 Oct 2017 08:22:57 -0400
 Subject: [PATCH 1/1] efi_loader: Initial EFI_DEVICE_PATH_UTILITIES_PROTOCOL
@@ -16,11 +16,11 @@ Suggested-by: Rob Clark <robdclark@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_api.h                          | 29 ++++++++++
- include/efi_loader.h                       |  2 +
+ include/efi_loader.h                       |  4 ++
  lib/efi_loader/Makefile                    |  3 +-
  lib/efi_loader/efi_boottime.c              |  6 ++
- lib/efi_loader/efi_device_path_utilities.c | 88 ++++++++++++++++++++++++++++++
- 5 files changed, 127 insertions(+), 1 deletion(-)
+ lib/efi_loader/efi_device_path_utilities.c | 89 ++++++++++++++++++++++++++++++
+ 5 files changed, 130 insertions(+), 1 deletion(-)
  create mode 100644 lib/efi_loader/efi_device_path_utilities.c
 
 diff --git a/include/efi_api.h b/include/efi_api.h
@@ -64,18 +64,20 @@ index 559e58e5501..993e8231fca 100644
  	EFI_GUID(0x9042a9de, 0x23dc, 0x4a38, \
  		 0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a)
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 7caae97ea70..bc6ce6c9031 100644
+index 7caae97ea70..0937b47e4bf 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -83,6 +83,7 @@ extern struct efi_simple_text_output_protocol efi_con_out;
+@@ -83,6 +83,9 @@ extern struct efi_simple_text_output_protocol efi_con_out;
  extern struct efi_simple_input_interface efi_con_in;
  extern struct efi_console_control_protocol efi_console_control;
  extern const struct efi_device_path_to_text_protocol efi_device_path_to_text;
-+extern const struct efi_device_path_utilities_protocol efi_device_path_utilities;
++/* implementation of the EFI_DEVICE_PATH_UTILITIES_PROTOCOL */
++extern const struct efi_device_path_utilities_protocol
++					efi_device_path_utilities;
  
  uint16_t *efi_dp_str(struct efi_device_path *dp);
  
-@@ -97,6 +98,7 @@ extern const efi_guid_t efi_guid_loaded_image;
+@@ -97,6 +100,7 @@ extern const efi_guid_t efi_guid_loaded_image;
  extern const efi_guid_t efi_guid_device_path_to_text_protocol;
  extern const efi_guid_t efi_simple_file_system_protocol_guid;
  extern const efi_guid_t efi_file_info_guid;
@@ -98,7 +100,7 @@ index 2722265ee3d..55c97c04766 100644
  obj-$(CONFIG_DM_VIDEO) += efi_gop.o
  obj-$(CONFIG_PARTITIONS) += efi_disk.o
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 42f4baf741a..e34261c6dae 100644
+index 013e0353c3a..0fd272253d2 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -1426,6 +1426,12 @@ efi_status_t efi_setup_loaded_image(
@@ -116,10 +118,10 @@ index 42f4baf741a..e34261c6dae 100644
  	printf("ERROR: Failure to install protocols for loaded image\n");
 diff --git a/lib/efi_loader/efi_device_path_utilities.c b/lib/efi_loader/efi_device_path_utilities.c
 new file mode 100644
-index 00000000000..9d90f14ee48
+index 00000000000..bc97eeee31b
 --- /dev/null
 +++ b/lib/efi_loader/efi_device_path_utilities.c
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,89 @@
 +/*
 + *  EFI device path interface
 + *
@@ -138,6 +140,7 @@ index 00000000000..9d90f14ee48
 +	const struct efi_device_path *device_path)
 +{
 +	efi_uintn_t sz = 0;
++
 +	EFI_ENTRY("%p", device_path);
 +	/* size includes the END node: */
 +	if (device_path)
