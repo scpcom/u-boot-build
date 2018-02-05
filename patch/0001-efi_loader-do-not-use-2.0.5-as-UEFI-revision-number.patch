@@ -1,0 +1,61 @@
+From 76102e28c5df45381599cc2254639f2bbe0fef4b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 5 Feb 2018 18:55:12 +0100
+Subject: [PATCH 1/1] efi_loader: do not use 2.0.5 as UEFI revision number
+
+Currently the UEFI revision number in the system table header is set to
+2.0.5. This version number does not refer to any existing version of the
+UEFI standard.
+
+Set the revision number to 2.7.
+Output the UEFI revision number in helloworld.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c |  2 +-
+ lib/efi_loader/helloworld.c   | 13 +++++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 013e0353c3a..42f4baf741a 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -2887,7 +2887,7 @@ static uint16_t __efi_runtime_data firmware_vendor[] = L"Das U-Boot";
+ struct efi_system_table __efi_runtime_data systab = {
+ 	.hdr = {
+ 		.signature = EFI_SYSTEM_TABLE_SIGNATURE,
+-		.revision = 0x20005, /* 2.5 */
++		.revision = 2 << 16 | 70 , /* 2.7 */
+ 		.headersize = sizeof(struct efi_table_hdr),
+ 	},
+ 	.fw_vendor = (long)firmware_vendor,
+diff --git a/lib/efi_loader/helloworld.c b/lib/efi_loader/helloworld.c
+index 1ec01792263..b7522e0a33d 100644
+--- a/lib/efi_loader/helloworld.c
++++ b/lib/efi_loader/helloworld.c
+@@ -46,9 +46,22 @@ efi_status_t EFIAPI efi_main(efi_handle_t handle,
+ 	struct efi_loaded_image *loaded_image;
+ 	efi_status_t ret;
+ 	efi_uintn_t i;
++	u16 rev[] = L"0.00\n";
+ 
+ 	con_out->output_string(con_out, L"Hello, world!\n");
+ 
++	/* Print the revision number */
++	rev[0] = (systable->hdr.revision >> 16) + '0';
++	rev[3] = systable->hdr.revision & 0xffff;
++	for (;rev[3] >= 10;) {
++		rev[3] -= 10;
++		++rev[2];
++	}
++	rev[3] += '0';
++
++	con_out->output_string(con_out, L"Running on UEFI revision ");
++	con_out->output_string(con_out, rev);
++
+ 	/* Get the loaded image protocol */
+ 	ret = boottime->handle_protocol(handle, &loaded_image_guid,
+ 					(void **)&loaded_image);
+-- 
+2.11.0
+

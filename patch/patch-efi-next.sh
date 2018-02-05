@@ -9,7 +9,6 @@ git am ../patch/0001-efi_loader-add-missing-runtime-services-stubs.patch
 git am ../patch/0001-efi_loader-create-stub-for-CreateEventEx.patch
 git am ../patch/0001-efi_driver-return-type-of-efi_driver_init.patch
 git am ../patch/0001-efi_loader-add-missing-EFI_RESET_PLATFORM_SPECIFIC.patch
-git am ../patch/0001-efi_loader-add-missing-runtime-services-stubs.patch
 
 # Support EFI block device on BananaPi
 git am ../patch/0001-mmc-sunxi-support-cd-inverted.patch
@@ -26,7 +25,6 @@ git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
 
 git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
-git am ../patch/0001-log-add-category-LOGC_EFI.patch
 
 git am ../patch/0001-rockchip-gpio-remove-dead-code.patch
 git am ../patch/0001-i2c-mvtwsi.c-Avoid-NULL-dereference.patch
@@ -48,6 +46,8 @@ git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
 git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
 git am ../patch/0001-efi_loader-exit-status-for-efi_reset_system_init.patch
+
+git am ../patch/0001-efi_loader-do-not-use-2.0.5-as-UEFI-revision-number.patch
 
 # git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
 # git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch
