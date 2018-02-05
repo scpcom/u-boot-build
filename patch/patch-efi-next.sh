@@ -44,7 +44,6 @@ git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
 git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
 git am ../patch/0001-efi_loader-exit-status-for-efi_reset_system_init.patch
-
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 
 # From Robert's Shell support series 
@@ -56,7 +55,6 @@ git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 git am ../patch/0001-efi_loader-efi_get_time_init-should-return-status-co.patch
 git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
 git am ../patch/0001-efi_loader-do_bootefi_exec-should-always-return-an-E.patch
-git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 
 # To be reworked
 # git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
