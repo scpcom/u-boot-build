@@ -1,137 +1,32 @@
-From e635b86b316f81d911eabf031d91dcac4f7064e6 Mon Sep 17 00:00:00 2001
+From de60589e0029e9bbb9a5f1048ea204a95c356ef2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 21 Jan 2018 20:49:53 +0100
 Subject: [PATCH 1/1] efi_selftest: check installation of the device tree
 
 The unit test checks if a device tree is installed. It requires that the
-compatible property of the root node exists. If available it prints the
-serial-number property.
+'compatible' property of the root node exists. If available it prints the
+'serial-number' property.
 
 The serial-number property is derived from the environment variable
 'serial#'. This can be used to check if the image_setup_libfdt() function
 is executed.
-
-With this patch the same routine is used to install the device tree both
-for loading an external image and for running bootefi selftest.
 
 A Python test is supplied. It sets a value for serial# and checks that the
 selftest shows this as serial-number.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- cmd/bootefi.c                       |  69 +++++++------
  lib/efi_selftest/Makefile           |   1 +
- lib/efi_selftest/efi_selftest_fdt.c | 187 ++++++++++++++++++++++++++++++++++++
+ lib/efi_selftest/efi_selftest_fdt.c | 188 ++++++++++++++++++++++++++++++++++++
  test/py/tests/test_efi_selftest.py  |  13 +++
- 4 files changed, 242 insertions(+), 28 deletions(-)
+ 3 files changed, 202 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_fdt.c
 
-diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 2c4aa06c42..e589590ce3 100644
---- a/cmd/bootefi.c
-+++ b/cmd/bootefi.c
-@@ -149,6 +149,40 @@ static efi_status_t efi_run_in_el2(asmlinkage ulong (*entry)(
- }
- #endif
- 
-+static efi_status_t efi_install_fdt(void *fdt)
-+{
-+	bootm_headers_t img = { 0 };
-+	ulong fdt_pages, fdt_size, fdt_start, fdt_end;
-+	const efi_guid_t fdt_guid = EFI_FDT_GUID;
-+
-+	if (fdt && !fdt_check_header(fdt)) {
-+		/* Prepare fdt for payload */
-+		fdt = copy_fdt(fdt);
-+
-+		if (image_setup_libfdt(&img, fdt, 0, NULL)) {
-+			printf("ERROR: Failed to process device tree\n");
-+			return EFI_LOAD_ERROR;
-+		}
-+
-+		/* Link to it in the efi tables */
-+		efi_install_configuration_table(&fdt_guid, fdt);
-+
-+		/* And reserve the space in the memory map */
-+		fdt_start = ((ulong)fdt) & ~EFI_PAGE_MASK;
-+		fdt_end = ((ulong)fdt) + fdt_totalsize(fdt);
-+		fdt_size = (fdt_end - fdt_start) + EFI_PAGE_MASK;
-+		fdt_pages = fdt_size >> EFI_PAGE_SHIFT;
-+		/* Give a bootloader the chance to modify the device tree */
-+		fdt_pages += 2;
-+		efi_add_memory_map(fdt_start, fdt_pages,
-+				   EFI_BOOT_SERVICES_DATA, true);
-+	} else {
-+		printf("WARNING: Invalid device tree, expect boot to fail\n");
-+		efi_install_configuration_table(&fdt_guid, NULL);
-+	}
-+	return 0;
-+}
-+
- /*
-  * Load an EFI payload into a newly allocated piece of memory, register all
-  * EFI objects it would want to access and jump to it.
-@@ -164,9 +198,6 @@ static efi_status_t do_bootefi_exec(void *efi, void *fdt,
- 
- 	ulong (*entry)(efi_handle_t image_handle, struct efi_system_table *st)
- 		asmlinkage;
--	ulong fdt_pages, fdt_size, fdt_start, fdt_end;
--	const efi_guid_t fdt_guid = EFI_FDT_GUID;
--	bootm_headers_t img = { 0 };
- 
- 	/*
- 	 * Special case for efi payload not loaded from disk, such as
-@@ -195,31 +226,9 @@ static efi_status_t do_bootefi_exec(void *efi, void *fdt,
- 	 */
- 	efi_save_gd();
- 
--	if (fdt && !fdt_check_header(fdt)) {
--		/* Prepare fdt for payload */
--		fdt = copy_fdt(fdt);
--
--		if (image_setup_libfdt(&img, fdt, 0, NULL)) {
--			printf("ERROR: Failed to process device tree\n");
--			return -EINVAL;
--		}
--
--		/* Link to it in the efi tables */
--		efi_install_configuration_table(&fdt_guid, fdt);
--
--		/* And reserve the space in the memory map */
--		fdt_start = ((ulong)fdt) & ~EFI_PAGE_MASK;
--		fdt_end = ((ulong)fdt) + fdt_totalsize(fdt);
--		fdt_size = (fdt_end - fdt_start) + EFI_PAGE_MASK;
--		fdt_pages = fdt_size >> EFI_PAGE_SHIFT;
--		/* Give a bootloader the chance to modify the device tree */
--		fdt_pages += 2;
--		efi_add_memory_map(fdt_start, fdt_pages,
--				   EFI_BOOT_SERVICES_DATA, true);
--	} else {
--		printf("WARNING: Invalid device tree, expect boot to fail\n");
--		efi_install_configuration_table(&fdt_guid, NULL);
--	}
-+	ret = efi_install_fdt(fdt);
-+	if (ret)
-+		goto exit;
- 
- 	/* Transfer environment variable bootargs as load options */
- 	set_load_options(&loaded_image_info, "bootargs");
-@@ -377,6 +386,10 @@ static int do_bootefi(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
- 			efi_init_obj_list();
- 		/* Transfer environment variable efi_selftest as load options */
- 		set_load_options(&loaded_image_info, "efi_selftest");
-+		/* Install device tree */
-+		r = efi_install_fdt(fdt_addr);
-+		if (r)
-+			return 1;
- 		/* Execute the test */
- 		r = efi_selftest(loaded_image_info_obj.handle, &systab);
- 		efi_restore_gd();
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 90246f7827..8160de0f89 100644
+index c4bdbdf6c05..88c44840d52 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
-@@ -17,6 +17,7 @@ efi_selftest_console.o \
+@@ -19,6 +19,7 @@ efi_selftest_console.o \
  efi_selftest_devicepath.o \
  efi_selftest_events.o \
  efi_selftest_exitbootservices.o \
@@ -141,10 +36,10 @@ index 90246f7827..8160de0f89 100644
  efi_selftest_snp.o \
 diff --git a/lib/efi_selftest/efi_selftest_fdt.c b/lib/efi_selftest/efi_selftest_fdt.c
 new file mode 100644
-index 0000000000..67a0c3e50d
+index 00000000000..24db0dcf7d5
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_fdt.c
-@@ -0,0 +1,187 @@
+@@ -0,0 +1,188 @@
 +/*
 + * efi_selftest_pos
 + *
@@ -331,9 +226,10 @@ index 0000000000..67a0c3e50d
 +	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
 +	.setup = setup,
 +	.execute = execute,
++	.on_request = true,
 +};
 diff --git a/test/py/tests/test_efi_selftest.py b/test/py/tests/test_efi_selftest.py
-index 66b799bed6..f7eaf8d59d 100644
+index 66b799bed66..d495a833232 100644
 --- a/test/py/tests/test_efi_selftest.py
 +++ b/test/py/tests/test_efi_selftest.py
 @@ -24,6 +24,19 @@ def test_efi_selftest(u_boot_console):
@@ -347,7 +243,7 @@ index 66b799bed6..f7eaf8d59d 100644
 +	assert '\'device tree\'' in output
 +	u_boot_console.run_command(cmd='setenv efi_selftest device tree')
 +	u_boot_console.run_command(cmd='setenv -f serial# Testing DT')
-+	u_boot_console.run_command(cmd='bootefi selftest', wait_for_prompt=False)
++	u_boot_console.run_command(cmd='bootefi selftest ${fdtcontroladdr}', wait_for_prompt=False)
 +	m = u_boot_console.p.expect(['serial-number: Testing DT', 'U-Boot'])
 +	if m != 0:
 +		raise Exception('Reset failed in \'device tree\' test')
@@ -357,5 +253,5 @@ index 66b799bed6..f7eaf8d59d 100644
  def test_efi_selftest_watchdog_reboot(u_boot_console):
  	u_boot_console.run_command(cmd='setenv efi_selftest list')
 -- 
-2.14.2
+2.15.1
 

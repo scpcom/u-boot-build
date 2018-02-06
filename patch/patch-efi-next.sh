@@ -26,10 +26,6 @@ git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 git am ../patch/0001-rockchip-gpio-remove-dead-code.patch
 git am ../patch/0001-i2c-mvtwsi.c-Avoid-NULL-dereference.patch
 
-# Rebasing needed
-# git am ../patch/0001-efi_loader-use-built-in-device-tree-in-bootefi-comma.patch
-# git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
-
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
 git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
 git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
@@ -56,6 +52,9 @@ git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 git am ../patch/0001-efi_loader-efi_get_time_init-should-return-status-co.patch
 git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
 git am ../patch/0001-efi_loader-do_bootefi_exec-should-always-return-an-E.patch
+
+git am ../patch/0001-efi_loader-support-device-tree-for-bootefi-selftest.patch
+git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
 
 # To be reworked
 # git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
