@@ -50,6 +50,7 @@ git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
 
 git am ../patch/0001-efi_loader-do-not-use-2.0.5-as-UEFI-revision-number.patch
+git am ../patch/0001-efi_loader-show-UEFI-revision-in-helloworld.patch
 git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 
 git am ../patch/0001-efi_loader-efi_get_time_init-should-return-status-co.patch
