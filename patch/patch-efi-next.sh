@@ -24,7 +24,6 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
 git am ../patch/0001-rockchip-gpio-remove-dead-code.patch
-git am ../patch/0001-i2c-mvtwsi.c-Avoid-NULL-dereference.patch
 
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
 git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
