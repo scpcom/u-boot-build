@@ -1,7 +1,7 @@
-From 59d0397fdecced255a6a3cc35a3bef62e67f8653 Mon Sep 17 00:00:00 2001
+From bd9d33bdfc7691b3a1bfc22a96894d4d1b28030f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 28 Jan 2018 23:56:18 +0100
-Subject: [PATCH 4/4] dm: video: support increased intensity (bold)
+Subject: [PATCH 1/1] dm: video: support increased intensity (bold)
 
 Support special rendition code 0 - reset attributes.
 Support special rendition code 1 - increased intensity (bold).
@@ -12,10 +12,11 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  drivers/video/video-uclass.c      |  5 ++++-
  include/video.h                   |  2 ++
  include/video_console.h           | 12 ++++++++++--
- 4 files changed, 42 insertions(+), 9 deletions(-)
+ test/dm/video.c                   |  2 +-
+ 5 files changed, 43 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/video/vidconsole-uclass.c b/drivers/video/vidconsole-uclass.c
-index 44f557c46a..a878eb402a 100644
+index d32b1017581..6f3988d49ea 100644
 --- a/drivers/video/vidconsole-uclass.c
 +++ b/drivers/video/vidconsole-uclass.c
 @@ -119,12 +119,20 @@ static void vidconsole_newline(struct udevice *dev)
@@ -54,22 +55,22 @@ index 44f557c46a..a878eb402a 100644
 +				break;
 +			case 1:
 +				/* bold */
-+				vid_priv->fg |= 8;
++				vid_priv->fg_col_idx |= 8;
 +				vid_priv->colour_fg = vid_console_color(
-+							vid_priv, vid_priv->fg);
++						vid_priv, vid_priv->fg_col_idx);
 +				break;
  			case 30 ... 37:
  				/* foreground color */
-+				vid_priv->fg &= ~7;
-+				vid_priv->fg |= val - 30;
++				vid_priv->fg_col_idx &= ~7;
++				vid_priv->fg_col_idx |= val - 30;
  				vid_priv->colour_fg = vid_console_color(
 -							vid_priv, val - 30);
-+							vid_priv, vid_priv->fg);
++						vid_priv, vid_priv->fg_col_idx);
  				break;
  			case 40 ... 47:
  				/* background color */
 diff --git a/drivers/video/video-uclass.c b/drivers/video/video-uclass.c
-index 945b20ddfd..43ab6f6b32 100644
+index 945b20ddfd7..b5bb8e0efde 100644
 --- a/drivers/video/video-uclass.c
 +++ b/drivers/video/video-uclass.c
 @@ -117,9 +117,12 @@ void video_clear(struct udevice *dev)
@@ -78,23 +79,23 @@ index 945b20ddfd..43ab6f6b32 100644
  #ifdef CONFIG_SYS_WHITE_ON_BLACK
 -	priv->colour_fg = vid_console_color(priv, VID_WHITE);
 +	/* White is used when switching to bold, use light gray here */
-+	priv->fg = VID_LIGHT_GRAY;
++	priv->fg_col_idx = VID_LIGHT_GRAY;
 +	priv->colour_fg = vid_console_color(priv, VID_LIGHT_GRAY);
  	priv->colour_bg = vid_console_color(priv, VID_BLACK);
  #else
-+	priv->fg = VID_BLACK;
++	priv->fg_col_idx = VID_BLACK;
  	priv->colour_fg = vid_console_color(priv, VID_BLACK);
  	priv->colour_bg = vid_console_color(priv, VID_WHITE);
  #endif
 diff --git a/include/video.h b/include/video.h
-index 841f3dc56b..3101459d2a 100644
+index 841f3dc56b1..ddc2eeb5a95 100644
 --- a/include/video.h
 +++ b/include/video.h
 @@ -67,6 +67,7 @@ enum video_log2_bpp {
   * @flush_dcache:	true to enable flushing of the data cache after
   *		the LCD is updated
   * @cmap:	Colour map for 8-bit-per-pixel displays
-+ * @fg:		Foreground color code (bit 3 = bold, bit 0-2 = color)
++ * @fg_col_idx:	Foreground color code (bit 3 = bold, bit 0-2 = color)
   */
  struct video_priv {
  	/* Things set up by the driver: */
@@ -102,12 +103,12 @@ index 841f3dc56b..3101459d2a 100644
  	u32 colour_bg;
  	bool flush_dcache;
  	ushort *cmap;
-+	u8 fg;
++	u8 fg_col_idx;
  };
  
  /* Placeholder - there are no video operations at present */
 diff --git a/include/video_console.h b/include/video_console.h
-index 9505db1dc3..a3ff176269 100644
+index 656a47295f6..7621a189d2a 100644
 --- a/include/video_console.h
 +++ b/include/video_console.h
 @@ -15,16 +15,24 @@
@@ -138,7 +139,7 @@ index 9505db1dc3..a3ff176269 100644
  
  	VID_COLOR_COUNT
 diff --git a/test/dm/video.c b/test/dm/video.c
-index d158f1fcb3..caca496902 100644
+index d158f1fcb39..caca4969027 100644
 --- a/test/dm/video.c
 +++ b/test/dm/video.c
 @@ -186,7 +186,7 @@ static int dm_test_video_ansi(struct unit_test_state *uts)
@@ -151,5 +152,5 @@ index d158f1fcb3..caca496902 100644
  	return 0;
  }
 -- 
-2.14.2
+2.15.1
 
