@@ -39,6 +39,7 @@ git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
 git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
 git am ../patch/0001-efi_loader-exit-status-for-efi_reset_system_init.patch
+git am ../patch/0001-efi_loader-correct-efi_disk_register.patch
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 
 # From Robert's Shell support series 
