@@ -17,8 +17,8 @@ export LOCALVERSION:=-P$(REVISION)
 export BUILD_ROM=y
 
 all:
-	make prepare
-	make build
+	which gmake && gmake prepare || make prepare
+	which gmake && gmake build || make build
 
 prepare:
 	test -d denx || git clone -v \
