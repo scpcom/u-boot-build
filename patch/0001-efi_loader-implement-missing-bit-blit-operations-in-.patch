@@ -1,4 +1,4 @@
-From ac8fc17817c53e1251f16c9450734345950f05c2 Mon Sep 17 00:00:00 2001
+From faa9c9cbb696b2e4f197eae730bff3f3c5f5522f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 7 Feb 2018 18:04:57 +0100
 Subject: [PATCH 1/1] efi_loader: implement missing bit blit operations in gop
@@ -8,9 +8,38 @@ EFI_GRAPHICS_OUTPUT_PROTOCOL are supported.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+ include/efi_api.h        |  10 ++-
  lib/efi_loader/efi_gop.c | 156 ++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 120 insertions(+), 36 deletions(-)
+ 2 files changed, 129 insertions(+), 37 deletions(-)
 
+diff --git a/include/efi_api.h b/include/efi_api.h
+index 993e8231fca..2c7814aabe7 100644
+--- a/include/efi_api.h
++++ b/include/efi_api.h
+@@ -645,6 +645,13 @@ struct efi_gop_mode
+ 	unsigned long fb_size;
+ };
+ 
++struct efi_gop_pixel {
++	u8 blue;
++	u8 green;
++	u8 red;
++	u8 reserved;
++};
++
+ #define EFI_BLT_VIDEO_FILL		0
+ #define EFI_BLT_VIDEO_TO_BLT_BUFFER	1
+ #define EFI_BLT_BUFFER_TO_VIDEO		2
+@@ -656,7 +663,8 @@ struct efi_gop
+ 					  efi_uintn_t *size_of_info,
+ 					  struct efi_gop_mode_info **info);
+ 	efi_status_t (EFIAPI *set_mode)(struct efi_gop *this, u32 mode_number);
+-	efi_status_t (EFIAPI *blt)(struct efi_gop *this, void *buffer,
++	efi_status_t (EFIAPI *blt)(struct efi_gop *this,
++				   struct efi_gop_pixel *buffer,
+ 				   u32 operation, efi_uintn_t sx,
+ 				   efi_uintn_t sy, efi_uintn_t dx,
+ 				   efi_uintn_t dy, efi_uintn_t width,
 diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
 index 3caddd5f844..799fe8914dd 100644
 --- a/lib/efi_loader/efi_gop.c
