@@ -1,4 +1,4 @@
-From faa9c9cbb696b2e4f197eae730bff3f3c5f5522f Mon Sep 17 00:00:00 2001
+From e6c30d2bd60d0ac21314e81e778bb844933a921f Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 7 Feb 2018 18:04:57 +0100
 Subject: [PATCH 1/1] efi_loader: implement missing bit blit operations in gop
@@ -9,8 +9,8 @@ EFI_GRAPHICS_OUTPUT_PROTOCOL are supported.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_api.h        |  10 ++-
- lib/efi_loader/efi_gop.c | 156 ++++++++++++++++++++++++++++++++++++-----------
- 2 files changed, 129 insertions(+), 37 deletions(-)
+ lib/efi_loader/efi_gop.c | 158 ++++++++++++++++++++++++++++++++++++-----------
+ 2 files changed, 131 insertions(+), 37 deletions(-)
 
 diff --git a/include/efi_api.h b/include/efi_api.h
 index 993e8231fca..2c7814aabe7 100644
@@ -41,10 +41,10 @@ index 993e8231fca..2c7814aabe7 100644
  				   efi_uintn_t sy, efi_uintn_t dx,
  				   efi_uintn_t dy, efi_uintn_t width,
 diff --git a/lib/efi_loader/efi_gop.c b/lib/efi_loader/efi_gop.c
-index 3caddd5f844..799fe8914dd 100644
+index 3caddd5f844..d47d91387f1 100644
 --- a/lib/efi_loader/efi_gop.c
 +++ b/lib/efi_loader/efi_gop.c
-@@ -56,64 +56,148 @@ static efi_status_t EFIAPI gop_set_mode(struct efi_gop *this, u32 mode_number)
+@@ -56,64 +56,150 @@ static efi_status_t EFIAPI gop_set_mode(struct efi_gop *this, u32 mode_number)
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
@@ -97,14 +97,14 @@ index 3caddd5f844..799fe8914dd 100644
 +	case EFI_BLT_VIDEO_FILL:
 +		break;
 +	case EFI_BLT_BUFFER_TO_VIDEO:
-+		if (sx + width > delta)
++		if (sx + width > linelen)
 +			return EFI_EXIT(EFI_INVALID_PARAMETER);
 +		break;
 +	case EFI_BLT_VIDEO_TO_BLT_BUFFER:
 +	case EFI_BLT_VIDEO_TO_VIDEO:
 +		if (sx + width > gopobj->info.width ||
 +		    sy + height > gopobj->info.height)
-+		    	return EFI_EXIT(EFI_INVALID_PARAMETER);
++			return EFI_EXIT(EFI_INVALID_PARAMETER);
 +		break;
 +	default:
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
@@ -120,10 +120,10 @@ index 3caddd5f844..799fe8914dd 100644
 +	case EFI_BLT_VIDEO_TO_VIDEO:
 +		if (dx + width > gopobj->info.width ||
 +		    dy + height > gopobj->info.height)
-+		    	return EFI_EXIT(EFI_INVALID_PARAMETER);
++			return EFI_EXIT(EFI_INVALID_PARAMETER);
 +		break;
 +	case EFI_BLT_VIDEO_TO_BLT_BUFFER:
-+		if (dx + width > delta)
++		if (dx + width > linelen)
 +			return EFI_EXIT(EFI_INVALID_PARAMETER);
 +		break;
 +	}
@@ -139,7 +139,7 @@ index 3caddd5f844..799fe8914dd 100644
 +				pix = *buffer;
 +				break;
 +			case EFI_BLT_BUFFER_TO_VIDEO:
-+				pix = buffer[linelen * (i + sy) + j + sy];
++				pix = buffer[linelen * (i + sy) + j + sx];
 +				break;
 +			case EFI_BLT_VIDEO_TO_BLT_BUFFER:
 +			case EFI_BLT_VIDEO_TO_VIDEO:
@@ -160,7 +160,8 @@ index 3caddd5f844..799fe8914dd 100644
 +#endif
 +					pix = efi_vid16_to_blt_col(fb16[
 +						gopobj->info.width *
-+						(i + sx) + j + sy]);
++						(i + sy) + j + sx]);
++					break;
 +				default:
 +					return EFI_EXIT(EFI_UNSUPPORTED);
 +				}
@@ -171,7 +172,7 @@ index 3caddd5f844..799fe8914dd 100644
 +			/* Write destination pixel */
 +			switch (operation) {
 +			case EFI_BLT_VIDEO_TO_BLT_BUFFER:
-+				buffer[linelen * (i + dx) + j + dx] = pix;
++				buffer[linelen * (i + dy) + j + dx] = pix;
 +				break;
 +			case EFI_BLT_BUFFER_TO_VIDEO:
 +			case EFI_BLT_VIDEO_FILL:
@@ -194,8 +195,8 @@ index 3caddd5f844..799fe8914dd 100644
 -			memcpy(dest, src, width * sizeof(u32));
 -		}
 -		break;
-+					fb32[width * (i + dx) + j + dx] =
-+						*(u32 *)&pix;
++					fb32[gopobj->info.width *
++					     (i + dy) + j + dx] = *(u32 *)&pix;
 +					break;
  #ifdef CONFIG_DM_VIDEO
 -	case VIDEO_BPP16:
@@ -216,7 +217,8 @@ index 3caddd5f844..799fe8914dd 100644
 -				dest[j] = ((((rgb888 >> (16 + 3)) & 0x1f) << 11) |
 -					   (((rgb888 >> (8 + 2)) & 0x3f) << 5) |
 -					   (((rgb888 >> (0 + 3)) & 0x1f) << 0));
-+					fb16[width * (i + dx) + j + dx] =
++					fb16[gopobj->info.width *
++					     (i + dy) + j + dx] =
 +						efi_blt_col_to_vid16(&pix);
 +					break;
 +				default:
