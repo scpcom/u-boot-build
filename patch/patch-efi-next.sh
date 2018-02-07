@@ -56,6 +56,8 @@ git am ../patch/0001-efi_loader-do_bootefi_exec-should-always-return-an-E.patch
 git am ../patch/0001-efi_loader-support-device-tree-for-bootefi-selftest.patch
 git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
 
+git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
+
 # To be reworked
 # git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 
