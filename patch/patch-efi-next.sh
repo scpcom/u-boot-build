@@ -45,6 +45,7 @@ git am ../patch/0001-efi_loader-correct-efi_disk_register.patch
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 git am ../patch/0001-efi_loader-efi_get_time_init-should-return-status-co.patch
 git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_gop_register.patch
+git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_net_register.patch
 git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
 
 # From Robert's Shell support series 
