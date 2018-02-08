@@ -30,6 +30,7 @@ git am ../patch/0001-efi_selftest-use-correct-compiler-flags-for-miniapps.patch
 git am ../patch/0001-efi_loader-add-missing-runtime-services-stubs.patch
 git am ../patch/0001-efi_loader-create-stub-for-CreateEventEx.patch
 git am ../patch/0001-efi_driver-return-type-of-efi_driver_init.patch
+git am ../patch/0001-efi_loader-correct-efi_disk_register.patch
 git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
@@ -42,7 +43,6 @@ git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
 git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
 git am ../patch/0001-efi_loader-exit-status-for-efi_reset_system_init.patch
-git am ../patch/0001-efi_loader-correct-efi_disk_register.patch
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 git am ../patch/0001-efi_loader-efi_get_time_init-should-return-status-co.patch
 git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_gop_register.patch
