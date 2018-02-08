@@ -1,0 +1,51 @@
+From fe0a651dbc98de2d80d511c8afa5a211d14e0549 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 8 Feb 2018 23:13:46 +0100
+Subject: [PATCH 1/1] efi_loader: consistently return efi_status_t
+ efi_watchdog_register
+
+efi_watchdog_register() should always return a status code and not
+a boolean value.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h          | 2 +-
+ lib/efi_loader/efi_watchdog.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 1c8e4b32e67..60f84dcf24b 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -189,7 +189,7 @@ efi_status_t efi_gop_register(void);
+ /* Called by bootefi to make the network interface available */
+ efi_status_t efi_net_register(void);
+ /* Called by bootefi to make the watchdog available */
+-int efi_watchdog_register(void);
++efi_status_t efi_watchdog_register(void);
+ /* Called by bootefi to make SMBIOS tables available */
+ efi_status_t efi_smbios_register(void);
+ 
+diff --git a/lib/efi_loader/efi_watchdog.c b/lib/efi_loader/efi_watchdog.c
+index 35a45dedf84..b1c35a8e29d 100644
+--- a/lib/efi_loader/efi_watchdog.c
++++ b/lib/efi_loader/efi_watchdog.c
+@@ -59,7 +59,7 @@ efi_status_t efi_set_watchdog(unsigned long timeout)
+  *
+  * This function is called by efi_init_obj_list()
+  */
+-int efi_watchdog_register(void)
++efi_status_t efi_watchdog_register(void)
+ {
+ 	efi_status_t r;
+ 
+@@ -85,5 +85,5 @@ int efi_watchdog_register(void)
+ 		printf("ERROR: Failed to set watchdog timer\n");
+ 		return r;
+ 	}
+-	return 0;
++	return EFI_SUCCESS;
+ }
+-- 
+2.14.2
+

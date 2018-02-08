@@ -33,6 +33,7 @@ git am ../patch/0001-efi_driver-return-type-of-efi_driver_init.patch
 git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
 git am ../patch/0001-efi_loader-rewrite-README.efi.patch
 
+git am ../patch/0001-efi_loader-do-not-use-2.0.5-as-UEFI-revision-number.patch
 git am ../patch/0001-efi_loader-add-missing-EFI_RESET_PLATFORM_SPECIFIC.patch
 git am ../patch/0001-efi_loader-remove-deprecated-ConsoleControlProtocol.patch
 
@@ -46,12 +47,12 @@ git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 git am ../patch/0001-efi_loader-efi_get_time_init-should-return-status-co.patch
 git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_gop_register.patch
 git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_net_register.patch
+git am ../patch/0001-efi_loader-consistently-return-efi_status_t-efi_watc.patch
 git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
 
 # From Robert's Shell support series 
 git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
 
-git am ../patch/0001-efi_loader-do-not-use-2.0.5-as-UEFI-revision-number.patch
 git am ../patch/0001-efi_loader-show-UEFI-revision-in-helloworld.patch
 git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 
