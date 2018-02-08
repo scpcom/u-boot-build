@@ -1,4 +1,4 @@
-From 40b6c7671a84815578566593818b451ee787bf81 Mon Sep 17 00:00:00 2001
+From 533a9ac9f767f1e367c825a0078131df997d4d37 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 14 Jan 2018 00:33:30 +0100
 Subject: [PATCH 1/1] efi_loader: memory reservations according to e820 table
@@ -12,20 +12,20 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 28 insertions(+)
 
 diff --git a/lib/efi_loader/efi_memory.c b/lib/efi_loader/efi_memory.c
-index aaf64421a3..bee0a0c97d 100644
+index 95f9ff0a140..952f9a8624c 100644
 --- a/lib/efi_loader/efi_memory.c
 +++ b/lib/efi_loader/efi_memory.c
-@@ -10,6 +10,9 @@
- #include <efi_loader.h>
+@@ -12,6 +12,9 @@
  #include <malloc.h>
+ #include <watchdog.h>
  #include <asm/global_data.h>
 +#ifdef CONFIG_X86
 +#include <asm/e820.h>
 +#endif
- #include <libfdt_env.h>
  #include <linux/list_sort.h>
- #include <inttypes.h>
-@@ -493,6 +496,30 @@ __weak void efi_add_known_memory(void)
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+@@ -492,6 +495,30 @@ __weak void efi_add_known_memory(void)
  	}
  }
  
@@ -56,7 +56,7 @@ index aaf64421a3..bee0a0c97d 100644
  int efi_memory_init(void)
  {
  	unsigned long runtime_start, runtime_end, runtime_pages;
-@@ -525,6 +552,7 @@ int efi_memory_init(void)
+@@ -524,6 +551,7 @@ int efi_memory_init(void)
  
  	efi_bounce_buffer = (void*)(uintptr_t)efi_bounce_buffer_addr;
  #endif
@@ -65,5 +65,5 @@ index aaf64421a3..bee0a0c97d 100644
  	return 0;
  }
 -- 
-2.15.1
+2.14.2
 

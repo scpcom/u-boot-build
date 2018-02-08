@@ -65,7 +65,7 @@ git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
 git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 
 # To be reworked
-# git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
+git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 
 # git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
 # git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch
