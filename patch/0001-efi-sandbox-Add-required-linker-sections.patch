@@ -1,0 +1,92 @@
+From cd9212b1ee7e3da7e800721069dd76a2ea51ee2b Mon Sep 17 00:00:00 2001
+From: Simon Glass <sjg@chromium.org>
+Date: Mon, 4 Dec 2017 14:28:25 -0700
+Subject: [PATCH 1/1] efi: sandbox: Add required linker sections
+
+The EFI loader code requires certain linker sections to exist. Add these
+for sandbox so that the EFI loader code will link.
+
+Signed-off-by: Simon Glass <sjg@chromium.org>
+Rebased
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ arch/sandbox/cpu/u-boot.lds | 29 +++++++++++++++++++++++++++++
+ arch/sandbox/lib/Makefile   |  2 +-
+ arch/sandbox/lib/sections.c | 12 ++++++++++++
+ 3 files changed, 42 insertions(+), 1 deletion(-)
+ create mode 100644 arch/sandbox/lib/sections.c
+
+diff --git a/arch/sandbox/cpu/u-boot.lds b/arch/sandbox/cpu/u-boot.lds
+index 7e92b4ac66c..38a74bcaf42 100644
+--- a/arch/sandbox/cpu/u-boot.lds
++++ b/arch/sandbox/cpu/u-boot.lds
+@@ -19,6 +19,35 @@ SECTIONS
+ 	__u_boot_sandbox_option_end = .;
+ 
+ 	__bss_start = .;
++
++		.__efi_runtime_start : {
++		*(.__efi_runtime_start)
++	}
++
++	.efi_runtime : {
++		*(efi_runtime_text)
++		*(efi_runtime_data)
++	}
++
++	.__efi_runtime_stop : {
++		*(.__efi_runtime_stop)
++	}
++
++	.efi_runtime_rel_start :
++	{
++		*(.__efi_runtime_rel_start)
++	}
++
++	.efi_runtime_rel : {
++		*(.relefi_runtime_text)
++		*(.relefi_runtime_data)
++	}
++
++	.efi_runtime_rel_stop :
++	{
++		*(.__efi_runtime_rel_stop)
++	}
++
+ }
+ 
+ INSERT BEFORE .data;
+diff --git a/arch/sandbox/lib/Makefile b/arch/sandbox/lib/Makefile
+index a79ade7b110..0a8c9f40502 100644
+--- a/arch/sandbox/lib/Makefile
++++ b/arch/sandbox/lib/Makefile
+@@ -7,7 +7,7 @@
+ # SPDX-License-Identifier:	GPL-2.0+
+ #
+ 
+-obj-y	+= interrupts.o
++obj-y	+= interrupts.o sections.o
+ obj-$(CONFIG_PCI)	+= pci_io.o
+ obj-$(CONFIG_CMD_BOOTM) += bootm.o
+ obj-$(CONFIG_CMD_BOOTZ) += bootm.o
+diff --git a/arch/sandbox/lib/sections.c b/arch/sandbox/lib/sections.c
+new file mode 100644
+index 00000000000..6455e0f0881
+--- /dev/null
++++ b/arch/sandbox/lib/sections.c
+@@ -0,0 +1,12 @@
++/*
++ * Copyright 2013 Albert ARIBAUD <albert.u.boot@aribaud.net>
++ *
++ * SPDX-License-Identifier:	GPL-2.0+
++ */
++
++char __efi_runtime_start[0] __attribute__((section(".__efi_runtime_start")));
++char __efi_runtime_stop[0] __attribute__((section(".__efi_runtime_stop")));
++char __efi_runtime_rel_start[0]
++		__attribute__((section(".__efi_runtime_rel_start")));
++char __efi_runtime_rel_stop[0]
++		__attribute__((section(".__efi_runtime_rel_stop")));
+-- 
+2.14.2
+
