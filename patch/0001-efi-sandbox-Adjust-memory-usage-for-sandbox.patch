@@ -1,0 +1,77 @@
+From de0370138282310101487654439b0a679379589a Mon Sep 17 00:00:00 2001
+From: Simon Glass <sjg@chromium.org>
+Date: Mon, 4 Dec 2017 14:28:22 -0700
+Subject: [PATCH 1/1] efi: sandbox: Adjust memory usage for sandbox
+
+With sandbox the U-Boot code is not mapped into the sandbox memory range
+so does not need to be excluded when allocating EFI memory. Update the EFI
+memory init code to take account of that.
+
+Also use mapmem instead of a cast to convert a memory address to a
+pointer.
+
+Signed-off-by: Simon Glass <sjg@chromium.org>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_memory.c | 31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
+
+diff --git a/lib/efi_loader/efi_memory.c b/lib/efi_loader/efi_memory.c
+index 95f9ff0a140..cc271e0709d 100644
+--- a/lib/efi_loader/efi_memory.c
++++ b/lib/efi_loader/efi_memory.c
+@@ -10,6 +10,7 @@
+ #include <efi_loader.h>
+ #include <inttypes.h>
+ #include <malloc.h>
++#include <mapmem.h>
+ #include <watchdog.h>
+ #include <asm/global_data.h>
+ #include <linux/list_sort.h>
+@@ -389,7 +390,7 @@ efi_status_t efi_allocate_pool(int pool_type, efi_uintn_t size, void **buffer)
+ 	r = efi_allocate_pages(0, pool_type, num_pages, &t);
+ 
+ 	if (r == EFI_SUCCESS) {
+-		struct efi_pool_allocation *alloc = (void *)(uintptr_t)t;
++		struct efi_pool_allocation *alloc = map_sysmem(t, size);
+ 		alloc->num_pages = num_pages;
+ 		*buffer = alloc->data;
+ 	}
+@@ -500,18 +501,22 @@ int efi_memory_init(void)
+ 
+ 	efi_add_known_memory();
+ 
+-	/* Add U-Boot */
+-	uboot_start = (gd->start_addr_sp - uboot_stack_size) & ~EFI_PAGE_MASK;
+-	uboot_pages = (gd->ram_top - uboot_start) >> EFI_PAGE_SHIFT;
+-	efi_add_memory_map(uboot_start, uboot_pages, EFI_LOADER_DATA, false);
+-
+-	/* Add Runtime Services */
+-	runtime_start = (ulong)&__efi_runtime_start & ~EFI_PAGE_MASK;
+-	runtime_end = (ulong)&__efi_runtime_stop;
+-	runtime_end = (runtime_end + EFI_PAGE_MASK) & ~EFI_PAGE_MASK;
+-	runtime_pages = (runtime_end - runtime_start) >> EFI_PAGE_SHIFT;
+-	efi_add_memory_map(runtime_start, runtime_pages,
+-			   EFI_RUNTIME_SERVICES_CODE, false);
++	if (!IS_ENABLED(CONFIG_SANDBOX)) {
++		/* Add U-Boot */
++		uboot_start = (gd->start_addr_sp - uboot_stack_size) &
++				~EFI_PAGE_MASK;
++		uboot_pages = (gd->ram_top - uboot_start) >> EFI_PAGE_SHIFT;
++		efi_add_memory_map(uboot_start, uboot_pages, EFI_LOADER_DATA,
++				   false);
++
++		/* Add Runtime Services */
++		runtime_start = (ulong)&__efi_runtime_start & ~EFI_PAGE_MASK;
++		runtime_end = (ulong)&__efi_runtime_stop;
++		runtime_end = (runtime_end + EFI_PAGE_MASK) & ~EFI_PAGE_MASK;
++		runtime_pages = (runtime_end - runtime_start) >> EFI_PAGE_SHIFT;
++		efi_add_memory_map(runtime_start, runtime_pages,
++				   EFI_RUNTIME_SERVICES_CODE, false);
++	}
+ 
+ #ifdef CONFIG_EFI_LOADER_BOUNCE_BUFFER
+ 	/* Request a 32bit 64MB bounce buffer region */
+-- 
+2.14.2
+

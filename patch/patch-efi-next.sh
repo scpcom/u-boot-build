@@ -49,6 +49,7 @@ git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_gop_register.patch
 git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_net_register.patch
 git am ../patch/0001-efi_loader-consistently-return-efi_status_t-efi_watc.patch
 git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
+git am ../patch/0001-efi-sandbox-Adjust-memory-usage-for-sandbox.patch # no change
 
 # From Robert's Shell support series 
 git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
@@ -65,7 +66,7 @@ git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
 git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 
 # To be reworked
-git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
+# git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
 
 # git am ../patch/0001-efi_loader-clean-up-efi_exit.patch
 # git am ../patch/0001-efi_loader-correct-return-types-do_bootefi_exec.patch

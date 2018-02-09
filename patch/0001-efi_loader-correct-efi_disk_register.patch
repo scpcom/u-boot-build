@@ -1,12 +1,15 @@
 From efc4be8c175f9d96eb2fd2a6dad0d743f06ca928 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 7 Feb 2018 18:17:55 +0100
-Subject: [PATCH 1/1] efi_loader: correct efi_disk_register
+Subject: [PATCH 1/1][for v2018.03] efi_loader: correct efi_disk_register
 
 efi_disk_register should return as status code (efi_status_t).
 
 Disks with zero blocks should be reported as 'not ready' without throwing
 an error.
+
+This patch solves a problem running OpenBSD on system configured with
+CONFIG_BLK=n (e.g. i.MX6).
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
