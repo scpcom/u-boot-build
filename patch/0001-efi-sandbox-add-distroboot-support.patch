@@ -1,0 +1,83 @@
+From b3500ee3961e2bae73490171fca2e03159afd94a Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 9 Feb 2018 20:06:32 +0100
+Subject: [PATCH 1/1] efi: sandbox: add distroboot support
+
+Provide the efi binary name used by distroboot in the sandbox.
+
+Cc: Simon Glass <sjg@chromium.org>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ Makefile                        | 15 ++++++++++++++-
+ include/config_distro_bootcmd.h |  8 ++++++++
+ 2 files changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 7e509377682..b99a39c22ec 100644
+--- a/Makefile
++++ b/Makefile
+@@ -234,6 +234,19 @@ HOSTARCH := $(shell uname -m | \
+ 	    -e s/macppc/powerpc/\
+ 	    -e s/sh.*/sh/)
+ 
++ifeq ($(HOSTARCH),x86)
++	HOSTEFIBINARY := "bootia32.efi"
++endif
++ifeq ($(HOSTARCH),x86_64)
++	HOSTEFIBINARY := "bootx64.efi"
++endif
++ifeq ($(HOSTARCH),arm)
++	HOSTEFIBINARY := """bootarm.efi"
++endif
++ifeq ($(HOSTARCH),aarch64)
++	HOSTEFIBINARY := "\"bootaa64.efi\""
++endif
++
+ HOSTOS := $(shell uname -s | tr '[:upper:]' '[:lower:]' | \
+ 	    sed -e 's/\(cygwin\).*/cygwin/')
+ 
+@@ -360,7 +373,7 @@ KBUILD_CPPFLAGS := -D__KERNEL__ -D__UBOOT__
+ KBUILD_CFLAGS   := -Wall -Wstrict-prototypes \
+ 		   -Wno-format-security \
+ 		   -fno-builtin -ffreestanding
+-KBUILD_CFLAGS	+= -fshort-wchar
++KBUILD_CFLAGS	+= -fshort-wchar -DHOSTEFIBINARY=$(HOSTEFIBINARY)
+ KBUILD_AFLAGS   := -D__ASSEMBLY__
+ 
+ # Read UBOOTRELEASE from include/config/uboot.release (if it exists)
+diff --git a/include/config_distro_bootcmd.h b/include/config_distro_bootcmd.h
+index f567cebd381..c4e1a059799 100644
+--- a/include/config_distro_bootcmd.h
++++ b/include/config_distro_bootcmd.h
+@@ -10,6 +10,10 @@
+ #ifndef _CONFIG_CMD_DISTRO_BOOTCMD_H
+ #define _CONFIG_CMD_DISTRO_BOOTCMD_H
+ 
++/* Use quote() to add quotation marks */
++#define literal(a) #a
++#define quote(a) literal(a)
++
+ /*
+  * A note on error handling: It is possible for BOOT_TARGET_DEVICES to
+  * reference a device that is not enabled in the U-Boot configuration, e.g.
+@@ -92,6 +96,9 @@
+ #endif
+ 
+ #ifdef CONFIG_EFI_LOADER
++#if defined(CONFIG_SANDBOX)
++#define BOOTEFI_NAME quote(HOSTEFIBINARY)
++#else
+ #if defined(CONFIG_ARM64)
+ #define BOOTEFI_NAME "bootaa64.efi"
+ #elif defined(CONFIG_ARM)
+@@ -102,6 +109,7 @@
+ #define BOOTEFI_NAME "bootx64.efi"
+ #endif
+ #endif
++#endif
+ 
+ #ifdef BOOTEFI_NAME
+ #if defined(CONFIG_ARM) && !defined(CONFIG_ARM64)
+-- 
+2.14.2
+
