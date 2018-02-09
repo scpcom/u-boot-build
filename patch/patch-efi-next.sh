@@ -51,6 +51,7 @@ git am ../patch/0001-efi_loader-consistently-return-efi_status_t-efi_watc.patch
 git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
 git am ../patch/0001-efi-sandbox-Adjust-memory-usage-for-sandbox.patch # no change
 git am ../patch/0001-sandbox-smbios-Update-to-support-sandbox.patch # no change
+git am ../patch/0001-sandbox-Add-a-setjmp-implementation.patch # no change
 
 # From Robert's Shell support series 
 git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
