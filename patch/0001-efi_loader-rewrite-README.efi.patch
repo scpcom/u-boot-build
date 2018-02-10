@@ -1,4 +1,4 @@
-From 30bf040baec9399dce607fa46a0499944db7437c Mon Sep 17 00:00:00 2001
+From 51388f9dbbe570fcc1138e6673f1663ce173be16 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 24 Jan 2018 19:04:52 +0100
 Subject: [PATCH 1/1] efi_loader: rewrite README.efi
@@ -11,14 +11,14 @@ Provides information about
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- doc/README.efi | 324 ++++++++++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 266 insertions(+), 58 deletions(-)
+ doc/README.efi | 320 ++++++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 262 insertions(+), 58 deletions(-)
 
 diff --git a/doc/README.efi b/doc/README.efi
-index 956f5bfa0c..211d31e3d2 100644
+index 956f5bfa0c6..d0a4d7f47a0 100644
 --- a/doc/README.efi
 +++ b/doc/README.efi
-@@ -1,86 +1,294 @@
+@@ -1,86 +1,290 @@
 -#
 -# Copyright (C) 2015 Google, Inc
 -#
@@ -37,95 +37,66 @@ index 956f5bfa0c..211d31e3d2 100644
 +# EFI on U-Boot
  
 -=========== Table of Contents ===========
-+## Motivation
++The Unified Extensible Firmware Interface Specification (UEFI) [1] has become
++the default for booting on AArch64 and x86 systems. It provides a stable API for
++the interaction between drivers and applications with the firmware. The API
++comprises access to block storage, network, and console to name a few. The Linux
++kernel and boot loaders like Grub or the FreeBSD loader can be executed.
  
 -Motivation
 -How do I get it?
 -Status
 -Future work
-+The Unified Extensible Firmware Interface Specification (UEFI) has become the
-+default for booting on AArch64 and x86 systems. It provides a stable API for the
-+interaction between the firmware and the drivers and applications loaded by the
-+firmware. The API provides access to block storage, network, and console to name
-+a few. The Linux kernel and boot loaders like Grub or the FreeBSD loader can be
-+executed.
- 
 +## Building for EFI
+ 
++The UEFI standard supports only little endian systems. The EFI support can be
++activated for ARM and x86 by specifying
  
 -Motivation
 -----------
-+The UEFI standard supports only little endian systems. The EFI support can be
-+activated for ARM and x86 by specifying
++    CONFIG_CMD_BOOTEFI=y
++    CONFIG_EFI_LOADER=y
  
 -With this API support in place, you can run any UEFI payload (such as the Linux
 -kernel, grub2 or gummiboot) on U-Boot. This dramatically simplifies boot loader
 -configuration, as U-Boot based systems now look and feel (almost) the same way
 -as TianoCore based systems.
-+    CONFIG_CMD_BOOTEFI=y
-+    CONFIG_EFI_LOADER=y
++in the .config file.
  
 -How do I get it?
 -----------------
-+in the .config file.
++Support for attaching virtual block devices, e.g. iSCSI drives connected by the
++loaded EFI application [3], requires
  
 -EFI support for 32bit ARM and AArch64 is already included in U-Boot. All you
 -need to do is enable
-+Support for attaching virtual block devices, e.g. iSCSI drives connected by the
-+loaded EFI application, requires
++    CONFIG_BLK=y
++    CONFIG_PARTITIONS=y
  
 -  CONFIG_CMD_BOOTEFI=y
 -  CONFIG_EFI_LOADER=y
-+    CONFIG_BLK=y
-+    CONFIG_PARTITIONS=y
++### Executing an EFI binary
  
 -in your .config file and you will automatically get a bootefi command to run
 -an efi application as well as snippet in the default distro boot script that
 -scans for removable media efi binaries as fallback.
-+A hello world EFI application can be built with
- 
--Status
--------
-+    CONFIG_CMD_BOOTEFI_HELLO_COMPILE=y
- 
--I am successfully able to run grub2 and Linux EFI binaries with this code on
--ARMv7 as well as AArch64 systems.
-+It can be embedded into the U-Boot binary for starting with command
-+'bootefi hello' with
- 
--When enabled, the resulting U-Boot binary only grows by ~10KB, so it's very
--light weight.
-+    CONFIG_CMD_BOOTEFI_HELLO=y
- 
--All storage devices are directly accessible from the uEFI payload
-+A test suite that can be executed with command 'bootefi selftest' is provided
-+by
- 
--Removable media booting (search for /efi/boot/boota{a64,arm}.efi) is supported.
-+    CONFIG_SELFTEST=y
- 
--Simple use cases like "Plug this SD card into my ARM device and it just
--boots into grub which boots into Linux", work very well.
-+## The bootefi command
- 
-+### Executing an EFI binary
- 
--Running HelloWord.efi
-----------------------
 +The bootefi command is used to start EFI applications or to install EFI drivers.
 +It takes two parameters
  
--You can run a simple 'hello world' EFI program in U-Boot.
--Enable the option CONFIG_CMD_BOOTEFI_HELLO.
+-Status
+-------
 +    bootefi <image address> [fdt address]
  
--Then you can boot into U-Boot and type:
+-I am successfully able to run grub2 and Linux EFI binaries with this code on
+-ARMv7 as well as AArch64 systems.
 +* image address - the memory address of the EFI binary
 +* fdt address - the memory address of the flattened device tree
  
--   > bootefi hello
+-When enabled, the resulting U-Boot binary only grows by ~10KB, so it's very
+-light weight.
 +Below you find the output of an example session starting Grub.
  
--The 'hello world EFI' program will then run, print a message and exit.
+-All storage devices are directly accessible from the uEFI payload
 +    => load mmc 0:2 ${fdt_addr_r} boot/dtb
 +    29830 bytes read in 14 ms (2 MiB/s)
 +    => load mmc 0:1 ${kernel_addr_r} efi/debian/grubaa64.efi
@@ -133,17 +104,44 @@ index 956f5bfa0c..211d31e3d2 100644
 +    120832 bytes read in 7 ms (16.5 MiB/s)
 +    => bootefi ${kernel_addr_r} ${fdt_addr_r}
  
+-Removable media booting (search for /efi/boot/boota{a64,arm}.efi) is supported.
 +The environment variable 'bootargs' is passed as load options in the EFI system
 +table. The Linux kernel EFI stub uses the load options as command line
 +arguments.
  
--Future work
-------------
+-Simple use cases like "Plug this SD card into my ARM device and it just
+-boots into grub which boots into Linux", work very well.
 +### Executing the boot manager
  
--Of course, there are still a few things one could do on top:
 +The UEFI specfication forsees to define boot entries and boot sequence via EFI
 +variables. Booting according to these variables is possible via
+ 
+-Running HelloWord.efi
+----------------------
++    bootefi bootmgr [fdt address]
+ 
+-You can run a simple 'hello world' EFI program in U-Boot.
+-Enable the option CONFIG_CMD_BOOTEFI_HELLO.
++As of U-Boot v2018.03 EFI variables are not persisted and cannot be set at
++runtime.
+ 
+-Then you can boot into U-Boot and type:
++### Executing the built in hello world application
+ 
+-   > bootefi hello
++A hello world EFI application can be built with
+ 
+-The 'hello world EFI' program will then run, print a message and exit.
++    CONFIG_CMD_BOOTEFI_HELLO_COMPILE=y
+ 
++It can be embedded into the U-Boot binary with
+ 
+-Future work
+------------
++    CONFIG_CMD_BOOTEFI_HELLO=y
+ 
+-Of course, there are still a few things one could do on top:
++The bootefi command is used to start the embedded hello world application.
  
 -   - Improve disk media detection (don't scan, use what information we
 -have)
@@ -153,18 +151,9 @@ index 956f5bfa0c..211d31e3d2 100644
 -   - Network device support
 -   - Support for payload exit
 -   - Payload Watchdog support
-+    bootefi bootmgr [fdt address]
++    bootefi hello [fdt address]
  
 -[1] http://uefi.org/
-+As of U-Boot v2018.03 EFI variables cannot be set by the operating system. So
-+this development is not usable yet.
-+
-+### Executing the built in hello world application
-+
-+For testing the bootefi command can be used to start a hello world application.
-+
-+    bootefi hello [fdt address]
-+
 +Below you find the output of an example session.
 +
 +    => bootefi hello
@@ -175,10 +164,14 @@ index 956f5bfa0c..211d31e3d2 100644
 +    Load options: root=/dev/sdb3 init=/sbin/init rootwait ro
 +    ## Application terminated, r = 0
 +
-+### Executing the built in hello world application
++### Executing the built-in selftest
 +
-+For testing the EFI implementation bootefi command can be used to start a self
-+test.
++An EFI selftest suite can be embedded in U-Boot by building with
++
++    CONFIG_SELFTEST=y
++
++For testing the EFI implementation bootefi command can be used to start the
++selftest.
 +
 +    bootefi selftest [fdt address]
 +
@@ -213,26 +206,28 @@ index 956f5bfa0c..211d31e3d2 100644
 +* boot services and
 +* runtime services.
 +
-+The API can be enhanced by loading EFI drivers which come in two variants
++The API can be extended by loading EFI drivers which come in two variants
 +
 +* boot drivers and
 +* runtime drivers.
 +
 +EFI drivers are installed with U-Boot's bootefi command. With the same command
-+EFI applications can be run.
++EFI applications can be executed.
 +
 +Loaded images of EFI drivers stay in memory after returning to U-Boot while
 +loaded images of applications are removed from memory.
 +
-+After an EFI application calls ExitBootServices
++An EFI application (e.g. an operating system) that wants to take full control
++of the system calls ExitBootServices. After an EFI application calls
++ExitBootServices
 +
 +* boot services are not available anymore
 +* timer events are stopped
 +* the memory used by U-Boot except for runtime services is released
 +* the memory used by boot time drivers is released
 +
-+So this is the point of no return where the EFI application takes charge of the
-+system. Afterwards it can only return to U-Boot by rebooting.
++So this is a point of no return. Afterwards it can only return to U-Boot by
++rebooting.
 +
 +## The EFI object model
 +
@@ -314,10 +309,10 @@ index 956f5bfa0c..211d31e3d2 100644
 +As of U-Boot 2018.03 the logic for doing this is hard coded.
 +
 +The development target is to integrate the setup of these EFI devices with the
-+U-Boot driver model. So when an U-Boot device is discovered a handle should be
++U-Boot driver model. So when a U-Boot device is discovered a handle should be
 +created and the device path protocol and the relevant IO protocol should be
 +installed. The EFI driver then would be attached by calling ConnectController.
-+When an U-Boot device is removed DisconnectController should be called.
++When a U-Boot device is removed DisconnectController should be called.
 +
 +## EFI devices mapped as U-Boot devices
 +
@@ -337,7 +332,7 @@ index 956f5bfa0c..211d31e3d2 100644
 +When connected it creates a new U-Boot block IO device with interface type
 +IF_TYPE_EFI, adds child controllers mapping the partitions, and installs the
 +EFI_SIMPLE_FILE_SYSTEM_PROTOCOL on these. This can be used together with the
-+software iPXE to boot from iSCSI network drives (see doc/README.iscsi).
++software iPXE to boot from iSCSI network drives [3].
 +
 +The driver is only available if U-Boot is configured with
 +
@@ -347,20 +342,20 @@ index 956f5bfa0c..211d31e3d2 100644
 +## Open issues as of U-Boot 2018.03
 +
 +* unimplemented or incompletely implemented boot services
-+* * Exit - call unload function, unload applications only
-+* * ReinstallProtocolInterface
-+* * UnloadImage
++  * Exit - call unload function, unload applications only
++  * ReinstallProtocolInterface
++  * UnloadImage
 +
 +* unimplemented events
-+* * EVT_RUNTIME
-+* * EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE
++  * EVT_RUNTIME
++  * EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE
 +
 +* data model
-+* * manage events in a linked list
-+* * manage configuration tables in a linked list
++  * manage events in a linked list
++  * manage configuration tables in a linked list
 +
 +* EFI drivers
-+* * support DisconnectController for EFI block devices.
++  * support DisconnectController for EFI block devices.
 +
 +* Sandbox support for CONFIG_EFI_LOADER
 +
@@ -368,9 +363,10 @@ index 956f5bfa0c..211d31e3d2 100644
 +
 +## Links
 +
-+* http://uefi.org/specifications - UEFI specifications
-+* doc/driver-model/README.txt - Driver model
-+* doc/README.iscsi - iSCSI booting with U-Boot and iPXE
++* [1](http://uefi.org/specifications)
++  http://uefi.org/specifications - UEFI specifications
++* [2](./driver-model/README.txt) doc/driver-model/README.txt - Driver model
++* [3](./README.iscsi) doc/README.iscsi - iSCSI booting with U-Boot and iPXE
 -- 
-2.11.0
+2.15.1
 
