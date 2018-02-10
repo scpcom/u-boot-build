@@ -32,7 +32,8 @@ git am ../patch/0001-efi_loader-create-stub-for-CreateEventEx.patch
 git am ../patch/0001-efi_driver-return-type-of-efi_driver_init.patch
 git am ../patch/0001-efi_loader-correct-efi_disk_register.patch
 git am ../patch/0001-efi_loader-split-README.efi-into-two-separate-docume.patch
-git am ../patch/0001-efi_loader-rewrite-README.efi.patch
+git am ../patch/0001-efi_loader-delete-doc-README.efi.patch
+git am ../patch/0001-efi_loader-provide-new-doc-README.efi.patch
 
 git am ../patch/0001-efi_loader-do-not-use-2.0.5-as-UEFI-revision-number.patch
 git am ../patch/0001-efi_loader-add-missing-EFI_RESET_PLATFORM_SPECIFIC.patch
