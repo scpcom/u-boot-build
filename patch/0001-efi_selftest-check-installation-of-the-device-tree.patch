@@ -1,4 +1,4 @@
-From de60589e0029e9bbb9a5f1048ea204a95c356ef2 Mon Sep 17 00:00:00 2001
+From 5c4d6e045429bf6e6c7f1aaf456254c862828d1d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 21 Jan 2018 20:49:53 +0100
 Subject: [PATCH 1/1] efi_selftest: check installation of the device tree
@@ -18,8 +18,8 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile           |   1 +
  lib/efi_selftest/efi_selftest_fdt.c | 188 ++++++++++++++++++++++++++++++++++++
- test/py/tests/test_efi_selftest.py  |  13 +++
- 3 files changed, 202 insertions(+)
+ test/py/tests/test_efi_selftest.py  |  14 +++
+ 3 files changed, 203 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_fdt.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
@@ -229,14 +229,15 @@ index 00000000000..24db0dcf7d5
 +	.on_request = true,
 +};
 diff --git a/test/py/tests/test_efi_selftest.py b/test/py/tests/test_efi_selftest.py
-index 66b799bed66..d495a833232 100644
+index 66b799bed66..b1ef6bd5811 100644
 --- a/test/py/tests/test_efi_selftest.py
 +++ b/test/py/tests/test_efi_selftest.py
-@@ -24,6 +24,19 @@ def test_efi_selftest(u_boot_console):
+@@ -24,6 +24,20 @@ def test_efi_selftest(u_boot_console):
  		raise Exception('Reset failed during the EFI selftest')
  	u_boot_console.restart_uboot();
  
 +@pytest.mark.buildconfigspec('cmd_bootefi_selftest')
++@pytest.mark.buildconfigspec('of_control')
 +def test_efi_selftest_device_tree(u_boot_console):
 +	u_boot_console.run_command(cmd='setenv efi_selftest list')
 +	output = u_boot_console.run_command('bootefi selftest')
