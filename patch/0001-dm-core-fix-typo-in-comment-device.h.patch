@@ -1,0 +1,28 @@
+From cdcbf381fb3d2c999406f621f5eb3b1eb18e56f5 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 12 Feb 2018 12:36:24 +0100
+Subject: [PATCH 1/1] dm: core: fix typo in comment (device.h)
+
+%s/Indentiies/Identifies/g
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/dm/device.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/dm/device.h b/include/dm/device.h
+index 813e49f330f..7786b1cf4e6 100644
+--- a/include/dm/device.h
++++ b/include/dm/device.h
+@@ -203,7 +203,7 @@ struct udevice_id {
+  * it.
+  *
+  * @name: Device name
+- * @id: Identiies the uclass we belong to
++ * @id: Identifies the uclass we belong to
+  * @of_match: List of compatible strings to match, and any identifying data
+  * for each.
+  * @bind: Called to bind a device to its driver
+-- 
+2.15.1
+

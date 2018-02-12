@@ -14,6 +14,7 @@ git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
 git am ../patch/0001-rockchip-gpio-remove-dead-code.patch
+git am ../patch/0001-dm-core-fix-typo-in-comment-device.h.patch
 
 # Video console
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
