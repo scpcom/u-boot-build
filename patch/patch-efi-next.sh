@@ -22,6 +22,9 @@ git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
 git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 
+# EFI for v2018.03
+git am ../patch/0001-efi_driver-comment-struct-efi_driver_ops.patch
+
 # EFI
 git am ../patch/0001-efi_loader-delete-doc-README.efi.patch
 git am ../patch/0001-efi_loader-provide-new-doc-README.efi.patch
