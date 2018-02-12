@@ -58,6 +58,7 @@ git am ../patch/0001-sandbox-smbios-Update-to-support-sandbox.patch # no change
 git am ../patch/0001-sandbox-Add-a-setjmp-implementation.patch # no change
 git am ../patch/0001-efi-sandbox-Add-required-linker-sections.patch # no change
 git am ../patch/0001-efi-sandbox-add-distroboot-support.patch
+git am ../patch/0001-Define-board_quiesce_devices-in-a-shared-location.patch
 
 # From Robert's Shell support series 
 git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch

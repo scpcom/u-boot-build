@@ -1,0 +1,109 @@
+From 1534a4f9a616cd18eb289db141bfa5460b917620 Mon Sep 17 00:00:00 2001
+From: Simon Glass <sjg@chromium.org>
+Date: Mon, 4 Dec 2017 14:28:27 -0700
+Subject: [PATCH 1/1] Define board_quiesce_devices() in a shared location
+
+This undocumented function relies on arch-specific code to declare a nop
+weak version. Add the weak function in common code instead to avoid having
+to duplicate the same function in each arch.
+
+This patch is based on Simon's
+Define board_quiesce_devices() in a shared location
+https://lists.denx.de/pipermail/u-boot/2017-December/313648.html
+
+It additionally removes a weak implementation in arch/arm/lib/bootm.c.
+
+Suggested-by: Simon Glass <sjg@chromium.org>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ arch/arm/include/asm/u-boot-arm.h | 1 -
+ arch/arm/lib/bootm.c              | 4 ----
+ arch/x86/include/asm/u-boot-x86.h | 1 -
+ arch/x86/lib/bootm.c              | 4 ----
+ common/bootm.c                    | 4 ++++
+ include/bootm.h                   | 2 ++
+ 6 files changed, 6 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/include/asm/u-boot-arm.h b/arch/arm/include/asm/u-boot-arm.h
+index ef4fca68ee9..73ccf41f8c2 100644
+--- a/arch/arm/include/asm/u-boot-arm.h
++++ b/arch/arm/include/asm/u-boot-arm.h
+@@ -38,7 +38,6 @@ int	arch_early_init_r(void);
+ 
+ /* board/.../... */
+ int	board_init(void);
+-void	board_quiesce_devices(void);
+ 
+ /* cpu/.../interrupt.c */
+ int	arch_interrupt_init	(void);
+diff --git a/arch/arm/lib/bootm.c b/arch/arm/lib/bootm.c
+index 89740657e0c..fe524e81eb0 100644
+--- a/arch/arm/lib/bootm.c
++++ b/arch/arm/lib/bootm.c
+@@ -76,10 +76,6 @@ void arch_lmb_reserve(struct lmb *lmb)
+ 	}
+ }
+ 
+-__weak void board_quiesce_devices(void)
+-{
+-}
+-
+ /**
+  * announce_and_cleanup() - Print message and prepare for kernel boot
+  *
+diff --git a/arch/x86/include/asm/u-boot-x86.h b/arch/x86/include/asm/u-boot-x86.h
+index 187fe5fd8cf..d2e14260428 100644
+--- a/arch/x86/include/asm/u-boot-x86.h
++++ b/arch/x86/include/asm/u-boot-x86.h
+@@ -85,7 +85,6 @@ static inline __attribute__((no_instrument_function)) uint64_t rdtsc(void)
+ /* board/... */
+ void timer_set_tsc_base(uint64_t new_base);
+ uint64_t timer_get_tsc(void);
+-void board_quiesce_devices(void);
+ 
+ void quick_ram_check(void);
+ 
+diff --git a/arch/x86/lib/bootm.c b/arch/x86/lib/bootm.c
+index e548cdbed59..60ae043f244 100644
+--- a/arch/x86/lib/bootm.c
++++ b/arch/x86/lib/bootm.c
+@@ -33,10 +33,6 @@ int arch_fixup_fdt(void *blob)
+ 	return 0;
+ }
+ 
+-__weak void board_quiesce_devices(void)
+-{
+-}
+-
+ void bootm_announce_and_cleanup(void)
+ {
+ 	printf("\nStarting kernel ...\n\n");
+diff --git a/common/bootm.c b/common/bootm.c
+index adb12137c7b..077978f3189 100644
+--- a/common/bootm.c
++++ b/common/bootm.c
+@@ -47,6 +47,10 @@ static const void *boot_get_kernel(cmd_tbl_t *cmdtp, int flag, int argc,
+ 				   char * const argv[], bootm_headers_t *images,
+ 				   ulong *os_data, ulong *os_len);
+ 
++__weak void board_quiesce_devices(void)
++{
++}
++
+ #ifdef CONFIG_LMB
+ static void boot_start_lmb(bootm_headers_t *images)
+ {
+diff --git a/include/bootm.h b/include/bootm.h
+index 49813772ce5..76b6ab42e66 100644
+--- a/include/bootm.h
++++ b/include/bootm.h
+@@ -73,4 +73,6 @@ int bootm_decomp_image(int comp, ulong load, ulong image_start, int type,
+ 		       void *load_buf, void *image_buf, ulong image_len,
+ 		       uint unc_len, ulong *load_end);
+ 
++void board_quiesce_devices(void);
++
+ #endif
+-- 
+2.14.2
+
