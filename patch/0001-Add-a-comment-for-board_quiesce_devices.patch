@@ -1,0 +1,35 @@
+From 0bf696f11e96f44793204a5c16a74f02e26470ed Mon Sep 17 00:00:00 2001
+From: Simon Glass <sjg@chromium.org>
+Date: Mon, 4 Dec 2017 14:28:28 -0700
+Subject: [PATCH 1/1] Add a comment for board_quiesce_devices()
+
+This exported function should have a comment describing what it does. Also
+it should really be removed in favour of device_remove(), which handles
+this sort of thing now. Add a comment with a TODO.
+
+Signed-off-by: Simon Glass <sjg@chromium.org>
+Reviewed-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/bootm.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/include/bootm.h b/include/bootm.h
+index 76b6ab42e66..caf331f54b9 100644
+--- a/include/bootm.h
++++ b/include/bootm.h
+@@ -73,6 +73,12 @@ int bootm_decomp_image(int comp, ulong load, ulong image_start, int type,
+ 		       void *load_buf, void *image_buf, ulong image_len,
+ 		       uint unc_len, ulong *load_end);
+ 
++/*
++ * Boards should define this to disable devices when EFI exits from boot
++ * services.
++ *
++ * TODO(sjg@chromium.org>): Update this to use driver model's device_remove().
++ */
+ void board_quiesce_devices(void);
+ 
+ #endif
+-- 
+2.14.2
+
