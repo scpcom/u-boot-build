@@ -63,6 +63,7 @@ git am ../patch/0001-Define-board_quiesce_devices-in-a-shared-location.patch
 git am ../patch/0001-Add-a-comment-for-board_quiesce_devices.patch # no change
 git am ../patch/0001-efi-sandbox-Add-relocation-constants.patch # no change
 git am ../patch/0001-efi-sandbox-no-support-for-DHCP-EFI-boot.patch
+git am ../patch/0001-efi_selftest-cannot-launch-EFI-binary-in-sandbox.patch
 git am ../patch/0001-efi-sandbox-Enable-EFI-loader-builder-for-sandbox.patch # rebased
 
 # From Robert's Shell support series 

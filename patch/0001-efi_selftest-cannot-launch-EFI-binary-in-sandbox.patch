@@ -1,0 +1,29 @@
+From 017a33cbd69b2acf6ecd85f799e69ec81f1a4655 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 13 Feb 2018 20:29:46 +0100
+Subject: [PATCH 1/1] efi_selftest: cannot launch EFI binary in sandbox
+
+The sandbox does not support launching binaries.
+Disable the corresponding unit tests.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index b975da2955c..28ae0855ab8 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -35,7 +35,7 @@ endif
+ 
+ # TODO: As of v2018.01 the relocation code for the EFI application cannot
+ # be built on x86_64.
+-ifeq ($(CONFIG_X86_64),)
++ifeq ($(CONFIG_SANDBOX)$(CONFIG_X86_64),)
+ 
+ ifneq ($(CONFIG_CMD_BOOTEFI_SELFTEST),)
+ 
+-- 
+2.14.2
+
