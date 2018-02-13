@@ -9,6 +9,7 @@ needs to be, pick something that should be suitable and check it at
 runtime. At present we need access to the underlying struct as well.
 
 Signed-off-by: Simon Glass <sjg@chromium.org>
+Use sizeof(*jmp) in setjmp.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  arch/sandbox/cpu/cpu.c            | 13 +++++++++++++
@@ -37,7 +38,7 @@ index 66c3a6a88a7..8b397c7168f 100644
 +
 +int setjmp(jmp_buf jmp)
 +{
-+	return os_setjmp((ulong *)jmp, sizeof(jmp));
++	return os_setjmp((ulong *)jmp, sizeof(*jmp));
 +}
 +
 +void longjmp(jmp_buf jmp, int ret)

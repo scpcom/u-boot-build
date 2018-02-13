@@ -1,0 +1,41 @@
+From 24cf2a638ac0d7649d94dad275dc5228068238b7 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 13 Feb 2018 19:20:18 +0100
+Subject: [PATCH 1/1] fs: fat: avoid superfluous conversion calling set_cluster
+
+Parameter size of function set_cluster is of type unsigned long. It makes
+no sense to convert actsize to int before passing it to set_cluster as
+size.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ fs/fat/fat_write.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/fs/fat/fat_write.c b/fs/fat/fat_write.c
+index 2b753df2820..ccc03cecb6e 100644
+--- a/fs/fat/fat_write.c
++++ b/fs/fat/fat_write.c
+@@ -679,7 +679,8 @@ set_contents(fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
+ 
+ 		/* set remaining bytes */
+ 		actsize = filesize;
+-		if (set_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
++		if (set_cluster(mydata, curclust, buffer,
++				(unsigned long)actsize) != 0) {
+ 			debug("error: writing cluster\n");
+ 			return -1;
+ 		}
+@@ -696,7 +697,8 @@ set_contents(fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
+ 
+ 		return 0;
+ getit:
+-		if (set_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
++		if (set_cluster(mydata, curclust, buffer,
++				(unsigned long)actsize) != 0) {
+ 			debug("error: writing cluster\n");
+ 			return -1;
+ 		}
+-- 
+2.14.2
+
