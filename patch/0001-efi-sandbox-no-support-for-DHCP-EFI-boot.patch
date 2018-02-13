@@ -1,0 +1,29 @@
+From b9a82246e2218a3a5e4cea42e26bf286baba9e25 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 12 Feb 2018 20:02:25 +0100
+Subject: [PATCH 1/1] efi: sandbox: no support for DHCP EFI boot
+
+The sandbox does not support booting into an operating system.
+So there is no need for the corresponding class identifiers.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/config_distro_bootcmd.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/config_distro_bootcmd.h b/include/config_distro_bootcmd.h
+index c4e1a059799..7045125a64c 100644
+--- a/include/config_distro_bootcmd.h
++++ b/include/config_distro_bootcmd.h
+@@ -248,7 +248,7 @@
+ #endif
+ 
+ #if defined(CONFIG_CMD_DHCP)
+-#if defined(CONFIG_EFI_LOADER)
++#if defined(CONFIG_EFI_LOADER) && !defined(CONFIG_SANDBOX)
+ #if defined(CONFIG_ARM64)
+ #define BOOTENV_EFI_PXE_ARCH "0xb"
+ #define BOOTENV_EFI_PXE_VCI "PXEClient:Arch:00011:UNDI:003000"
+-- 
+2.14.2
+
