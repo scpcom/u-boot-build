@@ -42,6 +42,7 @@ git am ../patch/0001-efi_loader-do_bootefi_exec-should-always-return-an-E.patch
 git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
 git am ../patch/0001-efi_loader-support-device-tree-for-bootefi-selftest.patch
 git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
+git am ../patch/0001-efi-Add-a-comment-about-duplicated-ELF-constants.patch
 
 # diverse protocols
 git am ../patch/0001-efi_loader-add-missing-EFI_RESET_PLATFORM_SPECIFIC.patch
@@ -60,6 +61,8 @@ git am ../patch/0001-efi-sandbox-Add-required-linker-sections.patch # no change
 git am ../patch/0001-efi-sandbox-add-distroboot-support.patch
 git am ../patch/0001-Define-board_quiesce_devices-in-a-shared-location.patch
 git am ../patch/0001-Add-a-comment-for-board_quiesce_devices.patch # no change
+git am ../patch/0001-efi-sandbox-Add-relocation-constants.patch # no change
+git am ../patch/0001-efi-sandbox-Enable-EFI-loader-builder-for-sandbox.patch # rebased
 
 # From Robert's Shell support series 
 git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch

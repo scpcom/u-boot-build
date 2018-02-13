@@ -1,0 +1,31 @@
+From e9d268d8a47dffd578b4b2beb5c27b48451dcf73 Mon Sep 17 00:00:00 2001
+From: Simon Glass <sjg@chromium.org>
+Date: Mon, 4 Dec 2017 14:28:29 -0700
+Subject: [PATCH 1/1] efi: sandbox: Add relocation constants
+
+Add these so that we can build the EFI loader for sandbox. The values are
+for x86_64 so potentially bogus. But we don't support relocation within
+sandbox anyway.
+
+Signed-off-by: Simon Glass <sjg@chromium.org>
+---
+ lib/efi_loader/efi_runtime.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/efi_loader/efi_runtime.c b/lib/efi_loader/efi_runtime.c
+index abae65383c3..ce661c3d6bf 100644
+--- a/lib/efi_loader/efi_runtime.c
++++ b/lib/efi_loader/efi_runtime.c
+@@ -48,6 +48,9 @@ static efi_status_t __efi_runtime EFIAPI efi_invalid_parameter(void);
+ #include <asm/elf.h>
+ #define R_RELATIVE	R_386_RELATIVE
+ #define R_MASK		0xffULL
++#elif defined(CONFIG_SANDBOX)
++#define R_RELATIVE	8
++#define R_MASK		0xffffffffULL
+ #else
+ #error Need to add relocation awareness
+ #endif
+-- 
+2.14.2
+

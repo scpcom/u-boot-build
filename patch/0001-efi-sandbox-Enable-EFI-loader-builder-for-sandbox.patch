@@ -1,0 +1,30 @@
+From a377be7f382205e0fff66c4f8c9636ce1be1c83f Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 13 Feb 2018 14:46:00 +0100
+Subject: [PATCH 1/1] efi: sandbox: Enable EFI loader builder for sandbox
+
+This allows this feature to build within sandbox. This is for testing
+purposes only since it is not possible for sandbox to load native code.
+
+Signed-off-by: Simon Glass <sjg@chromium.org>
+Rebased upon v2018.03-rc1
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/Kconfig b/lib/efi_loader/Kconfig
+index 83d75c4fdc9..97658f16658 100644
+--- a/lib/efi_loader/Kconfig
++++ b/lib/efi_loader/Kconfig
+@@ -1,6 +1,6 @@
+ config EFI_LOADER
+ 	bool "Support running EFI Applications in U-Boot"
+-	depends on (ARM || X86) && OF_LIBFDT
++	depends on (ARM || X86 || SANDBOX) && OF_LIBFDT
+ 	# We need EFI_STUB_64BIT to be set on x86_64 with EFI_STUB
+ 	depends on !EFI_STUB || !X86_64 || EFI_STUB_64BIT
+ 	# We need EFI_STUB_32BIT to be set on x86_32 with EFI_STUB
+-- 
+2.14.2
+
