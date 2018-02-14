@@ -1,4 +1,4 @@
-From 0355ab42214cd5e6a253171510e2486b456d4e0d Mon Sep 17 00:00:00 2001
+From 6ec191e9fb8153af214031608aa029edeb976a0a Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 10 Feb 2018 10:31:08 +0100
 Subject: [PATCH 1/1] efi_loader: provide new doc/README.efi
@@ -17,7 +17,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 
 diff --git a/doc/README.efi b/doc/README.efi
 new file mode 100644
-index 00000000000..91bb44a3a0e
+index 00000000000..66e48b82d1f
 --- /dev/null
 +++ b/doc/README.efi
 @@ -0,0 +1,319 @@
@@ -31,9 +31,9 @@ index 00000000000..91bb44a3a0e
 +
 +The Unified Extensible Firmware Interface Specification (UEFI) [1] has become
 +the default for booting on AArch64 and x86 systems. It provides a stable API for
-+the interaction between drivers and applications with the firmware. The API
-+comprises access to block storage, network, and console to name a few. The Linux
-+kernel and boot loaders like Grub or the FreeBSD loader can be executed.
++the interaction of drivers and applications with the firmware. The API comprises
++access to block storage, network, and console to name a few. The Linux kernel and
++boot loaders like Grub or the FreeBSD loader can be executed.
 +
 +## Building for EFI
 +
@@ -341,5 +341,5 @@ index 00000000000..91bb44a3a0e
 +* [2](./driver-model/README.txt) doc/driver-model/README.txt - Driver model
 +* [3](./README.iscsi) doc/README.iscsi - iSCSI booting with U-Boot and iPXE
 -- 
-2.11.0
+2.15.1
 
