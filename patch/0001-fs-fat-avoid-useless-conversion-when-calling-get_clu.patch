@@ -1,37 +1,46 @@
-From e2938e86fcee9f022a3a6787d9ef0f3ffa74924f Mon Sep 17 00:00:00 2001
+From 33bd02530d62a8f602c80eebc72374470ff4ea59 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 13 Feb 2018 19:11:56 +0100
-Subject: [PATCH 1/1] fs: fat: avoid useless conversion when calling getcluster
+Subject: [PATCH 1/1] fs: fat: avoid useless conversion when calling
+ get_cluster
 
 Parameter size of function get_cluster() is of type unsigned long. It makes
 no sense to convert actsize to int before passing it to get_cluster as
-size.
+size. Let't use t_off as type of parameter to avoid any type conversion.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- fs/fat/fat.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/fat/fat.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/fs/fat/fat.c b/fs/fat/fat.c
-index dd7888cd6d4..a3c7bf604eb 100644
+index dd7888cd6d4..cf4580b63df 100644
 --- a/fs/fat/fat.c
 +++ b/fs/fat/fat.c
+@@ -244,7 +244,7 @@ static __u32 get_fatent(fsdata *mydata, __u32 entry)
+  * Return 0 on success, -1 otherwise.
+  */
+ static int
+-get_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer, unsigned long size)
++get_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer, loff_t size)
+ {
+ 	__u32 idx = 0;
+ 	__u32 startsect;
 @@ -353,7 +353,7 @@ static int get_contents(fsdata *mydata, dir_entry *dentptr, loff_t pos,
  	if (pos) {
  		actsize = min(filesize, (loff_t)bytesperclust);
  		if (get_cluster(mydata, curclust, get_contents_vfatname_block,
 -				(int)actsize) != 0) {
-+				(unsigned long)actsize) != 0) {
++				actsize) != 0) {
  			printf("Error reading cluster\n");
  			return -1;
  		}
-@@ -393,14 +393,16 @@ static int get_contents(fsdata *mydata, dir_entry *dentptr, loff_t pos,
+@@ -393,14 +393,14 @@ static int get_contents(fsdata *mydata, dir_entry *dentptr, loff_t pos,
  
  		/* get remaining bytes */
  		actsize = filesize;
 -		if (get_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
-+		if (get_cluster(mydata, curclust, buffer,
-+				(unsigned long)actsize) != 0) {
++		if (get_cluster(mydata, curclust, buffer, actsize) != 0) {
  			printf("Error reading cluster\n");
  			return -1;
  		}
@@ -39,11 +48,10 @@ index dd7888cd6d4..a3c7bf604eb 100644
  		return 0;
  getit:
 -		if (get_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
-+		if (get_cluster(mydata, curclust, buffer,
-+				(unsigned long)actsize) != 0) {
++		if (get_cluster(mydata, curclust, buffer, actsize) != 0) {
  			printf("Error reading cluster\n");
  			return -1;
  		}
 -- 
-2.14.2
+2.11.0
 
