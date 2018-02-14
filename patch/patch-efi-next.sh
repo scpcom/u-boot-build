@@ -16,6 +16,7 @@ git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
 git am ../patch/0001-dm-core-fix-typo-in-comment-device.h.patch
 git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-getclus.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
+git am ../patch/0001-cmd-scsi-move-CMD_SCSI-to-device-access-commands.patch
 
 # Video console
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
