@@ -1,0 +1,38 @@
+From eb226aa8c7457fee79fad15e046c4d91c5198e2b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 13 Feb 2018 22:10:18 +0100
+Subject: [PATCH 1/1] sandbox: set available memory address
+
+The available memory is defined by calling mmap(). So we cannot rely
+on CONFIG variables.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ arch/sandbox/cpu/start.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/sandbox/cpu/start.c b/arch/sandbox/cpu/start.c
+index 00742fd95e2..a57ad4cca0e 100644
+--- a/arch/sandbox/cpu/start.c
++++ b/arch/sandbox/cpu/start.c
+@@ -15,6 +15,17 @@
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
++int dram_init_banksize(void)
++{
++	struct sandbox_state *state = state_get_current();
++
++#if defined(CONFIG_NR_DRAM_BANKS) && defined(CONFIG_SYS_SDRAM_BASE)
++	gd->bd->bi_dram[0].start = (uintptr_t)(state->ram_buf);
++	gd->bd->bi_dram[0].size = state->ram_size;
++#endif
++	return 0;
++}
++
+ int sandbox_early_getopt_check(void)
+ {
+ 	struct sandbox_state *state = state_get_current();
+-- 
+2.14.2
+
