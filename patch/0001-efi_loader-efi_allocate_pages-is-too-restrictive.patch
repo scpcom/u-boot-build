@@ -1,0 +1,33 @@
+From f720a0d48b5e1e00cb5dab650bde5ba68846fcfb Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 13 Feb 2018 21:41:38 +0100
+Subject: [PATCH 1/1] efi_loader: efi_allocate_pages is too restrictive
+
+When running on the sandbox the stack is not necessarily at a higher memory
+address than the highest free memory.
+
+There is no reason why the checking of the highest memory address should be
+more restrictive for EFI_ALLOCATE_ANY_PAGES than for
+EFI_ALLOCATE_MAX_ADDRESS.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_memory.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/efi_loader/efi_memory.c b/lib/efi_loader/efi_memory.c
+index cc271e0709d..0efbb973231 100644
+--- a/lib/efi_loader/efi_memory.c
++++ b/lib/efi_loader/efi_memory.c
+@@ -294,7 +294,7 @@ efi_status_t efi_allocate_pages(int type, int memory_type,
+ 	switch (type) {
+ 	case EFI_ALLOCATE_ANY_PAGES:
+ 		/* Any page */
+-		addr = efi_find_free_memory(len, gd->start_addr_sp);
++		addr = efi_find_free_memory(len, (uint64_t)-1);
+ 		if (!addr) {
+ 			r = EFI_NOT_FOUND;
+ 			break;
+-- 
+2.14.2
+

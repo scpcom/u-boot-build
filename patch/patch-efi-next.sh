@@ -56,6 +56,7 @@ git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 
 # From Simon's Sandbox support series
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
+git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
 git am ../patch/0001-efi-sandbox-Adjust-memory-usage-for-sandbox.patch # no change
 git am ../patch/0001-sandbox-smbios-Update-to-support-sandbox.patch # no change
 git am ../patch/0001-sandbox-Add-a-setjmp-implementation.patch # no change
