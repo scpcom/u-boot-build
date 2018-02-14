@@ -13,7 +13,6 @@ git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 # Various fixes
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
-git am ../patch/0001-dm-core-fix-typo-in-comment-device.h.patch
 git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-getclus.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
 git am ../patch/0001-cmd-scsi-move-CMD_SCSI-to-device-access-commands.patch
@@ -23,9 +22,6 @@ git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
 git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
 git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
-
-# EFI for v2018.03
-git am ../patch/0001-efi_driver-comment-struct-efi_driver_ops.patch
 
 # EFI
 git am ../patch/0001-efi_loader-delete-doc-README.efi.patch

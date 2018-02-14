@@ -1,7 +1,7 @@
 From 33bd02530d62a8f602c80eebc72374470ff4ea59 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 13 Feb 2018 19:11:56 +0100
-Subject: [PATCH 1/1] fs: fat: avoid useless conversion when calling
+Subject: [PATCH v2 1/1] fs: fat: avoid useless conversion when calling
  get_cluster
 
 Parameter size of function get_cluster() is of type unsigned long. It makes
@@ -9,6 +9,9 @@ no sense to convert actsize to int before passing it to get_cluster as
 size. Let't use t_off as type of parameter to avoid any type conversion.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	change type of parameter size
 ---
  fs/fat/fat.c | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
