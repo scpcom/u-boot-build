@@ -333,6 +333,7 @@ CONFIG_CMD_PCI=y
 # CONFIG_CMD_READ is not set
 CONFIG_CMD_SATA=y
 # CONFIG_CMD_SAVES is not set
+CONFIG_CMD_SCSI=y
 # CONFIG_CMD_SDRAM is not set
 CONFIG_CMD_SF=y
 CONFIG_CMD_SF_TEST=y
@@ -420,7 +421,6 @@ CONFIG_CMD_FS_GENERIC=y
 # CONFIG_CMD_JFFS2 is not set
 # CONFIG_CMD_MTDPARTS is not set
 # CONFIG_CMD_REISER is not set
-CONFIG_CMD_SCSI=y
 # CONFIG_CMD_ZFS is not set
 
 #
@@ -530,7 +530,6 @@ CONFIG_BLK=y
 CONFIG_HAVE_BLOCK_DEVICE=y
 # CONFIG_BLOCK_CACHE is not set
 CONFIG_IDE=y
-# CONFIG_SYSTEMACE is not set
 
 #
 # Boot count support
@@ -791,10 +790,18 @@ CONFIG_DM_SPI=y
 # CONFIG_TEGRA210_QSPI is not set
 # CONFIG_XILINX_SPI is not set
 # CONFIG_SOFT_SPI is not set
+# CONFIG_CF_SPI is not set
 # CONFIG_FSL_ESPI is not set
 # CONFIG_FSL_QSPI is not set
 # CONFIG_ATCSPI200_SPI is not set
+# CONFIG_SH_SPI is not set
+# CONFIG_SH_QSPI is not set
 # CONFIG_TI_QSPI is not set
+# CONFIG_KIRKWOOD_SPI is not set
+# CONFIG_LPC32XX_SSP is not set
+# CONFIG_MPC8XXX_SPI is not set
+# CONFIG_MXC_SPI is not set
+# CONFIG_MXS_SPI is not set
 # CONFIG_OMAP3_SPI is not set
 
 #
