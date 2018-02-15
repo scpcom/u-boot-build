@@ -50,6 +50,7 @@ git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
 git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 
 # Event groups
+git am ../patch/0001-efi_loader-fix-formatting-errors.patch
 git am ../patch/0001-efi_loader-manage-events-in-a-linked-list.patch
 git am ../patch/0001-efi_loader-define-GUIDS-for-event-groups.patch
 
@@ -67,7 +68,7 @@ git am ../patch/0001-Add-a-comment-for-board_quiesce_devices.patch # no change
 git am ../patch/0001-efi-sandbox-Add-relocation-constants.patch # no change
 git am ../patch/0001-efi-sandbox-no-support-for-DHCP-EFI-boot.patch
 git am ../patch/0001-efi_selftest-cannot-launch-EFI-binary-in-sandbox.patch
-git am ../patch/0001-sandbox-alignment-of-memory.patch
+# git am ../patch/0001-sandbox-alignment-of-memory.patch #???
 git am ../patch/0001-efi-sandbox-Enable-EFI-loader-builder-for-sandbox.patch # rebased
 
 # From Robert's Shell support series 

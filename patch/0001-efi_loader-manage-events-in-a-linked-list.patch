@@ -1,4 +1,4 @@
-From 75cec4f9fd04cd30b9a05418de06016e35320e04 Mon Sep 17 00:00:00 2001
+From ffdd60540f90739df54505dfe44a253378713e3d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 15 Feb 2018 18:27:41 +0100
 Subject: [PATCH 1/1] efi_loader: manage events in a linked list
@@ -15,14 +15,14 @@ Suggested-by: Rob Clark <robdclark@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |  11 +--
- lib/efi_loader/efi_boottime.c | 192 ++++++++++++++++++++----------------------
- 2 files changed, 95 insertions(+), 108 deletions(-)
+ lib/efi_loader/efi_boottime.c | 194 ++++++++++++++++++++----------------------
+ 2 files changed, 96 insertions(+), 109 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 17e6a62fe46..8596c0e7291 100644
+index 3ccbb98aaf9..7f703c6ef78 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -160,17 +160,19 @@ struct efi_object {
+@@ -146,17 +146,19 @@ struct efi_object {
  /**
   * struct efi_event
   *
@@ -46,7 +46,7 @@ index 17e6a62fe46..8596c0e7291 100644
  	uint32_t type;
  	efi_uintn_t notify_tpl;
  	void (EFIAPI *notify_function)(struct efi_event *event, void *context);
-@@ -182,7 +184,6 @@ struct efi_event {
+@@ -168,7 +170,6 @@ struct efi_event {
  	bool is_signaled;
  };
  
@@ -55,7 +55,7 @@ index 17e6a62fe46..8596c0e7291 100644
  extern struct list_head efi_obj_list;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 6abf4859615..292b492cfd6 100644
+index 392b8de5d80..ba23cd0c029 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -26,6 +26,9 @@ static efi_uintn_t efi_tpl = TPL_APPLICATION;
@@ -68,7 +68,7 @@ index 6abf4859615..292b492cfd6 100644
  /*
   * If we're running on nasty systems (32bit ARM booting into non-EFI Linux)
   * we need to do trickery with caches. Since we don't want to break the EFI
-@@ -488,11 +491,24 @@ void efi_delete_handle(struct efi_object *obj)
+@@ -473,10 +476,23 @@ void efi_delete_handle(struct efi_object *obj)
  }
  
  /*
@@ -83,7 +83,7 @@ index 6abf4859615..292b492cfd6 100644
 +static efi_status_t efi_is_event(const struct efi_event *event)
 +{
 +	const struct efi_event *evt;
- 
++
 +	if (!event)
 +		return EFI_INVALID_PARAMETER;
 +	list_for_each_entry(evt, &efi_events, link) {
@@ -92,11 +92,10 @@ index 6abf4859615..292b492cfd6 100644
 +	}
 +	return EFI_INVALID_PARAMETER;
 +}
-+ 
+ 
  /*
   * Create an event.
-  *
-@@ -514,7 +530,8 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+@@ -499,7 +515,8 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
  					void *context),
  			      void *notify_context, struct efi_event **event)
  {
@@ -106,7 +105,12 @@ index 6abf4859615..292b492cfd6 100644
  
  	if (event == NULL)
  		return EFI_INVALID_PARAMETER;
-@@ -526,21 +543,24 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+@@ -507,25 +524,28 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ 	if ((type & EVT_NOTIFY_SIGNAL) && (type & EVT_NOTIFY_WAIT))
+ 		return EFI_INVALID_PARAMETER;
+ 
+-	if ((type & (EVT_NOTIFY_SIGNAL|EVT_NOTIFY_WAIT)) &&
++	if ((type & (EVT_NOTIFY_SIGNAL | EVT_NOTIFY_WAIT)) &&
  	    notify_function == NULL)
  		return EFI_INVALID_PARAMETER;
  
@@ -146,7 +150,7 @@ index 6abf4859615..292b492cfd6 100644
  }
  
  /*
-@@ -612,30 +632,26 @@ static efi_status_t EFIAPI efi_create_event_ext(
+@@ -597,30 +617,26 @@ static efi_status_t EFIAPI efi_create_event_ext(
   */
  void efi_timer_check(void)
  {
@@ -156,16 +160,16 @@ index 6abf4859615..292b492cfd6 100644
  
 -	for (i = 0; i < ARRAY_SIZE(efi_events); ++i) {
 -		if (!efi_events[i].type)
+-			continue;
+-		if (efi_events[i].is_queued)
+-			efi_signal_event(&efi_events[i], true);
+-		if (!(efi_events[i].type & EVT_TIMER) ||
+-		    now < efi_events[i].trigger_next)
 +	list_for_each_entry(evt, &efi_events, link) {
 +		if (evt->is_queued)
 +			efi_signal_event(evt, true);
 +		if (!(evt->type & EVT_TIMER) || now < evt->trigger_next)
  			continue;
--		if (efi_events[i].is_queued)
--			efi_signal_event(&efi_events[i], true);
--		if (!(efi_events[i].type & EVT_TIMER) ||
--		    now < efi_events[i].trigger_next)
--			continue;
 -		switch (efi_events[i].trigger_type) {
 +		switch (evt->trigger_type) {
  		case EFI_TIMER_RELATIVE:
@@ -187,7 +191,7 @@ index 6abf4859615..292b492cfd6 100644
  	}
  	WATCHDOG_RESET();
  }
-@@ -654,7 +670,9 @@ void efi_timer_check(void)
+@@ -639,7 +655,9 @@ void efi_timer_check(void)
  efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
  			   uint64_t trigger_time)
  {
@@ -198,7 +202,7 @@ index 6abf4859615..292b492cfd6 100644
  
  	/*
  	 * The parameter defines a multiple of 100ns.
-@@ -662,30 +680,21 @@ efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
+@@ -647,30 +665,21 @@ efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
  	 */
  	do_div(trigger_time, 10);
  
@@ -243,7 +247,7 @@ index 6abf4859615..292b492cfd6 100644
  }
  
  /*
-@@ -724,7 +733,7 @@ static efi_status_t EFIAPI efi_wait_for_event(efi_uintn_t num_events,
+@@ -709,7 +718,7 @@ static efi_status_t EFIAPI efi_wait_for_event(efi_uintn_t num_events,
  					      struct efi_event **event,
  					      efi_uintn_t *index)
  {
@@ -252,7 +256,7 @@ index 6abf4859615..292b492cfd6 100644
  
  	EFI_ENTRY("%zd, %p, %p", num_events, event, index);
  
-@@ -735,12 +744,8 @@ static efi_status_t EFIAPI efi_wait_for_event(efi_uintn_t num_events,
+@@ -720,12 +729,8 @@ static efi_status_t EFIAPI efi_wait_for_event(efi_uintn_t num_events,
  	if (efi_tpl != TPL_APPLICATION)
  		return EFI_EXIT(EFI_UNSUPPORTED);
  	for (i = 0; i < num_events; ++i) {
@@ -267,7 +271,7 @@ index 6abf4859615..292b492cfd6 100644
  		if (!event[i]->type || event[i]->type & EVT_NOTIFY_SIGNAL)
  			return EFI_EXIT(EFI_INVALID_PARAMETER);
  		if (!event[i]->is_signaled)
-@@ -784,18 +789,13 @@ out:
+@@ -769,18 +774,13 @@ out:
   */
  static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
  {
@@ -289,7 +293,7 @@ index 6abf4859615..292b492cfd6 100644
  	}
  	return EFI_EXIT(EFI_SUCCESS);
  }
-@@ -812,19 +812,12 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
+@@ -797,19 +797,12 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
   */
  static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
  {
@@ -314,7 +318,7 @@ index 6abf4859615..292b492cfd6 100644
  }
  
  /*
-@@ -841,22 +834,15 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
+@@ -826,22 +819,15 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
   */
  static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  {
@@ -344,7 +348,7 @@ index 6abf4859615..292b492cfd6 100644
  }
  
  /*
-@@ -1743,7 +1729,7 @@ static void efi_exit_caches(void)
+@@ -1724,7 +1710,7 @@ static void efi_exit_caches(void)
  static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
  						  unsigned long map_key)
  {
@@ -353,7 +357,7 @@ index 6abf4859615..292b492cfd6 100644
  
  	EFI_ENTRY("%p, %ld", image_handle, map_key);
  
-@@ -1755,11 +1741,11 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
+@@ -1736,11 +1722,11 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
  		return EFI_EXIT(EFI_SUCCESS);
  
  	/* Notify that ExitBootServices is invoked. */
