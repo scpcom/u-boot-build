@@ -50,6 +50,9 @@ git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
 git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 
+# Event groups
+git am ../patch/0001-efi_loader-define-GUIDS-for-event-groups.patch
+
 # From Simon's Sandbox support series
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
