@@ -1,7 +1,7 @@
-From 494584b40fa4fe6767a3affd2b179dd160acbfc7 Mon Sep 17 00:00:00 2001
+From 335afed4602912d5f55ffc828410f6c442f47d64 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 6 Feb 2018 19:56:00 +0100
-Subject: [PATCH 1/1] efi_loader: support device tree for bootefi selftest
+Subject: [PATCH v2 10/11] efi_loader: support device tree for bootefi selftest
 
 The second argument of the bootefi command should always be usable to
 specify a device tree. This was missing for bootefi selftest and
@@ -10,6 +10,9 @@ bootefi hello.
 Proper error handling is added.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	new patch
 ---
  cmd/bootefi.c                 | 109 ++++++++++++++++++++++++------------------
  include/efi_loader.h          |   2 +
@@ -58,7 +61,7 @@ index 3df1d3fbd07..357543b7750 100644
 +	/* Give a bootloader the chance to modify the device tree */
 +	fdt_pages += 2;
 +	ret = efi_add_memory_map(fdt_start, fdt_pages,
-+			   EFI_BOOT_SERVICES_DATA, true);
++				 EFI_BOOT_SERVICES_DATA, true);
 +	return ret;
 +}
 +
@@ -151,7 +154,7 @@ index 3df1d3fbd07..357543b7750 100644
  		return CMD_RET_USAGE;
 +
 +	if (argc > 2) {
-+		fdt_addr = (void *) simple_strtoul(argv[2], NULL, 16);
++		fdt_addr = (void *)simple_strtoul(argv[2], NULL, 16);
 +		if (!fdt_addr && *argv[2] != '0')
 +			return CMD_RET_USAGE;
 +		/* Install device tree */
@@ -201,10 +204,10 @@ index 3df1d3fbd07..357543b7750 100644
  	       r & ~EFI_ERROR_MASK);
  
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 158029e0187..28a6e0a0e11 100644
+index 85a47ca2f5e..3ccbb98aaf9 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
-@@ -96,6 +96,8 @@ extern const efi_guid_t efi_guid_console_control;
+@@ -93,6 +93,8 @@ extern const efi_guid_t efi_guid_console_control;
  extern const efi_guid_t efi_guid_device_path;
  /* GUID of the EFI_DRIVER_BINDING_PROTOCOL */
  extern const efi_guid_t efi_guid_driver_binding_protocol;
@@ -214,7 +217,7 @@ index 158029e0187..28a6e0a0e11 100644
  extern const efi_guid_t efi_guid_device_path_to_text_protocol;
  extern const efi_guid_t efi_simple_file_system_protocol_guid;
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 3b9184b3e24..21b47e8fa79 100644
+index 6eea2395c7b..64d82386753 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -56,6 +56,8 @@ static volatile void *efi_gd, *app_gd;

@@ -1,13 +1,16 @@
-From 3abf72dbaa27a03af939fc5c2aa373015c088709 Mon Sep 17 00:00:00 2001
+From 11086871d80229cceb9b3fa2b3f13eb873b74fd8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 1 Feb 2018 12:54:21 +0100
-Subject: [PATCH 1/1] efi_loader: exit status for efi_reset_system_init
+Subject: [PATCH v2 06/11] efi_loader: exit status for efi_reset_system_init
 
 efi_reset_system_init provides the architecture or board specific
 initialization of the EFI subsystem. Errors should be caught and
 signalled by a return code.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	new patch
 ---
  arch/arm/cpu/armv8/fsl-layerscape/cpu.c |  4 ++--
  arch/arm/mach-bcm283x/reset.c           |  4 ++--
@@ -16,7 +19,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  4 files changed, 24 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm/cpu/armv8/fsl-layerscape/cpu.c b/arch/arm/cpu/armv8/fsl-layerscape/cpu.c
-index 70a6070935..702c6b6956 100644
+index 70a60709357..702c6b69565 100644
 --- a/arch/arm/cpu/armv8/fsl-layerscape/cpu.c
 +++ b/arch/arm/cpu/armv8/fsl-layerscape/cpu.c
 @@ -654,9 +654,9 @@ void __efi_runtime EFIAPI efi_reset_system(
@@ -27,12 +30,12 @@ index 70a6070935..702c6b6956 100644
 +efi_status_t efi_reset_system_init(void)
  {
 -       efi_add_runtime_mmio(&rstcr, sizeof(*rstcr));
-+       return efi_add_runtime_mmio(&rstcr, sizeof(*rstcr));
++	return efi_add_runtime_mmio(&rstcr, sizeof(*rstcr));
  }
  
  #endif
 diff --git a/arch/arm/mach-bcm283x/reset.c b/arch/arm/mach-bcm283x/reset.c
-index b62cb8a51e..5b83fdf43d 100644
+index b62cb8a51ee..5b83fdf43d6 100644
 --- a/arch/arm/mach-bcm283x/reset.c
 +++ b/arch/arm/mach-bcm283x/reset.c
 @@ -82,9 +82,9 @@ void __efi_runtime EFIAPI efi_reset_system(
@@ -48,7 +51,7 @@ index b62cb8a51e..5b83fdf43d 100644
  
  #endif
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index b7c2d8b7df..7caae97ea7 100644
+index 08e6c6fb9c6..199077d295d 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -346,7 +346,7 @@ static inline int guidcmp(const efi_guid_t *g1, const efi_guid_t *g2)
@@ -84,7 +87,7 @@ index b7c2d8b7df..7caae97ea7 100644
  /* No loader configured, stub out EFI_ENTRY */
  static inline void efi_restore_gd(void) { }
 diff --git a/lib/efi_loader/efi_runtime.c b/lib/efi_loader/efi_runtime.c
-index 8104e08c46..437e034eb9 100644
+index ccb4fc6141b..85f85711ddc 100644
 --- a/lib/efi_loader/efi_runtime.c
 +++ b/lib/efi_loader/efi_runtime.c
 @@ -134,8 +134,9 @@ void __weak __efi_runtime EFIAPI efi_reset_system(
@@ -128,5 +131,5 @@ index 8104e08c46..437e034eb9 100644
  
  /*
 -- 
-2.11.0
+2.15.1
 
