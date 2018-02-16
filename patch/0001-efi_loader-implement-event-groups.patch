@@ -1,4 +1,4 @@
-From eaf554451249de102e4156d4fc7017dbbb5fed22 Mon Sep 17 00:00:00 2001
+From 7fd011b6b01a77ca5e4861f581a557ed8f6189bd Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 15 Feb 2018 19:55:18 +0100
 Subject: [PATCH 1/1] efi_loader: implement event groups
@@ -6,17 +6,24 @@ Subject: [PATCH 1/1] efi_loader: implement event groups
 If an event of a group event is signaled all other events of the same
 group are signaled too.
 
+Function efi_signal_event is renamed to efi_queue_event.
+A new function efi_signal_event is introduced that checks if an event
+belongs to a group and than signals all events of the group.
+Event group notifciation is implemented for ExitBootServices,
+InstallConfigurationTable, and ResetSystem.
+
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/efi_loader.h          |  5 ++-
- lib/efi_loader/efi_boottime.c | 81 ++++++++++++++++++++++++++++++++++---------
- lib/efi_loader/efi_console.c  |  6 ++--
- lib/efi_loader/efi_net.c      |  4 +--
+ include/efi_loader.h          |  7 +++-
+ lib/efi_loader/efi_boottime.c | 96 ++++++++++++++++++++++++++++++++++---------
+ lib/efi_loader/efi_console.c  |  6 +--
+ lib/efi_loader/efi_net.c      |  4 +-
+ lib/efi_loader/efi_runtime.c  | 10 +++++
  lib/efi_loader/efi_watchdog.c |  2 +-
- 5 files changed, 74 insertions(+), 24 deletions(-)
+ 6 files changed, 99 insertions(+), 26 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index e2cd2491712..349bc3d4b0d 100644
+index e2cd2491712..b1999f08c66 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -161,6 +161,7 @@ struct efi_object {
@@ -35,7 +42,16 @@ index e2cd2491712..349bc3d4b0d 100644
  	u64 trigger_next;
  	u64 trigger_time;
  	enum efi_timer_delay trigger_type;
-@@ -248,7 +250,8 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+@@ -182,6 +184,8 @@ struct efi_event {
+ 
+ /* This list contains all UEFI objects we know of */
+ extern struct list_head efi_obj_list;
++/* List of all events */
++extern struct list_head efi_events;
+ 
+ /* Called by bootefi to make console interface available */
+ int efi_console_register(void);
+@@ -248,7 +252,8 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
  			      void (EFIAPI *notify_function) (
  					struct efi_event *event,
  					void *context),
@@ -46,9 +62,18 @@ index e2cd2491712..349bc3d4b0d 100644
  efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
  			   uint64_t trigger_time);
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 67b950a6aaa..4937660e829 100644
+index 67b950a6aaa..17139fa7a99 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
+@@ -27,7 +27,7 @@ static efi_uintn_t efi_tpl = TPL_APPLICATION;
+ LIST_HEAD(efi_obj_list);
+ 
+ /* List of all events */
+-static LIST_HEAD(efi_events);
++LIST_HEAD(efi_events);
+ 
+ /*
+  * If we're running on nasty systems (32bit ARM booting into non-EFI Linux)
 @@ -176,7 +176,7 @@ const char *__efi_nesting_dec(void)
   * @event	event to signal
   * @check_tpl	check the TPL level
@@ -154,15 +179,16 @@ index 67b950a6aaa..4937660e829 100644
  		if (!(evt->type & EVT_TIMER) || now < evt->trigger_next)
  			continue;
  		switch (evt->trigger_type) {
-@@ -645,7 +691,6 @@ void efi_timer_check(void)
+@@ -645,7 +691,7 @@ void efi_timer_check(void)
  		default:
  			continue;
  		}
 -		evt->is_signaled = true;
++		evt->is_signaled = false;
  		efi_signal_event(evt, true);
  	}
  	WATCHDOG_RESET();
-@@ -744,7 +789,7 @@ static efi_status_t EFIAPI efi_wait_for_event(efi_uintn_t num_events,
+@@ -744,7 +790,7 @@ static efi_status_t EFIAPI efi_wait_for_event(efi_uintn_t num_events,
  		if (!event[i]->type || event[i]->type & EVT_NOTIFY_SIGNAL)
  			return EFI_EXIT(EFI_INVALID_PARAMETER);
  		if (!event[i]->is_signaled)
@@ -171,7 +197,7 @@ index 67b950a6aaa..4937660e829 100644
  	}
  
  	/* Wait for signal */
-@@ -787,11 +832,7 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
+@@ -787,11 +833,7 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
  	EFI_ENTRY("%p", event);
  	if (efi_is_event(event) != EFI_SUCCESS)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
@@ -184,7 +210,7 @@ index 67b950a6aaa..4937660e829 100644
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
-@@ -835,7 +876,7 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+@@ -835,7 +877,7 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  	    event->type & EVT_NOTIFY_SIGNAL)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  	if (!event->is_signaled)
@@ -193,7 +219,40 @@ index 67b950a6aaa..4937660e829 100644
  	if (event->is_signaled)
  		return EFI_EXIT(EFI_SUCCESS);
  	return EFI_EXIT(EFI_NOT_READY);
-@@ -1732,12 +1773,18 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
+@@ -1330,6 +1372,7 @@ static void efi_remove_configuration_table(int i)
+ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+ 					     void *table)
+ {
++	struct efi_event *evt;
+ 	int i;
+ 
+ 	/* Check for guid override */
+@@ -1339,7 +1382,7 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+ 				efi_conf_table[i].table = table;
+ 			else
+ 				efi_remove_configuration_table(i);
+-			return EFI_SUCCESS;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -1355,6 +1398,15 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+ 	efi_conf_table[i].table = table;
+ 	systab.nr_tables = i + 1;
+ 
++out:
++	/* Notify that the configuration table was changed */
++	list_for_each_entry(evt, &efi_events, link) {
++		if (!guidcmp(evt->group, guid)) {
++			efi_signal_event(evt, false);
++			break;
++		}
++	}
++	
+ 	return EFI_SUCCESS;
+ }
+ 
+@@ -1732,12 +1784,18 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
  	if (!systab.boottime)
  		return EFI_EXIT(EFI_SUCCESS);
  
@@ -260,6 +319,30 @@ index e7fed794502..b88dc91f58c 100644
  			     &network_timer_event);
  	if (r != EFI_SUCCESS) {
  		printf("ERROR: Failed to register network event\n");
+diff --git a/lib/efi_loader/efi_runtime.c b/lib/efi_loader/efi_runtime.c
+index e2b86828cd0..2466220c69b 100644
+--- a/lib/efi_loader/efi_runtime.c
++++ b/lib/efi_loader/efi_runtime.c
+@@ -78,9 +78,19 @@ static void EFIAPI efi_reset_system_boottime(
+ 			efi_status_t reset_status,
+ 			unsigned long data_size, void *reset_data)
+ {
++	struct efi_event *evt;
++
+ 	EFI_ENTRY("%d %lx %lx %p", reset_type, reset_status, data_size,
+ 		  reset_data);
+ 
++	/* Notify reset */
++	list_for_each_entry(evt, &efi_events, link) {
++		if (!guidcmp(evt->group,
++			     &efi_guid_event_group_reset_system)) {
++			efi_signal_event(evt, false);
++			break;
++		}
++	}
+ 	switch (reset_type) {
+ 	case EFI_RESET_COLD:
+ 	case EFI_RESET_WARM:
 diff --git a/lib/efi_loader/efi_watchdog.c b/lib/efi_loader/efi_watchdog.c
 index b1c35a8e29d..d12e51da0a2 100644
 --- a/lib/efi_loader/efi_watchdog.c
