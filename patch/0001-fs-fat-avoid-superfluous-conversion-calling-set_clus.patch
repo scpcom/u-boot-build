@@ -1,4 +1,4 @@
-From 7807558a097c68c210d9121e7ea8de360a489e30 Mon Sep 17 00:00:00 2001
+From 597d9172ca80bd8d0e25df33d8a584eafa06d4cd Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 13 Feb 2018 19:20:18 +0100
 Subject: [PATCH v2 1/1] fs: fat: avoid superfluous conversion calling set_cluster
@@ -9,14 +9,17 @@ size. Let's use loff_t as type of parameter size to avoid any conversion.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v3
+	use div64_ul for division
+	use if(a) instead of if(a != 0)
 v2
-	change type of parameter size
+	use loff_t as type of parameter size
 ---
- fs/fat/fat_write.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/fat/fat_write.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
 diff --git a/fs/fat/fat_write.c b/fs/fat/fat_write.c
-index 2b753df2820..270b2908acd 100644
+index 2b753df2820..e424838674f 100644
 --- a/fs/fat/fat_write.c
 +++ b/fs/fat/fat_write.c
 @@ -494,8 +494,7 @@ static __u32 determine_fatent(fsdata *mydata, __u32 entry)
@@ -29,12 +32,21 @@ index 2b753df2820..270b2908acd 100644
  {
  	__u32 idx = 0;
  	__u32 startsect;
+@@ -525,7 +524,7 @@ set_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer,
+ 			size -= mydata->sect_size;
+ 		}
+ 	} else if (size >= mydata->sect_size) {
+-		idx = size / mydata->sect_size;
++		idx = div64_ul(size / mydata->sect_size);
+ 		ret = disk_write(startsect, idx, buffer);
+ 		if (ret != idx) {
+ 			debug("Error writing data (got %d)\n", ret);
 @@ -679,7 +678,7 @@ set_contents(fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
  
  		/* set remaining bytes */
  		actsize = filesize;
 -		if (set_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
-+		if (set_cluster(mydata, curclust, buffer, actsize) != 0) {
++		if (set_cluster(mydata, curclust, buffer, actsize)) {
  			debug("error: writing cluster\n");
  			return -1;
  		}
@@ -43,10 +55,10 @@ index 2b753df2820..270b2908acd 100644
  		return 0;
  getit:
 -		if (set_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
-+		if (set_cluster(mydata, curclust, buffer, actsize) != 0) {
++		if (set_cluster(mydata, curclust, buffer, actsize)) {
  			debug("error: writing cluster\n");
  			return -1;
  		}
 -- 
-2.11.0
+2.14.2
 

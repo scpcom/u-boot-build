@@ -12,6 +12,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
 v3
 	use div64_ul() for division
+	replace if(a!=0) by if(a)
 v2
 	change type of parameter size
 ---
@@ -62,7 +63,7 @@ index dd7888cd6d4..9470727faf1 100644
  		/* get remaining bytes */
  		actsize = filesize;
 -		if (get_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
-+		if (get_cluster(mydata, curclust, buffer, actsize) != 0) {
++		if (get_cluster(mydata, curclust, buffer, actsize)) {
  			printf("Error reading cluster\n");
  			return -1;
  		}
@@ -70,7 +71,7 @@ index dd7888cd6d4..9470727faf1 100644
  		return 0;
  getit:
 -		if (get_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
-+		if (get_cluster(mydata, curclust, buffer, actsize) != 0) {
++		if (get_cluster(mydata, curclust, buffer, actsize)) {
  			printf("Error reading cluster\n");
  			return -1;
  		}
