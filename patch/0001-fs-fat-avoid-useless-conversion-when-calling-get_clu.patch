@@ -1,7 +1,7 @@
-From 33bd02530d62a8f602c80eebc72374470ff4ea59 Mon Sep 17 00:00:00 2001
+From ecda3451a55d5cd378aeb8227d99dde2b08306b2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 13 Feb 2018 19:11:56 +0100
-Subject: [PATCH v2 1/1] fs: fat: avoid useless conversion when calling
+Subject: [PATCH v3 1/1] fs: fat: avoid useless conversion when calling
  get_cluster
 
 Parameter size of function get_cluster() is of type unsigned long. It makes
@@ -10,17 +10,27 @@ size. Let't use t_off as type of parameter to avoid any type conversion.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v3
+	use div64_ul() for division
 v2
 	change type of parameter size
 ---
- fs/fat/fat.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/fat/fat.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/fs/fat/fat.c b/fs/fat/fat.c
-index dd7888cd6d4..cf4580b63df 100644
+index dd7888cd6d4..9470727faf1 100644
 --- a/fs/fat/fat.c
 +++ b/fs/fat/fat.c
-@@ -244,7 +244,7 @@ static __u32 get_fatent(fsdata *mydata, __u32 entry)
+@@ -21,6 +21,7 @@
+ #include <memalign.h>
+ #include <linux/compiler.h>
+ #include <linux/ctype.h>
++#include <linux/math64.h>
+ 
+ /*
+  * Convert a string to lowercase.  Converts at most 'len' characters,
+@@ -244,7 +245,7 @@ static __u32 get_fatent(fsdata *mydata, __u32 entry)
   * Return 0 on success, -1 otherwise.
   */
  static int
@@ -29,7 +39,16 @@ index dd7888cd6d4..cf4580b63df 100644
  {
  	__u32 idx = 0;
  	__u32 startsect;
-@@ -353,7 +353,7 @@ static int get_contents(fsdata *mydata, dir_entry *dentptr, loff_t pos,
+@@ -275,7 +276,7 @@ get_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer, unsigned long size)
+ 			size -= mydata->sect_size;
+ 		}
+ 	} else {
+-		idx = size / mydata->sect_size;
++		idx = div64_ul(size, mydata->sect_size);
+ 		ret = disk_read(startsect, idx, buffer);
+ 		if (ret != idx) {
+ 			debug("Error reading data (got %d)\n", ret);
+@@ -353,7 +354,7 @@ static int get_contents(fsdata *mydata, dir_entry *dentptr, loff_t pos,
  	if (pos) {
  		actsize = min(filesize, (loff_t)bytesperclust);
  		if (get_cluster(mydata, curclust, get_contents_vfatname_block,
@@ -38,7 +57,7 @@ index dd7888cd6d4..cf4580b63df 100644
  			printf("Error reading cluster\n");
  			return -1;
  		}
-@@ -393,14 +393,14 @@ static int get_contents(fsdata *mydata, dir_entry *dentptr, loff_t pos,
+@@ -393,14 +394,14 @@ static int get_contents(fsdata *mydata, dir_entry *dentptr, loff_t pos,
  
  		/* get remaining bytes */
  		actsize = filesize;
@@ -56,5 +75,5 @@ index dd7888cd6d4..cf4580b63df 100644
  			return -1;
  		}
 -- 
-2.11.0
+2.15.1
 

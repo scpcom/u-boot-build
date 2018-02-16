@@ -535,6 +535,8 @@ CONFIG_IDE=y
 # Boot count support
 #
 # CONFIG_BOOTCOUNT is not set
+# CONFIG_BOOTCOUNT_LIMIT is not set
+# CONFIG_SYS_BOOTCOUNT_SINGLEWORD is not set
 
 #
 # Clock
