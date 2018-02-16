@@ -1,4 +1,4 @@
-From b2351c872db2567b24a5f828f801935290722ab5 Mon Sep 17 00:00:00 2001
+From cc49e84a00e4257e06fb183d8f1a7fbe53b3cf15 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 10 Feb 2018 10:27:13 +0100
 Subject: [PATCH 1/1] efi_loader: delete doc/README.efi
@@ -9,13 +9,11 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  doc/README.efi | 86 ----------------------------------------------------------
  1 file changed, 86 deletions(-)
- delete mode 100644 doc/README.efi
 
 diff --git a/doc/README.efi b/doc/README.efi
-deleted file mode 100644
-index 956f5bfa0c6..00000000000
+index 956f5bfa0c6..e69de29bb2d 100644
 --- a/doc/README.efi
-+++ /dev/null
++++ b/doc/README.efi
 @@ -1,86 +0,0 @@
 -#
 -# Copyright (C) 2015 Google, Inc
