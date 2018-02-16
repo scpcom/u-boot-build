@@ -1,0 +1,147 @@
+From a9ac9a167a8d2380082bcb07b15246d57e39cf34 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Thu, 15 Feb 2018 19:55:18 +0100
+Subject: [PATCH 1/1] efi_loader: implement event groups
+
+If an event of a group event is signaled all other events of the same
+group are signaled too.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/efi_loader.h          | 5 ++++-
+ lib/efi_loader/efi_boottime.c | 8 +++++---
+ lib/efi_loader/efi_console.c  | 6 +++---
+ lib/efi_loader/efi_net.c      | 4 ++--
+ lib/efi_loader/efi_watchdog.c | 2 +-
+ 5 files changed, 15 insertions(+), 10 deletions(-)
+
+diff --git a/include/efi_loader.h b/include/efi_loader.h
+index 8596c0e7291..15f56bb4063 100644
+--- a/include/efi_loader.h
++++ b/include/efi_loader.h
+@@ -165,6 +165,7 @@ struct efi_object {
+  * @notify_tpl:		Task priority level of notifications
+  * @nofify_function:	Function to call when the event is triggered
+  * @notify_context:	Data to be passed to the notify function
++ * @group:		Event group
+  * @trigger_time:	Period of the timer
+  * @trigger_next:	Next time to trigger the timer
+  * @trigger_type:	Type of timer, see efi_set_timer
+@@ -177,6 +178,7 @@ struct efi_event {
+ 	efi_uintn_t notify_tpl;
+ 	void (EFIAPI *notify_function)(struct efi_event *event, void *context);
+ 	void *notify_context;
++	void *group;
+ 	u64 trigger_next;
+ 	u64 trigger_time;
+ 	enum efi_timer_delay trigger_type;
+@@ -252,7 +254,8 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ 			      void (EFIAPI *notify_function) (
+ 					struct efi_event *event,
+ 					void *context),
+-			      void *notify_context, struct efi_event **event);
++			      void *notify_context, efi_guid_t *group,
++			      struct efi_event **event);
+ /* Call this to set a timer */
+ efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
+ 			   uint64_t trigger_time);
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 4f839d7e6a0..bb0908fea09 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -529,7 +529,8 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ 			      void (EFIAPI *notify_function) (
+ 					struct efi_event *event,
+ 					void *context),
+-			      void *notify_context, struct efi_event **event)
++			      void *notify_context, efi_guid_t *group,
++			      struct efi_event **event)
+ {
+ 	struct efi_event *evt;
+ 
+@@ -550,6 +551,7 @@ efi_status_t efi_create_event(uint32_t type, efi_uintn_t notify_tpl,
+ 	evt->notify_tpl = notify_tpl;
+ 	evt->notify_function = notify_function;
+ 	evt->notify_context = notify_context;
++	evt->group = group;
+ 	/* Disable timers on bootup */
+ 	evt->trigger_next = -1ULL;
+ 	evt->is_queued = false;
+@@ -588,7 +590,7 @@ efi_status_t EFIAPI efi_create_event_ex(uint32_t type, efi_uintn_t notify_tpl,
+ 	if (event_group)
+ 		return EFI_EXIT(EFI_UNSUPPORTED);
+ 	return EFI_EXIT(efi_create_event(type, notify_tpl, notify_function,
+-					 notify_context, event));
++					 notify_context, event_group, event));
+ }
+ 
+ /*
+@@ -615,7 +617,7 @@ static efi_status_t EFIAPI efi_create_event_ext(
+ 	EFI_ENTRY("%d, 0x%zx, %p, %p", type, notify_tpl, notify_function,
+ 		  notify_context);
+ 	return EFI_EXIT(efi_create_event(type, notify_tpl, notify_function,
+-					 notify_context, event));
++					 notify_context, NULL, event));
+ }
+ 
+ /*
+diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
+index 3cb580e3eda..e6101b130a0 100644
+--- a/lib/efi_loader/efi_console.c
++++ b/lib/efi_loader/efi_console.c
+@@ -488,14 +488,14 @@ int efi_console_register(void)
+ 		goto out_of_memory;
+ 
+ 	/* Create console events */
+-	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK,
+-			     efi_key_notify, NULL, &efi_con_in.wait_for_key);
++	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK, efi_key_notify, NULL,
++			     NULL, &efi_con_in.wait_for_key);
+ 	if (r != EFI_SUCCESS) {
+ 		printf("ERROR: Failed to register WaitForKey event\n");
+ 		return r;
+ 	}
+ 	r = efi_create_event(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK,
+-			     efi_console_timer_notify, NULL,
++			     efi_console_timer_notify, NULL, NULL,
+ 			     &console_timer_event);
+ 	if (r != EFI_SUCCESS) {
+ 		printf("ERROR: Failed to register console event\n");
+diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
+index e7fed794502..b88dc91f58c 100644
+--- a/lib/efi_loader/efi_net.c
++++ b/lib/efi_loader/efi_net.c
+@@ -341,7 +341,7 @@ efi_status_t efi_net_register(void)
+ 	 * Create WaitForPacket event.
+ 	 */
+ 	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK,
+-			     efi_network_timer_notify, NULL,
++			     efi_network_timer_notify, NULL, NULL,
+ 			     &wait_for_packet);
+ 	if (r != EFI_SUCCESS) {
+ 		printf("ERROR: Failed to register network event\n");
+@@ -355,7 +355,7 @@ efi_status_t efi_net_register(void)
+ 	 * has been received.
+ 	 */
+ 	r = efi_create_event(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK,
+-			     efi_network_timer_notify, NULL,
++			     efi_network_timer_notify, NULL, NULL,
+ 			     &network_timer_event);
+ 	if (r != EFI_SUCCESS) {
+ 		printf("ERROR: Failed to register network event\n");
+diff --git a/lib/efi_loader/efi_watchdog.c b/lib/efi_loader/efi_watchdog.c
+index b1c35a8e29d..d12e51da0a2 100644
+--- a/lib/efi_loader/efi_watchdog.c
++++ b/lib/efi_loader/efi_watchdog.c
+@@ -67,7 +67,7 @@ efi_status_t efi_watchdog_register(void)
+ 	 * Create a timer event.
+ 	 */
+ 	r = efi_create_event(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK,
+-			     efi_watchdog_timer_notify, NULL,
++			     efi_watchdog_timer_notify, NULL, NULL,
+ 			     &watchdog_timer_event);
+ 	if (r != EFI_SUCCESS) {
+ 		printf("ERROR: Failed to register watchdog event\n");
+-- 
+2.15.1
+
