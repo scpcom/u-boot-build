@@ -1,0 +1,59 @@
+From 9b4a25d56e6910fce702e3999bae3d22bc89c174 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Tue, 13 Feb 2018 17:53:38 +0100
+Subject: [PATCH 1/1] sandbox: alignment of memory
+
+In many parts of U-Boot we use aligned memory. DMA_MIN_ALIGN is a typical
+required alignment.
+
+Mmap returns a page aligned memory. Keep that alignment.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ arch/sandbox/cpu/os.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/arch/sandbox/cpu/os.c b/arch/sandbox/cpu/os.c
+index f29fa184b84..8b5ab69a955 100644
+--- a/arch/sandbox/cpu/os.c
++++ b/arch/sandbox/cpu/os.c
+@@ -29,6 +29,8 @@
+ 
+ /* Operating System Interface */
+ 
++#define PAGE_ALIGN 4096
++
+ struct os_mem_hdr {
+ 	size_t length;		/* number of bytes in the block */
+ };
+@@ -144,22 +146,23 @@ void *os_malloc(size_t length)
+ {
+ 	struct os_mem_hdr *hdr;
+ 
+-	hdr = mmap(NULL, length + sizeof(*hdr), PROT_READ | PROT_WRITE,
++	hdr = mmap(NULL, length + PAGE_ALIGN, PROT_READ | PROT_WRITE,
+ 		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 	if (hdr == MAP_FAILED)
+ 		return NULL;
+ 	hdr->length = length;
+ 
+-	return hdr + 1;
++	return (char *)hdr + PAGE_ALIGN;
+ }
+ 
+ void os_free(void *ptr)
+ {
+-	struct os_mem_hdr *hdr = ptr;
++	struct os_mem_hdr *hdr =
++		(struct os_mem_hdr *)((char *)ptr - PAGE_ALIGN);
+ 
+ 	hdr--;
+ 	if (ptr)
+-		munmap(hdr, hdr->length + sizeof(*hdr));
++		munmap(hdr, hdr->length + PAGE_ALIGN);
+ }
+ 
+ void *os_realloc(void *ptr, size_t length)
+-- 
+2.14.2
+
