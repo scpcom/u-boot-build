@@ -248,7 +248,7 @@ index 67b950a6aaa..17139fa7a99 100644
 +			break;
 +		}
 +	}
-+	
++
  	return EFI_SUCCESS;
  }
  
@@ -285,8 +285,8 @@ index 3cb580e3eda..e6101b130a0 100644
  	/* Create console events */
 -	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK,
 -			     efi_key_notify, NULL, &efi_con_in.wait_for_key);
-+	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK, efi_key_notify, NULL,
-+			     NULL, &efi_con_in.wait_for_key);
++	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK, efi_key_notify,
++			     NULL, NULL, &efi_con_in.wait_for_key);
  	if (r != EFI_SUCCESS) {
  		printf("ERROR: Failed to register WaitForKey event\n");
  		return r;
