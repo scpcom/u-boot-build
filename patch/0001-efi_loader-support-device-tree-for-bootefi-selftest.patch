@@ -1,7 +1,7 @@
-From 335afed4602912d5f55ffc828410f6c442f47d64 Mon Sep 17 00:00:00 2001
+From 9c1a9995d4eaf1baa6a61a782f3b11bffa29c29c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Tue, 6 Feb 2018 19:56:00 +0100
-Subject: [PATCH v2 10/11] efi_loader: support device tree for bootefi selftest
+Subject: [PATCH 1/1] efi_loader: support device tree for bootefi selftest
 
 The second argument of the bootefi command should always be usable to
 specify a device tree. This was missing for bootefi selftest and
@@ -11,16 +11,18 @@ Proper error handling is added.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v3
+	mention fdt address in online help for bootefi selftest
 v2
 	new patch
 ---
- cmd/bootefi.c                 | 109 ++++++++++++++++++++++++------------------
+ cmd/bootefi.c                 | 111 ++++++++++++++++++++++++------------------
  include/efi_loader.h          |   2 +
  lib/efi_loader/efi_boottime.c |   2 +
- 3 files changed, 67 insertions(+), 46 deletions(-)
+ 3 files changed, 68 insertions(+), 47 deletions(-)
 
 diff --git a/cmd/bootefi.c b/cmd/bootefi.c
-index 3df1d3fbd07..357543b7750 100644
+index 3df1d3fbd07..9908affa5af 100644
 --- a/cmd/bootefi.c
 +++ b/cmd/bootefi.c
 @@ -178,11 +178,49 @@ static efi_status_t efi_run_in_el2(EFIAPI efi_status_t (*entry)(
@@ -203,6 +205,15 @@ index 3df1d3fbd07..357543b7750 100644
  	printf("## Application terminated, r = %lu\n",
  	       r & ~EFI_ERROR_MASK);
  
+@@ -433,7 +450,7 @@ static char bootefi_help_text[] =
+ 	"  - boot a sample Hello World application stored within U-Boot\n"
+ #endif
+ #ifdef CONFIG_CMD_BOOTEFI_SELFTEST
+-	"bootefi selftest\n"
++	"bootefi selftest [fdt address]\n"
+ 	"  - boot an EFI selftest application stored within U-Boot\n"
+ 	"    Use environment variable efi_selftest to select a single test.\n"
+ 	"    Use 'setenv efi_selftest list' to enumerate all tests.\n"
 diff --git a/include/efi_loader.h b/include/efi_loader.h
 index 85a47ca2f5e..3ccbb98aaf9 100644
 --- a/include/efi_loader.h
@@ -230,5 +241,5 @@ index 6eea2395c7b..64d82386753 100644
  const efi_guid_t efi_guid_driver_binding_protocol =
  			EFI_DRIVER_BINDING_PROTOCOL_GUID;
 -- 
-2.15.1
+2.16.1
 
