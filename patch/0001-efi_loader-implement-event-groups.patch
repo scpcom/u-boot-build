@@ -1,4 +1,4 @@
-From 7fd011b6b01a77ca5e4861f581a557ed8f6189bd Mon Sep 17 00:00:00 2001
+From be278f7669664ae395c1277f89831382f4882da8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 15 Feb 2018 19:55:18 +0100
 Subject: [PATCH 1/1] efi_loader: implement event groups
@@ -23,7 +23,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  6 files changed, 99 insertions(+), 26 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index e2cd2491712..b1999f08c66 100644
+index 6af5c7ffbd..3a93145fa8 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -161,6 +161,7 @@ struct efi_object {
@@ -62,7 +62,7 @@ index e2cd2491712..b1999f08c66 100644
  efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
  			   uint64_t trigger_time);
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 67b950a6aaa..17139fa7a99 100644
+index 90b62ac37d..6f65ea9bba 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -27,7 +27,7 @@ static efi_uintn_t efi_tpl = TPL_APPLICATION;
@@ -226,8 +226,8 @@ index 67b950a6aaa..17139fa7a99 100644
 +	struct efi_event *evt;
  	int i;
  
- 	/* Check for guid override */
-@@ -1339,7 +1382,7 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+ 	if (!guid)
+@@ -1342,7 +1385,7 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
  				efi_conf_table[i].table = table;
  			else
  				efi_remove_configuration_table(i);
@@ -236,7 +236,7 @@ index 67b950a6aaa..17139fa7a99 100644
  		}
  	}
  
-@@ -1355,6 +1398,15 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+@@ -1358,6 +1401,15 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
  	efi_conf_table[i].table = table;
  	systab.nr_tables = i + 1;
  
@@ -252,7 +252,7 @@ index 67b950a6aaa..17139fa7a99 100644
  	return EFI_SUCCESS;
  }
  
-@@ -1732,12 +1784,18 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
+@@ -1735,12 +1787,18 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
  	if (!systab.boottime)
  		return EFI_EXIT(EFI_SUCCESS);
  
@@ -276,7 +276,7 @@ index 67b950a6aaa..17139fa7a99 100644
  
  	/* TODO Should persist EFI variables here */
 diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
-index 3cb580e3eda..e6101b130a0 100644
+index 3cb580e3ed..d35893dc2a 100644
 --- a/lib/efi_loader/efi_console.c
 +++ b/lib/efi_loader/efi_console.c
 @@ -488,14 +488,14 @@ int efi_console_register(void)
@@ -298,7 +298,7 @@ index 3cb580e3eda..e6101b130a0 100644
  	if (r != EFI_SUCCESS) {
  		printf("ERROR: Failed to register console event\n");
 diff --git a/lib/efi_loader/efi_net.c b/lib/efi_loader/efi_net.c
-index e7fed794502..b88dc91f58c 100644
+index e7fed79450..b88dc91f58 100644
 --- a/lib/efi_loader/efi_net.c
 +++ b/lib/efi_loader/efi_net.c
 @@ -341,7 +341,7 @@ efi_status_t efi_net_register(void)
@@ -320,7 +320,7 @@ index e7fed794502..b88dc91f58c 100644
  	if (r != EFI_SUCCESS) {
  		printf("ERROR: Failed to register network event\n");
 diff --git a/lib/efi_loader/efi_runtime.c b/lib/efi_loader/efi_runtime.c
-index e2b86828cd0..2466220c69b 100644
+index e2b86828cd..2466220c69 100644
 --- a/lib/efi_loader/efi_runtime.c
 +++ b/lib/efi_loader/efi_runtime.c
 @@ -78,9 +78,19 @@ static void EFIAPI efi_reset_system_boottime(
@@ -344,7 +344,7 @@ index e2b86828cd0..2466220c69b 100644
  	case EFI_RESET_COLD:
  	case EFI_RESET_WARM:
 diff --git a/lib/efi_loader/efi_watchdog.c b/lib/efi_loader/efi_watchdog.c
-index b1c35a8e29d..d12e51da0a2 100644
+index b1c35a8e29..d12e51da0a 100644
 --- a/lib/efi_loader/efi_watchdog.c
 +++ b/lib/efi_loader/efi_watchdog.c
 @@ -67,7 +67,7 @@ efi_status_t efi_watchdog_register(void)

@@ -25,6 +25,7 @@ git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 # EFI
 git am ../patch/0001-efi_loader-delete-doc-README.efi.patch
 git am ../patch/0001-efi_loader-provide-new-doc-README.efi.patch
+git am ../patch/0001-efi_loader-check-parameter-in-InstallConfigurationTa.patch
 
 # cmd/bootefi series
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
