@@ -37,7 +37,7 @@ index 2b753df2820..e424838674f 100644
  		}
  	} else if (size >= mydata->sect_size) {
 -		idx = size / mydata->sect_size;
-+		idx = div64_ul(size / mydata->sect_size);
++		idx = div64_ul(size, mydata->sect_size);
  		ret = disk_write(startsect, idx, buffer);
  		if (ret != idx) {
  			debug("Error writing data (got %d)\n", ret);
