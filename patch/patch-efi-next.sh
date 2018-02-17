@@ -51,7 +51,7 @@ git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
 git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 
 # Event groups
-git am ../patch/0001-efi_loader-check-parameters-of-guidcmp.patch
+# git am ../patch/0001-efi_loader-check-parameters-of-guidcmp.patch
 git am ../patch/0001-efi_loader-fix-formatting-errors.patch
 git am ../patch/0001-efi_loader-manage-events-in-a-linked-list.patch
 git am ../patch/0001-efi_loader-define-GUIDS-for-event-groups.patch

@@ -34,28 +34,6 @@ index b1999f08c6..3a93145fa8 100644
  	return memcmp(g1, g2, sizeof(efi_guid_t));
  }
  
-diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index d8dff2c65d..a6c3afee72 100644
---- a/lib/efi_loader/efi_boottime.c
-+++ b/lib/efi_loader/efi_boottime.c
-@@ -1060,7 +1060,7 @@ static efi_status_t efi_get_drivers(struct efi_object *efiobj,
- 
- 	/* Count all driver associations */
- 	list_for_each_entry(handler, &efiobj->protocols, link) {
--		if (protocol && guidcmp(handler->guid, protocol))
-+		if (guidcmp(handler->guid, protocol))
- 			continue;
- 		list_for_each_entry(item, &handler->open_infos, link) {
- 			if (item->info.attributes &
-@@ -1078,7 +1078,7 @@ static efi_status_t efi_get_drivers(struct efi_object *efiobj,
- 		return EFI_OUT_OF_RESOURCES;
- 	/* Collect unique driver handles */
- 	list_for_each_entry(handler, &efiobj->protocols, link) {
--		if (protocol && guidcmp(handler->guid, protocol))
-+		if (guidcmp(handler->guid, protocol))
- 			continue;
- 		list_for_each_entry(item, &handler->open_infos, link) {
- 			if (item->info.attributes &
 -- 
 2.14.2
 
