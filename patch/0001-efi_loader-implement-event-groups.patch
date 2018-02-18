@@ -1,4 +1,4 @@
-From 35791c8eae67f9ba1270623a2082a1b907f2baf8 Mon Sep 17 00:00:00 2001
+From e64c22096098e7b3d40e6dfe7fe5a3ca2c48102d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 15 Feb 2018 19:55:18 +0100
 Subject: [PATCH 1/1] efi_loader: implement event groups
@@ -62,7 +62,7 @@ index e2cd249171..b1999f08c6 100644
  efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
  			   uint64_t trigger_time);
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index cde4682e54..6846b3bcaa 100644
+index da3c852b44..32b8149fe7 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -27,7 +27,7 @@ static efi_uintn_t efi_tpl = TPL_APPLICATION;
@@ -213,16 +213,16 @@ index cde4682e54..6846b3bcaa 100644
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
-@@ -835,7 +875,7 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+@@ -836,7 +876,7 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  	    event->type & EVT_NOTIFY_SIGNAL)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  	if (!event->is_signaled)
 -		efi_signal_event(event, true);
 +		efi_queue_event(event, true);
- 	if (event->is_signaled)
+ 	if (event->is_signaled) {
+ 		event->is_signaled = false;
  		return EFI_EXIT(EFI_SUCCESS);
- 	return EFI_EXIT(EFI_NOT_READY);
-@@ -1330,6 +1370,7 @@ static void efi_remove_configuration_table(int i)
+@@ -1333,6 +1373,7 @@ static void efi_remove_configuration_table(int i)
  efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
  					     void *table)
  {
@@ -230,7 +230,7 @@ index cde4682e54..6846b3bcaa 100644
  	int i;
  
  	if (!guid)
-@@ -1342,7 +1383,7 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+@@ -1345,7 +1386,7 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
  				efi_conf_table[i].table = table;
  			else
  				efi_remove_configuration_table(i);
@@ -239,7 +239,7 @@ index cde4682e54..6846b3bcaa 100644
  		}
  	}
  
-@@ -1358,6 +1399,15 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+@@ -1361,6 +1402,15 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
  	efi_conf_table[i].table = table;
  	systab.nr_tables = i + 1;
  
@@ -255,7 +255,7 @@ index cde4682e54..6846b3bcaa 100644
  	return EFI_SUCCESS;
  }
  
-@@ -1735,12 +1785,19 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
+@@ -1738,12 +1788,19 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
  	if (!systab.boottime)
  		return EFI_EXIT(EFI_SUCCESS);
  

@@ -1,4 +1,4 @@
-From 4b01fb44e6cce13694fec53c7015a78abfbc6fa1 Mon Sep 17 00:00:00 2001
+From 4d4d669363c049f5d92e29cfe44a5dd20cd72b73 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 15 Feb 2018 18:27:41 +0100
 Subject: [PATCH 1/1] efi_loader: manage events in a linked list
@@ -15,11 +15,11 @@ Suggested-by: Rob Clark <robdclark@gmail.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  include/efi_loader.h          |  11 +--
- lib/efi_loader/efi_boottime.c | 190 +++++++++++++++++++-----------------------
- 2 files changed, 92 insertions(+), 109 deletions(-)
+ lib/efi_loader/efi_boottime.c | 192 +++++++++++++++++++-----------------------
+ 2 files changed, 93 insertions(+), 110 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 3ccbb98aaf9..7f703c6ef78 100644
+index 3ccbb98aaf..7f703c6ef7 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -146,17 +146,19 @@ struct efi_object {
@@ -55,7 +55,7 @@ index 3ccbb98aaf9..7f703c6ef78 100644
  extern struct list_head efi_obj_list;
  
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index cf3b47c36d2..700c986b606 100644
+index 75f7c50295..4acb1e092a 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -26,6 +26,9 @@ static efi_uintn_t efi_tpl = TPL_APPLICATION;
@@ -313,7 +313,7 @@ index cf3b47c36d2..700c986b606 100644
  }
  
  /*
-@@ -825,22 +813,16 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
+@@ -826,24 +814,18 @@ static efi_status_t EFIAPI efi_close_event(struct efi_event *event)
   */
  static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  {
@@ -328,23 +328,26 @@ index cf3b47c36d2..700c986b606 100644
 -			break;
 -		if (!event->is_signaled)
 -			efi_signal_event(event, true);
--		if (event->is_signaled)
+-		if (event->is_signaled) {
+-			event->is_signaled = false;
 -			return EFI_EXIT(EFI_SUCCESS);
+-		}
 -		return EFI_EXIT(EFI_NOT_READY);
--	}
--	return EFI_EXIT(EFI_INVALID_PARAMETER);
 +	if (efi_is_event(event) != EFI_SUCCESS ||
 +	    event->type & EVT_NOTIFY_SIGNAL)
 +		return EFI_EXIT(EFI_INVALID_PARAMETER);
 +	if (!event->is_signaled)
 +		efi_signal_event(event, true);
-+	if (event->is_signaled)
++	if (event->is_signaled) {
++		event->is_signaled = false;
 +		return EFI_EXIT(EFI_SUCCESS);
+ 	}
+-	return EFI_EXIT(EFI_INVALID_PARAMETER);
 +	return EFI_EXIT(EFI_NOT_READY);
  }
  
  /*
-@@ -1723,7 +1705,7 @@ static void efi_exit_caches(void)
+@@ -1729,7 +1711,7 @@ static void efi_exit_caches(void)
  static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
  						  unsigned long map_key)
  {
@@ -353,7 +356,7 @@ index cf3b47c36d2..700c986b606 100644
  
  	EFI_ENTRY("%p, %ld", image_handle, map_key);
  
-@@ -1735,11 +1717,11 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
+@@ -1741,11 +1723,11 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
  		return EFI_EXIT(EFI_SUCCESS);
  
  	/* Notify that ExitBootServices is invoked. */
@@ -370,5 +373,5 @@ index cf3b47c36d2..700c986b606 100644
  
  	/* TODO Should persist EFI variables here */
 -- 
-2.15.1
+2.14.2
 
