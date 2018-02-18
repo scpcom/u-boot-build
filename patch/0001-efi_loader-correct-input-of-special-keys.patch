@@ -1,51 +1,22 @@
-From 7f3f0301688753fcfb9defa3810b0be2a444932a Mon Sep 17 00:00:00 2001
+From cffd34e3c2c3c0df261810e5b1b564996c8d1fa6 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 18 Feb 2018 20:34:12 +0100
-Subject: [PATCH 1/1][for v2018.03] efi_loader: correct input of special keys
+Subject: [PATCH 1/1] efi_loader: correct input of special keys
 
-Repair translation of function and navigation keys.
-Add support UP, DOWN, INS keys.
+Don't set unicode_char if scan_code is set.
+Add support for page up, page down, and insert.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- lib/efi_loader/efi_console.c | 36 ++++++++++++++++++++++++++----------
- 1 file changed, 26 insertions(+), 10 deletions(-)
+ lib/efi_loader/efi_console.c | 25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
 diff --git a/lib/efi_loader/efi_console.c b/lib/efi_loader/efi_console.c
-index d35893dc2ae..b7f2bea997a 100644
+index d35893dc2a..b5704fbf0f 100644
 --- a/lib/efi_loader/efi_console.c
 +++ b/lib/efi_loader/efi_console.c
-@@ -387,10 +387,10 @@ static efi_status_t EFIAPI efi_cin_read_key_stroke(
- 		ch = getc();
- 		switch (ch) {
- 		case cESC: /* ESC */
--			pressed_key.scan_code = 23;
-+			ch = 23;
- 			break;
- 		case 'O': /* F1 - F4 */
--			pressed_key.scan_code = getc() - 'P' + 11;
-+			ch = getc() - 'P' + 11;
- 			break;
- 		case 'a'...'z':
- 			ch = ch - 'a';
-@@ -399,24 +399,40 @@ static efi_status_t EFIAPI efi_cin_read_key_stroke(
- 			ch = getc();
- 			switch (ch) {
- 			case 'A'...'D': /* up, down right, left */
--				pressed_key.scan_code = ch - 'A' + 1;
-+				ch = ch - 'A' + 1;
- 				break;
- 			case 'F': /* End */
--				pressed_key.scan_code = 6;
-+				ch = 6;
- 				break;
- 			case 'H': /* Home */
--				pressed_key.scan_code = 5;
-+				ch = 5;
- 				break;
- 			case '1': /* F5 - F8 */
--				pressed_key.scan_code = getc() - '0' + 11;
-+				ch = getc() - '0' + 11;
+@@ -411,14 +411,30 @@ static efi_status_t EFIAPI efi_cin_read_key_stroke(
+ 				pressed_key.scan_code = getc() - '0' + 11;
  				getc();
  				break;
 -			case '2': /* F9 - F12 */
@@ -55,28 +26,39 @@ index d35893dc2ae..b7f2bea997a 100644
 +				ch = getc();
 +				switch (ch) {
 +				case '~': /* INS */
-+					ch = 7;
++					pressed_key.scan_code = 7;
 +					break;
 +				case '1'...'4': /* F9 - F12 */
-+					ch -= 29;
++					pressed_key.scan_code = ch - '0' + 19;
 +					getc();
 +					break;
 +				}
  				break;
  			case '3': /* DEL */
--				pressed_key.scan_code = 8;
-+				ch = 8;
-+				getc();
-+				break;
+ 				pressed_key.scan_code = 8;
+ 				getc();
+ 				break;
 +			case '5': /* PG UP */
-+				ch = 9;
++				pressed_key.scan_code = 9;
 +				getc();
 +				break;
 +			case '6': /* PG DOWN */
-+				ch = 10;
- 				getc();
- 				break;
++				pressed_key.scan_code = 10;
++				getc();
++				break;
  			}
+ 			break;
+ 		}
+@@ -426,7 +442,8 @@ static efi_status_t EFIAPI efi_cin_read_key_stroke(
+ 		/* Backspace */
+ 		ch = 0x08;
+ 	}
+-	pressed_key.unicode_char = ch;
++	if (!pressed_key.scan_code)
++		pressed_key.unicode_char = ch;
+ 	*key = pressed_key;
+ 
+ 	return EFI_EXIT(EFI_SUCCESS);
 -- 
-2.16.1
+2.14.2
 
