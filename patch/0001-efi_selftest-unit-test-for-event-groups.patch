@@ -1,4 +1,4 @@
-From cc75a9a2feb4dca46f186a403f8bfd9e2903720d Mon Sep 17 00:00:00 2001
+From b444b0f0cc61a5fe84ab952841198696bda75e88 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 18 Feb 2018 09:53:03 +0100
 Subject: [PATCH 1/1] efi_selftest: unit test for event groups
@@ -11,12 +11,12 @@ that all events are notified once in each round.
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                    |   1 +
- lib/efi_selftest/efi_selftest_event_groups.c | 107 +++++++++++++++++++++++++++
- 2 files changed, 108 insertions(+)
+ lib/efi_selftest/efi_selftest_event_groups.c | 138 +++++++++++++++++++++++++++
+ 2 files changed, 139 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_event_groups.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 28ae0855ab..d44c9e3d28 100644
+index b975da2955..51af1055e9 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
 @@ -19,6 +19,7 @@ efi_selftest_controllers.o \
@@ -29,10 +29,10 @@ index 28ae0855ab..d44c9e3d28 100644
  efi_selftest_gop.o \
 diff --git a/lib/efi_selftest/efi_selftest_event_groups.c b/lib/efi_selftest/efi_selftest_event_groups.c
 new file mode 100644
-index 0000000000..b69b152533
+index 0000000000..206bdc579c
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_event_groups.c
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,138 @@
 +/*
 + * efi_selftest_event_groups
 + *
@@ -42,7 +42,7 @@ index 0000000000..b69b152533
 + *
 + * This test checks the notification of group events and the
 + * following services:
-+ * CreateEventEx, CloseEvent, SignalEvent.
++ * CreateEventEx, CloseEvent, SignalEvent, CheckEvent.
 + */
 +
 +#include <efi_selftest.h>
@@ -116,8 +116,39 @@ index 0000000000..b69b152533
 +			return EFI_ST_FAILURE;
 +		}
 +		for (j = 0; j < GROUP_SIZE; ++j) {
-+			if (counter[j] != i + 1) {
++			if (counter[j] != 2 * i + 1) {
++				efi_st_printf("i %u, j %u, count %u\n",
++					(unsigned)i, (unsigned)j,
++					(unsigned)counter[j]);
 +				efi_st_error("Wrong notification count\n");
++				return EFI_ST_FAILURE;
++			}
++			/* Clear signaled state */
++			ret = boottime->check_event(events[j]);
++			if (ret != EFI_SUCCESS) {
++				efi_st_error("Event was not signaled\n");
++				return EFI_ST_FAILURE;
++			}
++			if (counter[j] != 2 * i + 1) {
++				efi_st_printf("i %u, j %u, count %u\n",
++					(unsigned)i, (unsigned)j,
++					(unsigned)counter[j]);
++				efi_st_error("Wrong notification count\n");
++				return EFI_ST_FAILURE;
++			}
++			/* Call notification function  */
++			ret = boottime->check_event(events[j]);
++			if (ret != EFI_NOT_READY) {
++				efi_st_error(
++					"Signaled state not cleared\n");
++				return EFI_ST_FAILURE;
++			}
++			if (counter[j] != 2 * i + 2) {
++				efi_st_printf("i %u, j %u, count %u\n",
++					(unsigned)i, (unsigned)j,
++					(unsigned)counter[j]);
++				efi_st_error(
++					"Nofification function not called\n");
 +				return EFI_ST_FAILURE;
 +			}
 +		}
