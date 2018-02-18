@@ -50,6 +50,8 @@ git am ../patch/0001-efi_loader-show-UEFI-revision-in-helloworld.patch
 git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
 git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
+git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
+git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
 
 # Event groups
 # git am ../patch/0001-efi_loader-check-parameters-of-guidcmp.patch
@@ -59,9 +61,8 @@ git am ../patch/0001-efi_loader-define-GUIDS-for-event-groups.patch
 git am ../patch/0001-efi_loader-implement-event-groups.patch
 git am ../patch/0001-efi_selftest-unit-test-for-event-groups.patch
 
+exit
 # From Simon's Sandbox support series
-git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
-git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
 git am ../patch/0001-sandbox-set-available-memory-address.patch
 git am ../patch/0001-efi-sandbox-Adjust-memory-usage-for-sandbox.patch # no change
 git am ../patch/0001-sandbox-smbios-Update-to-support-sandbox.patch # no change

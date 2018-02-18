@@ -1,4 +1,4 @@
-From 19444945b7a0aadfad66d0ef103eadbc34d8b393 Mon Sep 17 00:00:00 2001
+From 5a7811bac64235de882069a63f2e2a0135a22c02 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sun, 18 Feb 2018 09:53:03 +0100
 Subject: [PATCH 1/1] efi_selftest: unit test for event groups
@@ -29,7 +29,7 @@ index b975da2955..51af1055e9 100644
  efi_selftest_gop.o \
 diff --git a/lib/efi_selftest/efi_selftest_event_groups.c b/lib/efi_selftest/efi_selftest_event_groups.c
 new file mode 100644
-index 0000000000..cd77565586
+index 0000000000..79e4ea1ce2
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_event_groups.c
 @@ -0,0 +1,140 @@
@@ -51,7 +51,7 @@ index 0000000000..cd77565586
 +
 +static struct efi_boot_services *boottime;
 +static efi_guid_t event_group =
-+	EFI_GUID(0x2335905b, 0xc3b9, 0x4221, 0xa3, 0x71, \
++	EFI_GUID(0x2335905b, 0xc3b9, 0x4221, 0xa3, 0x71,
 +		 0x0e, 0x5b, 0x45, 0xc0, 0x56, 0x91);
 +
 +/*
@@ -118,8 +118,8 @@ index 0000000000..cd77565586
 +		for (j = 0; j < GROUP_SIZE; ++j) {
 +			if (counter[j] != i) {
 +				efi_st_printf("i %u, j %u, count %u\n",
-+					(unsigned)i, (unsigned)j,
-+					(unsigned)counter[j]);
++					      (unsigned int)i, (unsigned int)j,
++					      (unsigned int)counter[j]);
 +				efi_st_error(
 +					"Notification function was called\n");
 +				return EFI_ST_FAILURE;
@@ -132,8 +132,8 @@ index 0000000000..cd77565586
 +			}
 +			if (counter[j] != i) {
 +				efi_st_printf("i %u, j %u, count %u\n",
-+					(unsigned)i, (unsigned)j,
-+					(unsigned)counter[j]);
++					      (unsigned int)i, (unsigned int)j,
++					      (unsigned int)counter[j]);
 +				efi_st_error(
 +					"Notification function was called\n");
 +				return EFI_ST_FAILURE;
@@ -147,8 +147,8 @@ index 0000000000..cd77565586
 +			}
 +			if (counter[j] != i + 1) {
 +				efi_st_printf("i %u, j %u, count %u\n",
-+					(unsigned)i, (unsigned)j,
-+					(unsigned)counter[j]);
++					      (unsigned int)i, (unsigned int)j,
++					      (unsigned int)counter[j]);
 +				efi_st_error(
 +					"Nofification function not called\n");
 +				return EFI_ST_FAILURE;
