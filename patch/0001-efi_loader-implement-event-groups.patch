@@ -1,4 +1,4 @@
-From be278f7669664ae395c1277f89831382f4882da8 Mon Sep 17 00:00:00 2001
+From 35791c8eae67f9ba1270623a2082a1b907f2baf8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Thu, 15 Feb 2018 19:55:18 +0100
 Subject: [PATCH 1/1] efi_loader: implement event groups
@@ -14,16 +14,16 @@ InstallConfigurationTable, and ResetSystem.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- include/efi_loader.h          |  7 +++-
- lib/efi_loader/efi_boottime.c | 96 ++++++++++++++++++++++++++++++++++---------
+ include/efi_loader.h          |  7 ++-
+ lib/efi_loader/efi_boottime.c | 99 ++++++++++++++++++++++++++++++++++---------
  lib/efi_loader/efi_console.c  |  6 +--
  lib/efi_loader/efi_net.c      |  4 +-
- lib/efi_loader/efi_runtime.c  | 10 +++++
+ lib/efi_loader/efi_runtime.c  | 11 +++++
  lib/efi_loader/efi_watchdog.c |  2 +-
- 6 files changed, 99 insertions(+), 26 deletions(-)
+ 6 files changed, 101 insertions(+), 28 deletions(-)
 
 diff --git a/include/efi_loader.h b/include/efi_loader.h
-index 6af5c7ffbd..3a93145fa8 100644
+index e2cd249171..b1999f08c6 100644
 --- a/include/efi_loader.h
 +++ b/include/efi_loader.h
 @@ -161,6 +161,7 @@ struct efi_object {
@@ -62,7 +62,7 @@ index 6af5c7ffbd..3a93145fa8 100644
  efi_status_t efi_set_timer(struct efi_event *event, enum efi_timer_delay type,
  			   uint64_t trigger_time);
 diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
-index 90b62ac37d..6f65ea9bba 100644
+index cde4682e54..6846b3bcaa 100644
 --- a/lib/efi_loader/efi_boottime.c
 +++ b/lib/efi_loader/efi_boottime.c
 @@ -27,7 +27,7 @@ static efi_uintn_t efi_tpl = TPL_APPLICATION;
@@ -152,16 +152,19 @@ index 90b62ac37d..6f65ea9bba 100644
  	/* Disable timers on bootup */
  	evt->trigger_next = -1ULL;
  	evt->is_queued = false;
-@@ -588,7 +634,7 @@ efi_status_t EFIAPI efi_create_event_ex(uint32_t type, efi_uintn_t notify_tpl,
- 	if (event_group)
- 		return EFI_EXIT(EFI_UNSUPPORTED);
+@@ -585,10 +631,8 @@ efi_status_t EFIAPI efi_create_event_ex(uint32_t type, efi_uintn_t notify_tpl,
+ {
+ 	EFI_ENTRY("%d, 0x%zx, %p, %p, %pUl", type, notify_tpl, notify_function,
+ 		  notify_context, event_group);
+-	if (event_group)
+-		return EFI_EXIT(EFI_UNSUPPORTED);
  	return EFI_EXIT(efi_create_event(type, notify_tpl, notify_function,
 -					 notify_context, event));
 +					 notify_context, event_group, event));
  }
  
  /*
-@@ -615,7 +661,7 @@ static efi_status_t EFIAPI efi_create_event_ext(
+@@ -615,7 +659,7 @@ static efi_status_t EFIAPI efi_create_event_ext(
  	EFI_ENTRY("%d, 0x%zx, %p, %p", type, notify_tpl, notify_function,
  		  notify_context);
  	return EFI_EXIT(efi_create_event(type, notify_tpl, notify_function,
@@ -170,7 +173,7 @@ index 90b62ac37d..6f65ea9bba 100644
  }
  
  /*
-@@ -632,7 +678,7 @@ void efi_timer_check(void)
+@@ -632,7 +676,7 @@ void efi_timer_check(void)
  
  	list_for_each_entry(evt, &efi_events, link) {
  		if (evt->is_queued)
@@ -179,7 +182,7 @@ index 90b62ac37d..6f65ea9bba 100644
  		if (!(evt->type & EVT_TIMER) || now < evt->trigger_next)
  			continue;
  		switch (evt->trigger_type) {
-@@ -645,7 +691,7 @@ void efi_timer_check(void)
+@@ -645,7 +689,7 @@ void efi_timer_check(void)
  		default:
  			continue;
  		}
@@ -188,7 +191,7 @@ index 90b62ac37d..6f65ea9bba 100644
  		efi_signal_event(evt, true);
  	}
  	WATCHDOG_RESET();
-@@ -744,7 +790,7 @@ static efi_status_t EFIAPI efi_wait_for_event(efi_uintn_t num_events,
+@@ -744,7 +788,7 @@ static efi_status_t EFIAPI efi_wait_for_event(efi_uintn_t num_events,
  		if (!event[i]->type || event[i]->type & EVT_NOTIFY_SIGNAL)
  			return EFI_EXIT(EFI_INVALID_PARAMETER);
  		if (!event[i]->is_signaled)
@@ -197,7 +200,7 @@ index 90b62ac37d..6f65ea9bba 100644
  	}
  
  	/* Wait for signal */
-@@ -787,11 +833,7 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
+@@ -787,11 +831,7 @@ static efi_status_t EFIAPI efi_signal_event_ext(struct efi_event *event)
  	EFI_ENTRY("%p", event);
  	if (efi_is_event(event) != EFI_SUCCESS)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
@@ -210,7 +213,7 @@ index 90b62ac37d..6f65ea9bba 100644
  	return EFI_EXIT(EFI_SUCCESS);
  }
  
-@@ -835,7 +877,7 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
+@@ -835,7 +875,7 @@ static efi_status_t EFIAPI efi_check_event(struct efi_event *event)
  	    event->type & EVT_NOTIFY_SIGNAL)
  		return EFI_EXIT(EFI_INVALID_PARAMETER);
  	if (!event->is_signaled)
@@ -219,7 +222,7 @@ index 90b62ac37d..6f65ea9bba 100644
  	if (event->is_signaled)
  		return EFI_EXIT(EFI_SUCCESS);
  	return EFI_EXIT(EFI_NOT_READY);
-@@ -1330,6 +1372,7 @@ static void efi_remove_configuration_table(int i)
+@@ -1330,6 +1370,7 @@ static void efi_remove_configuration_table(int i)
  efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
  					     void *table)
  {
@@ -227,7 +230,7 @@ index 90b62ac37d..6f65ea9bba 100644
  	int i;
  
  	if (!guid)
-@@ -1342,7 +1385,7 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+@@ -1342,7 +1383,7 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
  				efi_conf_table[i].table = table;
  			else
  				efi_remove_configuration_table(i);
@@ -236,7 +239,7 @@ index 90b62ac37d..6f65ea9bba 100644
  		}
  	}
  
-@@ -1358,6 +1401,15 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
+@@ -1358,6 +1399,15 @@ efi_status_t efi_install_configuration_table(const efi_guid_t *guid,
  	efi_conf_table[i].table = table;
  	systab.nr_tables = i + 1;
  
@@ -252,7 +255,7 @@ index 90b62ac37d..6f65ea9bba 100644
  	return EFI_SUCCESS;
  }
  
-@@ -1735,12 +1787,19 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
+@@ -1735,12 +1785,19 @@ static efi_status_t EFIAPI efi_exit_boot_services(efi_handle_t image_handle,
  	if (!systab.boottime)
  		return EFI_EXIT(EFI_SUCCESS);
  
@@ -321,7 +324,7 @@ index e7fed79450..b88dc91f58 100644
  	if (r != EFI_SUCCESS) {
  		printf("ERROR: Failed to register network event\n");
 diff --git a/lib/efi_loader/efi_runtime.c b/lib/efi_loader/efi_runtime.c
-index e2b86828cd..2466220c69 100644
+index e2b86828cd..d0f213ea4f 100644
 --- a/lib/efi_loader/efi_runtime.c
 +++ b/lib/efi_loader/efi_runtime.c
 @@ -78,9 +78,20 @@ static void EFIAPI efi_reset_system_boottime(
