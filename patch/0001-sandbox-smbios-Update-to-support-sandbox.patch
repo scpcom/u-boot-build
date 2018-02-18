@@ -172,7 +172,7 @@ index 8f19ad89c12..56481d448db 100644
  	/* populate minimum required tables */
  	for (i = 0; i < ARRAY_SIZE(smbios_write_funcs); i++) {
 -		int tmp = smbios_write_funcs[i]((ulong *)&addr, handle++);
-+		ulong *ptr = map_sysmem((phys_addr_t)&addr, 0);
++		ulong *ptr = map_sysmem((phys_addr_t)(uintptr_t)&addr, 0);
 +		int tmp;
 +
 +		tmp = smbios_write_funcs[i](ptr, handle++);
