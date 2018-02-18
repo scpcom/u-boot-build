@@ -1,0 +1,145 @@
+From cc75a9a2feb4dca46f186a403f8bfd9e2903720d Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Feb 2018 09:53:03 +0100
+Subject: [PATCH 1/1] efi_selftest: unit test for event groups
+
+Supply a unit test for event groups.
+
+Create multiple events in an event group. Signal each event once and check
+that all events are notified once in each round.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_selftest/Makefile                    |   1 +
+ lib/efi_selftest/efi_selftest_event_groups.c | 107 +++++++++++++++++++++++++++
+ 2 files changed, 108 insertions(+)
+ create mode 100644 lib/efi_selftest/efi_selftest_event_groups.c
+
+diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
+index 28ae0855ab..d44c9e3d28 100644
+--- a/lib/efi_selftest/Makefile
++++ b/lib/efi_selftest/Makefile
+@@ -19,6 +19,7 @@ efi_selftest_controllers.o \
+ efi_selftest_console.o \
+ efi_selftest_devicepath.o \
+ efi_selftest_events.o \
++efi_selftest_event_groups.o \
+ efi_selftest_exitbootservices.o \
+ efi_selftest_fdt.o \
+ efi_selftest_gop.o \
+diff --git a/lib/efi_selftest/efi_selftest_event_groups.c b/lib/efi_selftest/efi_selftest_event_groups.c
+new file mode 100644
+index 0000000000..b69b152533
+--- /dev/null
++++ b/lib/efi_selftest/efi_selftest_event_groups.c
+@@ -0,0 +1,107 @@
++/*
++ * efi_selftest_event_groups
++ *
++ * Copyright (c) 2018 Heinrich Schuchardt <xypron.glpk@gmx.de>
++ *
++ * SPDX-License-Identifier:     GPL-2.0+
++ *
++ * This test checks the notification of group events and the
++ * following services:
++ * CreateEventEx, CloseEvent, SignalEvent.
++ */
++
++#include <efi_selftest.h>
++
++#define GROUP_SIZE 16
++
++static struct efi_boot_services *boottime;
++static efi_guid_t event_group =
++	EFI_GUID(0x2335905b, 0xc3b9, 0x4221, 0xa3, 0x71, \
++		 0x0e, 0x5b, 0x45, 0xc0, 0x56, 0x91);
++
++/*
++ * Notification function, increments the notfication count if parameter
++ * context is provided.
++ *
++ * @event	notified event
++ * @context	pointer to the notification count
++ */
++static void EFIAPI notify(struct efi_event *event, void *context)
++{
++	unsigned int *count = context;
++
++	if (count)
++		++*count;
++}
++
++/*
++ * Setup unit test.
++ *
++ * @handle:	handle of the loaded image
++ * @systable:	system table
++ * @return:	EFI_ST_SUCCESS for success
++ */
++static int setup(const efi_handle_t handle,
++		 const struct efi_system_table *systable)
++{
++	boottime = systable->boottime;
++
++	return EFI_ST_SUCCESS;
++}
++
++/*
++ * Execute unit test.
++ *
++ * Create multiple events in an event group. Signal each event once and check
++ * that all events are notified once in each round.
++ *
++ * @return:	EFI_ST_SUCCESS for success
++ */
++static int execute(void)
++{
++	unsigned int counter[GROUP_SIZE] = {0};
++	struct efi_event *events[GROUP_SIZE];
++	size_t i, j;
++	efi_status_t ret;
++
++	for (i = 0; i < GROUP_SIZE; ++i) {
++		ret = boottime->create_event_ex(EVT_NOTIFY_SIGNAL, TPL_NOTIFY,
++						notify, (void *)&counter[i],
++						&event_group, &events[i]);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Failed to create event\n");
++			return EFI_ST_FAILURE;
++		}
++	}
++
++	for (i = 0; i < GROUP_SIZE; ++i) {
++		ret = boottime->signal_event(events[i]);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Failed to signal event\n");
++			return EFI_ST_FAILURE;
++		}
++		for (j = 0; j < GROUP_SIZE; ++j) {
++			if (counter[j] != i + 1) {
++				efi_st_error("Wrong notification count\n");
++				return EFI_ST_FAILURE;
++			}
++		}
++	}
++
++	for (i = 0; i < GROUP_SIZE; ++i) {
++		ret = boottime->close_event(events[i]);
++		if (ret != EFI_SUCCESS) {
++			efi_st_error("Failed to close event\n");
++			return EFI_ST_FAILURE;
++		}
++	}
++
++	return EFI_ST_SUCCESS;
++}
++
++EFI_UNIT_TEST(eventgoups) = {
++	.name = "event groups",
++	.phase = EFI_EXECUTE_BEFORE_BOOTTIME_EXIT,
++	.setup = setup,
++	.execute = execute,
++};
+-- 
+2.14.2
+

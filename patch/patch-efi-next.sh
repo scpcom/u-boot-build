@@ -56,6 +56,7 @@ git am ../patch/0001-efi_loader-fix-formatting-errors.patch
 git am ../patch/0001-efi_loader-manage-events-in-a-linked-list.patch
 git am ../patch/0001-efi_loader-define-GUIDS-for-event-groups.patch
 git am ../patch/0001-efi_loader-implement-event-groups.patch
+git am ../patch/0001-efi_selftest-unit-test-for-event-groups.patch
 
 # From Simon's Sandbox support series
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
