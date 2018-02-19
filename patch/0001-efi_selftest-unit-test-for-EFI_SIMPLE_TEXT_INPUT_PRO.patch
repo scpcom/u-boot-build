@@ -1,4 +1,4 @@
-From 5dd7d91adf8b09fedc7bc920763c111fdd1864a2 Mon Sep 17 00:00:00 2001
+From 9c6b119ffca2a1491eca1b39755b151c644fbfa8 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 19 Feb 2018 07:30:26 +0100
 Subject: [PATCH 1/1] efi_selftest: unit test for
@@ -17,15 +17,15 @@ To run the test:
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  lib/efi_selftest/Makefile                 |   1 +
- lib/efi_selftest/efi_selftest_textinput.c | 180 ++++++++++++++++++++++++++++++
- 2 files changed, 181 insertions(+)
+ lib/efi_selftest/efi_selftest_textinput.c | 182 ++++++++++++++++++++++++++++++
+ 2 files changed, 183 insertions(+)
  create mode 100644 lib/efi_selftest/efi_selftest_textinput.c
 
 diff --git a/lib/efi_selftest/Makefile b/lib/efi_selftest/Makefile
-index 51af1055e9a..31b444fc8b1 100644
+index 88c44840d52..95bd5416c09 100644
 --- a/lib/efi_selftest/Makefile
 +++ b/lib/efi_selftest/Makefile
-@@ -25,6 +25,7 @@ efi_selftest_fdt.o \
+@@ -23,6 +23,7 @@ efi_selftest_fdt.o \
  efi_selftest_gop.o \
  efi_selftest_manageprotocols.o \
  efi_selftest_snp.o \
@@ -35,10 +35,10 @@ index 51af1055e9a..31b444fc8b1 100644
  efi_selftest_util.o \
 diff --git a/lib/efi_selftest/efi_selftest_textinput.c b/lib/efi_selftest/efi_selftest_textinput.c
 new file mode 100644
-index 00000000000..4d9b3708ce6
+index 00000000000..c890ff88b7e
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_textinput.c
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,182 @@
 +/*
 + * efi_selftest_textinput
 + *
@@ -131,8 +131,9 @@ index 00000000000..4d9b3708ce6
 + * @code	unicode character
 + * @return	string
 + */
-+static u16 *translate_char(u16 code) {
-+	struct translate* tr;
++static u16 *translate_char(u16 code)
++{
++	struct translate *tr;
 +
 +	if (code >= ' ') {
 +		ch[1] = code;
@@ -151,8 +152,9 @@ index 00000000000..4d9b3708ce6
 + * @code	unicode character
 + * @return	string
 + */
-+static u16 *translate_code(u16 code) {
-+	struct translate* tr;
++static u16 *translate_code(u16 code)
++{
++	struct translate *tr;
 +
 +	for (tr = scan_codes; tr->text; ++tr) {
 +		if (tr->code == code)
@@ -199,10 +201,10 @@ index 00000000000..4d9b3708ce6
 +		boottime->set_watchdog_timer(300, 0, 0, NULL);
 +
 +		efi_st_printf("Unicode char %u (%ps), scan code %u (%ps)\n",
-+			(unsigned int)input_key.unicode_char,
-+			translate_char(input_key.unicode_char),
-+			(unsigned int)input_key.scan_code,
-+			translate_code(input_key.scan_code));
++			      (unsigned int)input_key.unicode_char,
++			      translate_char(input_key.unicode_char),
++			      (unsigned int)input_key.scan_code,
++			      translate_code(input_key.scan_code));
 +
 +		switch (input_key.unicode_char) {
 +		case 'x':
@@ -220,5 +222,5 @@ index 00000000000..4d9b3708ce6
 +	.on_request = true,
 +};
 -- 
-2.15.1
+2.16.1
 
