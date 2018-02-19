@@ -1,4 +1,4 @@
-From 13a3a5ec49d6113eb4425f3d2820a5d506ef4a9a Mon Sep 17 00:00:00 2001
+From 5dd7d91adf8b09fedc7bc920763c111fdd1864a2 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Mon, 19 Feb 2018 07:30:26 +0100
 Subject: [PATCH 1/1] efi_selftest: unit test for
@@ -35,7 +35,7 @@ index 51af1055e9a..31b444fc8b1 100644
  efi_selftest_util.o \
 diff --git a/lib/efi_selftest/efi_selftest_textinput.c b/lib/efi_selftest/efi_selftest_textinput.c
 new file mode 100644
-index 00000000000..6817c944fe8
+index 00000000000..4d9b3708ce6
 --- /dev/null
 +++ b/lib/efi_selftest/efi_selftest_textinput.c
 @@ -0,0 +1,180 @@
@@ -134,7 +134,7 @@ index 00000000000..6817c944fe8
 +static u16 *translate_char(u16 code) {
 +	struct translate* tr;
 +
-+	if (code > ' ') {
++	if (code >= ' ') {
 +		ch[1] = code;
 +		return ch;
 +	}
@@ -196,7 +196,7 @@ index 00000000000..6817c944fe8
 +		} while (ret == EFI_NOT_READY);
 +
 +		/* Allow 5 minutes until time out */
-+		boottime.set_watchdog_timer(300, 0, 0, NULL);
++		boottime->set_watchdog_timer(300, 0, 0, NULL);
 +
 +		efi_st_printf("Unicode char %u (%ps), scan code %u (%ps)\n",
 +			(unsigned int)input_key.unicode_char,
