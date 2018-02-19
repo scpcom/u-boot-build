@@ -43,6 +43,7 @@ git am ../patch/0001-efi_loader-support-device-tree-for-bootefi-selftest.patch
 git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
 
 # diverse protocols
+git am ../patch/0001-efi_selftest-unit-test-for-EFI_SIMPLE_TEXT_INPUT_PRO.patch
 git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
 git am ../patch/0001-efi-Add-a-comment-about-duplicated-ELF-constants.patch
 git am ../patch/0001-efi_loader-add-missing-EFI_RESET_PLATFORM_SPECIFIC.patch
