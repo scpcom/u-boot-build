@@ -23,6 +23,9 @@ git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
 git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 
+# USB keyboard
+git am ../patch/0001-usb-kbd-allow-multibyte-sequences-to-be-put-into-rin.patch
+
 # EFI
 git am ../patch/0001-efi_loader-delete-doc-README.efi.patch
 git am ../patch/0001-efi_loader-provide-new-doc-README.efi.patch
