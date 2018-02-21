@@ -1,0 +1,30 @@
+From cf36b995fa86757bae315729119cc79cfc516f81 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 21 Feb 2018 03:50:56 +0000
+Subject: [PATCH 1/1] usb: kbd: select SYS_STDIO_DEREGISTER
+
+If SYS_STDIO_DEREGISTER is not selected and USB_KEYBOARD is selected
+U-Boot cannot be built due to missing function stdio_deregister_dev.
+
+So USB_KEYBOARD should select SYS_STDIO_DEREGISTER.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/Kconfig b/drivers/usb/Kconfig
+index 7de41057ca1..4fbe172e05c 100644
+--- a/drivers/usb/Kconfig
++++ b/drivers/usb/Kconfig
+@@ -71,6 +71,7 @@ config USB_STORAGE
+ 
+ config USB_KEYBOARD
+ 	bool "USB Keyboard support"
++	select SYS_STDIO_DEREGISTER
+ 	---help---
+ 	  Say Y here if you want to use a USB keyboard for U-Boot command line
+ 	  input.
+-- 
+2.16.1
+
