@@ -1,4 +1,4 @@
-From 6e6d7b3fd6d1d1e55c66039f8e28eb34302c2ce3 Mon Sep 17 00:00:00 2001
+From ef093804f307a958d7eb70b34938c2151f23194d Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 21 Feb 2018 18:17:55 +0100
 Subject: [PATCH 1/1] usb: kbd: allow multibyte sequences to be put into ring
@@ -19,7 +19,7 @@ Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
  1 file changed, 25 insertions(+), 17 deletions(-)
 
 diff --git a/common/usb_kbd.c b/common/usb_kbd.c
-index 8cbdba6ac29..f914b1b87a8 100644
+index 8cbdba6ac29..706cc350a6a 100644
 --- a/common/usb_kbd.c
 +++ b/common/usb_kbd.c
 @@ -125,24 +125,32 @@ extern int __maybe_unused net_busy_flag;
@@ -64,7 +64,7 @@ index 8cbdba6ac29..f914b1b87a8 100644
 +		++data->usb_in_pointer;
 +		if (data->usb_in_pointer == USB_KBD_BUFFER_LEN)
 +			data->usb_in_pointer = 0;
-+		data->usb_kbd_buffer[data->usb_in_pointer] = c[i];
++		data->usb_kbd_buffer[data->usb_in_pointer] = buf[i];
  	}
 -
 -	data->usb_kbd_buffer[data->usb_in_pointer] = c;
@@ -81,5 +81,5 @@ index 8cbdba6ac29..f914b1b87a8 100644
  
  	return 0;
 -- 
-2.15.1
+2.16.1
 

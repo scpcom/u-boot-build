@@ -15,7 +15,6 @@ git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
 git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-get_clu.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
-git am ../patch/0001-usb-kbd-select-SYS_STDIO_DEREGISTER.patch
 
 # Video console
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
@@ -24,6 +23,7 @@ git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 
 # USB keyboard
+git am ../patch/0001-usb-kbd-select-SYS_STDIO_DEREGISTER.patch
 git am ../patch/0001-usb-kbd-allow-multibyte-sequences-to-be-put-into-rin.patch
 
 # EFI
