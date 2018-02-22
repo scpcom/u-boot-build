@@ -4,6 +4,8 @@ Date: Sun, 18 Feb 2018 20:34:12 +0100
 Subject: [PATCH v2 1/1][for v2018.03] efi_loader: correct input of special keys
 
 Don't set unicode_char if scan_code is set.
+Without this correction navigation in the iPXE menu is not possible.
+
 Add support for page up, page down, and insert.
 Correct input of function keys.
 
