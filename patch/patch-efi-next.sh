@@ -25,6 +25,7 @@ git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 # USB keyboard
 git am ../patch/0001-usb-kbd-select-SYS_STDIO_DEREGISTER.patch
 git am ../patch/0001-usb-kbd-allow-multibyte-sequences-to-be-put-into-rin.patch
+git am ../patch/0001-usb-kbd-implement-special-keys.patch
 
 # EFI
 git am ../patch/0001-efi_loader-delete-doc-README.efi.patch
