@@ -1,4 +1,4 @@
-From ef093804f307a958d7eb70b34938c2151f23194d Mon Sep 17 00:00:00 2001
+From a4cb03bf9ee2222f2970769cddcf38420302905e Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 21 Feb 2018 18:17:55 +0100
 Subject: [PATCH 1/1] usb: kbd: allow multibyte sequences to be put into ring
@@ -15,29 +15,40 @@ sequence, it is rejected completely.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- common/usb_kbd.c | 42 +++++++++++++++++++++++++-----------------
- 1 file changed, 25 insertions(+), 17 deletions(-)
+ common/usb_kbd.c | 54 ++++++++++++++++++++----------------------------------
+ lib/Makefile     |  4 +++-
+ 2 files changed, 23 insertions(+), 35 deletions(-)
 
 diff --git a/common/usb_kbd.c b/common/usb_kbd.c
-index 8cbdba6ac29..706cc350a6a 100644
+index 8cbdba6ac29..e94811887c3 100644
 --- a/common/usb_kbd.c
 +++ b/common/usb_kbd.c
-@@ -125,24 +125,32 @@ extern int __maybe_unused net_busy_flag;
+@@ -8,6 +8,7 @@
+  * SPDX-License-Identifier:	GPL-2.0+
+  */
+ #include <common.h>
++#include <circbuf.h>
+ #include <console.h>
+ #include <dm.h>
+ #include <errno.h>
+@@ -110,9 +111,7 @@ struct usb_kbd_pdata {
+ 
+ 	uint32_t	repeat_delay;
+ 
+-	uint32_t	usb_in_pointer;
+-	uint32_t	usb_out_pointer;
+-	uint8_t		usb_kbd_buffer[USB_KBD_BUFFER_LEN];
++	circbuf_t	buf;
+ 
+ 	uint8_t		*new;
+ 	uint8_t		old[USB_KBD_BOOT_REPORT_SIZE];
+@@ -125,26 +124,6 @@ extern int __maybe_unused net_busy_flag;
  /* The period of time between two calls of usb_kbd_testc(). */
  static unsigned long __maybe_unused kbd_testc_tms;
  
 -/* Puts character in the queue and sets up the in and out pointer. */
 -static void usb_kbd_put_queue(struct usb_kbd_pdata *data, char c)
-+/*
-+ * Put characters into ring buffer.
-+ *
-+ * @data:	private data
-+ * @buf		buffer with data to be queued
-+ * @count:	number of characters to be queued
-+ */
-+static void usb_kbd_put_queue(struct usb_kbd_pdata *data,
-+			      uint8_t *buf, int count)
- {
+-{
 -	if (data->usb_in_pointer == USB_KBD_BUFFER_LEN - 1) {
 -		/* Check for buffer full. */
 -		if (data->usb_out_pointer == 0)
@@ -50,36 +61,106 @@ index 8cbdba6ac29..706cc350a6a 100644
 -			return;
 -
 -		data->usb_in_pointer++;
-+	int i, used;
-+
-+	/* Check if buffer holds at least 'count' free slots */
-+	used = data->usb_in_pointer - data->usb_out_pointer;
-+	if (used < 0)
-+		used += USB_KBD_BUFFER_LEN;
-+	if (used + count >= USB_KBD_BUFFER_LEN)
-+		return;
-+
-+	/* Copy to buffer */
-+	for (i = 0; i < count; ++i) {
-+		++data->usb_in_pointer;
-+		if (data->usb_in_pointer == USB_KBD_BUFFER_LEN)
-+			data->usb_in_pointer = 0;
-+		data->usb_kbd_buffer[data->usb_in_pointer] = buf[i];
- 	}
+-	}
 -
 -	data->usb_kbd_buffer[data->usb_in_pointer] = c;
- }
- 
+-}
+-
  /*
-@@ -237,7 +245,7 @@ static int usb_kbd_translate(struct usb_kbd_pdata *data, unsigned char scancode,
+  * Set the LEDs. Since this is used in the irq routine, the control job is
+  * issued with a timeout of 0. This means, that the job is queued without
+@@ -237,7 +216,7 @@ static int usb_kbd_translate(struct usb_kbd_pdata *data, unsigned char scancode,
  	/* Report keycode if any */
  	if (keycode) {
  		debug("%c", keycode);
 -		usb_kbd_put_queue(data, keycode);
-+		usb_kbd_put_queue(data, &keycode, 1);
++		buf_push(&data->buf, (char *)&keycode, 1);
  	}
  
  	return 0;
+@@ -351,7 +330,12 @@ static inline void usb_kbd_poll_for_event(struct usb_device *dev)
+ #endif
+ }
+ 
+-/* test if a character is in the queue */
++/*
++ * test if a character is in the queue
++ *
++ * @sdev:	io device
++ * @return:	0 if buffer is empty
++ */
+ static int usb_kbd_testc(struct stdio_dev *sdev)
+ {
+ 	struct stdio_dev *dev;
+@@ -374,12 +358,13 @@ static int usb_kbd_testc(struct stdio_dev *sdev)
+ 
+ 	usb_kbd_poll_for_event(usb_kbd_dev);
+ 
+-	return !(data->usb_in_pointer == data->usb_out_pointer);
++	return data->buf.size != 0;
+ }
+ 
+ /* gets the character from the queue */
+ static int usb_kbd_getc(struct stdio_dev *sdev)
+ {
++	unsigned char ret;
+ 	struct stdio_dev *dev;
+ 	struct usb_device *usb_kbd_dev;
+ 	struct usb_kbd_pdata *data;
+@@ -388,15 +373,9 @@ static int usb_kbd_getc(struct stdio_dev *sdev)
+ 	usb_kbd_dev = (struct usb_device *)dev->priv;
+ 	data = usb_kbd_dev->privptr;
+ 
+-	while (data->usb_in_pointer == data->usb_out_pointer)
+-		usb_kbd_poll_for_event(usb_kbd_dev);
++	buf_pop(&data->buf, (char *)&ret, 1);
+ 
+-	if (data->usb_out_pointer == USB_KBD_BUFFER_LEN - 1)
+-		data->usb_out_pointer = 0;
+-	else
+-		data->usb_out_pointer++;
+-
+-	return data->usb_kbd_buffer[data->usb_out_pointer];
++	return ret;
+ }
+ 
+ /* probes the USB device dev for keyboard type. */
+@@ -440,6 +419,12 @@ static int usb_kbd_probe_dev(struct usb_device *dev, unsigned int ifnum)
+ 		return 0;
+ 	}
+ 
++	if (buf_init(&data->buf, USB_KBD_BUFFER_LEN)) {
++		free(data);
++		printf("USB KBD: Error allocating buffer\n");
++		return 0;
++	}
++
+ 	/* Clear private data */
+ 	memset(data, 0, sizeof(struct usb_kbd_pdata));
+ 
+@@ -635,6 +620,7 @@ static int usb_kbd_remove(struct udevice *dev)
+ #ifdef CONFIG_SYS_USB_EVENT_POLL_VIA_INT_QUEUE
+ 	destroy_int_queue(udev, data->intq);
+ #endif
++	buf_free(&data->buf);
+ 	free(data->new);
+ 	free(data);
+ 
+diff --git a/lib/Makefile b/lib/Makefile
+index 0db41c19f37..51ccf0d6042 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -21,7 +21,9 @@ obj-$(CONFIG_ARCH_AT91) += at91/
+ 
+ obj-$(CONFIG_AES) += aes.o
+ obj-y += charset.o
+-obj-$(CONFIG_USB_TTY) += circbuf.o
++ifneq ($(CONFIG_USB_TTY)$(CONFIG_USB_KEYBOARD),)
++obj-y += circbuf.o
++endif
+ obj-y += crc7.o
+ obj-y += crc8.o
+ obj-y += crc16.o
 -- 
-2.16.1
+2.15.1
 
