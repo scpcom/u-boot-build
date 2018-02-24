@@ -1,0 +1,214 @@
+From d7e6ca8cbaa90cb8f4a5839a654dffbd363519d9 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 23 Feb 2018 07:15:00 +0100
+Subject: [PATCH 1/1] usb: proper error handling for circular buffer
+
+Using an assert() to check if we are out of memory is not a good idea.
+Instead buf_init() should return an error code.
+
+The assert is pushed out to the usbtty driver which will need further
+cleanup to handle errors without assert().
+
+Functions buf_free(), buf_push(), and buf_pop() are equally changed to
+return error codes in case of failure.
+
+Overwriting the buffer in buf_push() if it is full is a bad idea. This
+way illegal byte sequences might be created. Instead return an error
+code (-ENOMEM).
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/serial/usbtty.c |  4 ++--
+ include/circbuf.h       | 41 ++++++++++++++++++++++++++++++++++----
+ lib/circbuf.c           | 53 +++++++++++++++++++++----------------------------
+ 3 files changed, 62 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/serial/usbtty.c b/drivers/serial/usbtty.c
+index 182385e499d..9bd78c8a61b 100644
+--- a/drivers/serial/usbtty.c
++++ b/drivers/serial/usbtty.c
+@@ -546,8 +546,8 @@ int drv_usbtty_init (void)
+ 	usbtty_init_terminal_type(strcmp(tt,"cdc_acm"));
+ 
+ 	/* prepare buffers... */
+-	buf_init (&usbtty_input, USBTTY_BUFFER_SIZE);
+-	buf_init (&usbtty_output, USBTTY_BUFFER_SIZE);
++	assert(!buf_init(&usbtty_input, USBTTY_BUFFER_SIZE));
++	assert(!buf_init(&usbtty_output, USBTTY_BUFFER_SIZE));
+ 
+ 	/* Now, set up USB controller and infrastructure */
+ 	udc_init ();		/* Basic USB initialization */
+diff --git a/include/circbuf.h b/include/circbuf.h
+index 34d0f85f269..8b2d16470f8 100644
+--- a/include/circbuf.h
++++ b/include/circbuf.h
+@@ -19,9 +19,42 @@ typedef struct circbuf {
+ 	char *end;		/* end of data buffer */
+ } circbuf_t;
+ 
+-int buf_init (circbuf_t * buf, unsigned int size);
+-int buf_free (circbuf_t * buf);
+-int buf_pop (circbuf_t * buf, char *dest, unsigned int len);
+-int buf_push (circbuf_t * buf, const char *src, unsigned int len);
++/*
++ * Initialize circular buffer.
++ *
++ * @buf:	circular buffer
++ * @size:	size of buffer to allocate
++ * @return:	0 if successful or negative error code
++ */
++int buf_init(circbuf_t *buf, unsigned int size);
++
++/*
++ * Release circular buffer.
++ *
++ * @buf:	circular buffer
++ * @return:	0 if successful or negative error code
++ */
++int buf_free(circbuf_t *buf);
++
++/*
++ * Retrieve data from buffer.
++ *
++ * @buf:	circular buffer
++ * @dest:	destination bufffer
++ * @len:	size of destination buffer
++ * @return:	number of characters copied or negative error code
++ */
++int buf_pop(circbuf_t *buf, char *dest, unsigned int len);
++
++/*
++ * Add data to buffer.
++ * If the buffer is to small to take all data -ENOMEM is returned.
++ *
++ * @buf:	circular buffer
++ * @src:	source bufffer
++ * @len:	size of source buffer
++ * @return:	number of characters copied or negative error code
++ */
++int buf_push(circbuf_t *buf, const char *src, unsigned int len);
+ 
+ #endif
+diff --git a/lib/circbuf.c b/lib/circbuf.c
+index 6ed05164304..064e5d40dcb 100644
+--- a/lib/circbuf.c
++++ b/lib/circbuf.c
+@@ -6,36 +6,37 @@
+  */
+ 
+ #include <common.h>
++#include <errno.h>
+ #include <malloc.h>
+ 
+ #include <circbuf.h>
+ 
+-
+ int buf_init (circbuf_t * buf, unsigned int size)
+ {
+-	assert (buf != NULL);
++	if (!buf)
++		return -EINVAL
+ 
+ 	buf->size = 0;
+ 	buf->totalsize = size;
+ 	buf->data = (char *) malloc (sizeof (char) * size);
+-	assert (buf->data != NULL);
+-
++	if (!buf->data)
++		return -ENOMEM;
+ 	buf->top = buf->data;
+ 	buf->tail = buf->data;
+ 	buf->end = &(buf->data[size]);
+ 
+-	return 1;
++	return 0;
+ }
+ 
+ int buf_free (circbuf_t * buf)
+ {
+-	assert (buf != NULL);
+-	assert (buf->data != NULL);
++	if (!buf)
++		return -EINVAL
+ 
+ 	free (buf->data);
+ 	memset (buf, 0, sizeof (circbuf_t));
+ 
+-	return 1;
++	return 0;
+ }
+ 
+ int buf_pop (circbuf_t * buf, char *dest, unsigned int len)
+@@ -43,21 +44,19 @@ int buf_pop (circbuf_t * buf, char *dest, unsigned int len)
+ 	unsigned int i;
+ 	char *p;
+ 
+-	assert (buf != NULL);
+-	assert (dest != NULL);
+-
+-	p = buf->top;
++	if (!buf || !buf->data || !dest)
++		return -EINVAL
+ 
+ 	/* Cap to number of bytes in buffer */
+ 	if (len > buf->size)
+ 		len = buf->size;
+ 
++	p = buf->top;
+ 	for (i = 0; i < len; i++) {
+ 		dest[i] = *p++;
+-		/* Bounds check. */
+-		if (p == buf->end) {
++		/* Wrap around */
++		if (p == buf->end)
+ 			p = buf->data;
+-		}
+ 	}
+ 
+ 	/* Update 'top' pointer */
+@@ -69,33 +68,27 @@ int buf_pop (circbuf_t * buf, char *dest, unsigned int len)
+ 
+ int buf_push (circbuf_t * buf, const char *src, unsigned int len)
+ {
+-	/* NOTE:  this function allows push to overwrite old data. */
+ 	unsigned int i;
+ 	char *p;
+ 
+-	assert (buf != NULL);
+-	assert (src != NULL);
++	if (!buf || !buf->data || !dest)
++		return -EINVAL;
+ 
+-	p = buf->tail;
++	/* Check that there is enough space in the buffer */
++	if (buf->size + len > buf->totalsize)
++		return -ENOMEM;
+ 
++	p = buf->tail;
+ 	for (i = 0; i < len; i++) {
+ 		*p++ = src[i];
+-		if (p == buf->end) {
++		/* Wrap around */
++		if (p == buf->end)
+ 			p = buf->data;
+-		}
+-		/* Make sure pushing too much data just replaces old data */
+-		if (buf->size < buf->totalsize) {
+-			buf->size++;
+-		} else {
+-			buf->top++;
+-			if (buf->top == buf->end) {
+-				buf->top = buf->data;
+-			}
+-		}
+ 	}
+ 
+ 	/* Update 'tail' pointer */
+ 	buf->tail = p;
++	buf->size += len;
+ 
+ 	return len;
+ }
+-- 
+2.16.1
+

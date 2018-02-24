@@ -23,7 +23,7 @@ git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 
 # USB keyboard
-git am ../patch/0001-usb-move-assert-after-malloc-out-of-buf_init.patch
+git am ../patch/0001-usb-proper-error-handling-for-circular-buffer.patch
 git am ../patch/0001-usb-kbd-allow-multibyte-sequences-to-be-put-into-rin.patch
 git am ../patch/0001-usb-kbd-implement-special-keys.patch
 
