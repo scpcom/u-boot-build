@@ -31,7 +31,7 @@ index e69de29bb2d..92f7587a1af 100644
 +the default for booting on AArch64 and x86 systems. It provides a stable API for
 +the interaction of drivers and applications with the firmware. The API comprises
 +access to block storage, network, and console to name a few. The Linux kernel and
-+boot loaders like Grub or the FreeBSD loader can be executed.
++boot loaders like GRUB or the FreeBSD loader can be executed.
 +
 +## Building for EFI
 +
@@ -59,7 +59,7 @@ index e69de29bb2d..92f7587a1af 100644
 +* image address - the memory address of the EFI binary
 +* fdt address - the memory address of the flattened device tree
 +
-+Below you find the output of an example session starting Grub.
++Below you find the output of an example session starting GRUB.
 +
 +    => load mmc 0:2 ${fdt_addr_r} boot/dtb
 +    29830 bytes read in 14 ms (2 MiB/s)
@@ -332,7 +332,7 @@ index e69de29bb2d..92f7587a1af 100644
 +* EFI drivers
 +  * support DisconnectController for EFI block devices.
 +
-+* Sandbox support for CONFIG_EFI_LOADER
++* Support for CONFIG_EFI_LOADER in the sandbox (CONFIG_SANDBOX=y)
 +
 +* persisted EFI variables
 +
