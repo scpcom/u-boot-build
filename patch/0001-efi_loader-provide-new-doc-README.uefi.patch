@@ -1,7 +1,7 @@
-From 007a160d060d2388548b5f91872dc72f7c86898d Mon Sep 17 00:00:00 2001
+From 7de0c462c9ec792243fc57315ed3c6afc3c4a4bd Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 10 Feb 2018 10:31:08 +0100
-Subject: [PATCH v3 1/1] efi_loader: provide new doc/README.uefi
+Subject: [PATCH 1/1] efi_loader: provide new doc/README.uefi
 
 Provides information about
 
@@ -12,8 +12,8 @@ Provides information about
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
  doc/README.efi  |   0
- doc/README.uefi | 325 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 325 insertions(+)
+ doc/README.uefi | 332 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 332 insertions(+)
  delete mode 100644 doc/README.efi
  create mode 100644 doc/README.uefi
 
@@ -22,10 +22,10 @@ deleted file mode 100644
 index e69de29bb2d..00000000000
 diff --git a/doc/README.uefi b/doc/README.uefi
 new file mode 100644
-index 00000000000..b40efc70760
+index 00000000000..7403be36146
 --- /dev/null
 +++ b/doc/README.uefi
-@@ -0,0 +1,325 @@
+@@ -0,0 +1,332 @@
 +<!--
 +    Copyright (c) 2018 Heinrich Schuchardt
 +
@@ -115,7 +115,7 @@ index 00000000000..b40efc70760
 +    Load options: root=/dev/sdb3 init=/sbin/init rootwait ro
 +    ## Application terminated, r = 0
 +
-+The environment variable fdtcontroladdr points to U-Boots internal device tree
++The environment variable fdtcontroladdr points to U-Boot's internal device tree
 +(if available).
 +
 +### Executing the built-in selftest
@@ -133,7 +133,7 @@ index 00000000000..b40efc70760
 +it is not provided all tests are executed except those marked as 'on request'.
 +If the environment variable is set to 'list' a list of all tests is shown.
 +
-+Below you find the output of an example session.
++Below you can find the output of an example session.
 +
 +    => setenv efi_selftest simple network protocol
 +    => bootefi selftest
@@ -217,11 +217,18 @@ index 00000000000..b40efc70760
 +
 +* periodic and single shot timer events
 +* exit boot services events, triggered by calling the ExitBootServices() service
-+* virtual address change events (not yet implemented in U-Boot)
++* virtual address change events
++* memory map change events
++* read to boot events
++* reset system events
++* system table events
 +* events that are only triggered programmatically
 +
 +Events can be created with the CreateEvent service and deleted with CloseEvent
 +service.
++
++Events can be assigned to an event group. If any of the events in a group is
++signaled, all other events in the group are also set to the signaled state.
 +
 +## The UEFI driver model
 +
@@ -320,7 +327,7 @@ index 00000000000..b40efc70760
 +    CONFIG_BLK=y
 +    CONFIG_PARTITIONS=y
 +
-+## Open issues as of U-Boot 2018.03
++## TODOs as of U-Boot 2018.03
 +
 +* unimplemented or incompletely implemented boot services
 +  * Exit - call unload function, unload applications only
@@ -339,7 +346,7 @@ index 00000000000..b40efc70760
 +* UEFI drivers
 +  * support DisconnectController for UEFI block devices.
 +
-+* Support for CONFIG_EFI_LOADER in the sandbox (CONFIG_SANDBOX=y)
++* support for CONFIG_EFI_LOADER in the sandbox (CONFIG_SANDBOX=y)
 +
 +* UEFI variables
 +  * persistence
