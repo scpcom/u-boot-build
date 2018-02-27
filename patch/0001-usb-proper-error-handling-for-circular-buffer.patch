@@ -1,4 +1,4 @@
-From d7e6ca8cbaa90cb8f4a5839a654dffbd363519d9 Mon Sep 17 00:00:00 2001
+From aa500f482f47701d259d8bf7e2210178c2755cd9 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 23 Feb 2018 07:15:00 +0100
 Subject: [PATCH 1/1] usb: proper error handling for circular buffer
@@ -90,7 +90,7 @@ index 34d0f85f269..8b2d16470f8 100644
  
  #endif
 diff --git a/lib/circbuf.c b/lib/circbuf.c
-index 6ed05164304..064e5d40dcb 100644
+index 6ed05164304..71e1cf66daa 100644
 --- a/lib/circbuf.c
 +++ b/lib/circbuf.c
 @@ -6,36 +6,37 @@
@@ -107,7 +107,7 @@ index 6ed05164304..064e5d40dcb 100644
  {
 -	assert (buf != NULL);
 +	if (!buf)
-+		return -EINVAL
++		return -EINVAL;
  
  	buf->size = 0;
  	buf->totalsize = size;
@@ -129,7 +129,7 @@ index 6ed05164304..064e5d40dcb 100644
 -	assert (buf != NULL);
 -	assert (buf->data != NULL);
 +	if (!buf)
-+		return -EINVAL
++		return -EINVAL;
  
  	free (buf->data);
  	memset (buf, 0, sizeof (circbuf_t));
@@ -148,7 +148,7 @@ index 6ed05164304..064e5d40dcb 100644
 -
 -	p = buf->top;
 +	if (!buf || !buf->data || !dest)
-+		return -EINVAL
++		return -EINVAL;
  
  	/* Cap to number of bytes in buffer */
  	if (len > buf->size)
@@ -176,7 +176,7 @@ index 6ed05164304..064e5d40dcb 100644
  
 -	assert (buf != NULL);
 -	assert (src != NULL);
-+	if (!buf || !buf->data || !dest)
++	if (!buf || !buf->data || !src)
 +		return -EINVAL;
  
 -	p = buf->tail;
@@ -210,5 +210,5 @@ index 6ed05164304..064e5d40dcb 100644
  	return len;
  }
 -- 
-2.16.1
+2.15.1
 
