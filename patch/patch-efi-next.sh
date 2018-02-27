@@ -29,7 +29,7 @@ git am ../patch/0001-usb-kbd-implement-special-keys.patch
 
 # EFI
 git am ../patch/0001-efi_loader-delete-doc-README.efi.patch
-git am ../patch/0001-efi_loader-provide-new-doc-README.efi.patch
+git am ../patch/0001-efi_loader-provide-new-doc-README.uefi.patch
 git am ../patch/0001-efi_loader-check-parameter-in-InstallConfigurationTa.patch
 git am ../patch/0001-efi_loader-clear-signaled-state-in-CheckEvent.patch
 git am ../patch/0001-efi_loader-correct-input-of-special-keys.patch
