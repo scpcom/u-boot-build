@@ -576,6 +576,7 @@ CONFIG_CPU=y
 # CONFIG_FPGA_ALTERA is not set
 # CONFIG_FPGA_SOCFPGA is not set
 # CONFIG_FPGA_XILINX is not set
+# CONFIG_FPGA_SPARTAN3 is not set
 
 #
 # GPIO Support

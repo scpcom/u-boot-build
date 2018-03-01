@@ -69,7 +69,7 @@ index dff86cf9f9a..f3ac04bebfb 100644
 +	if (ret != EFI_SUCCESS)
 +		goto out;
  #endif
- #ifdef CONFIG_NET
+ #ifdef CONFIG_CMD_NET
 -	efi_net_register();
 +	ret = efi_net_register();
 +	if (ret != EFI_SUCCESS)
