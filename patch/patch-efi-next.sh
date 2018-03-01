@@ -35,6 +35,7 @@ git am ../patch/0001-efi_loader-clear-signaled-state-in-CheckEvent.patch
 git am ../patch/0001-efi_loader-correct-input-of-special-keys.patch
 
 # cmd/bootefi series
+git am ../patch/0001-efi_loader-bootefi-should-not-depend-on-CMD_NET.patch
 git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
 git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_gop_register.patch
 git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_net_register.patch
