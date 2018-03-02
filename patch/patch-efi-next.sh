@@ -24,6 +24,7 @@ git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 git am ../patch/0001-video-indicate-code-page-of-bitmap-fonts.patch
 
 # USB keyboard
+git am ../patch/0001-input-indicate-that-code-page-437-is-used.patch
 git am ../patch/0001-usb-proper-error-handling-for-circular-buffer.patch
 git am ../patch/0001-usb-kbd-allow-multibyte-sequences-to-be-put-into-rin.patch
 git am ../patch/0001-usb-kbd-implement-special-keys.patch
