@@ -595,6 +595,7 @@ CONFIG_DM_GPIO=y
 # CONFIG_MXC_GPIO is not set
 # CONFIG_CMD_PCA953X is not set
 # CONFIG_ROCKCHIP_GPIO is not set
+# CONFIG_XILINX_GPIO is not set
 # CONFIG_CMD_TCA642X is not set
 # CONFIG_TEGRA_GPIO is not set
 # CONFIG_TEGRA186_GPIO is not set
@@ -642,6 +643,7 @@ CONFIG_I8042_KEYB=y
 # CONFIG_PCA9551_LED is not set
 # CONFIG_WINBOND_W83627 is not set
 CONFIG_QFW=y
+CONFIG_ZYNQ_GEM_I2C_MAC_OFFSET=0x0
 
 #
 # MMC Host controller Support

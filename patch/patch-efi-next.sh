@@ -21,6 +21,7 @@ git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
 git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
 git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
+git am ../patch/0001-video-indicate-code-page-of-bitmap-fonts.patch
 
 # USB keyboard
 git am ../patch/0001-usb-proper-error-handling-for-circular-buffer.patch

@@ -1,0 +1,55 @@
+From 0b10875de06d92fb7e4cfd207819f1ba04aa7835 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 2 Mar 2018 20:47:20 +0100
+Subject: [PATCH 1/1] video: indicate code page of bitmap fonts
+
+Add comments clarifying that the bitmap fonts support code page 437.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/video/vidconsole-uclass.c | 2 +-
+ include/video_font_4x6.h          | 4 ++--
+ include/video_font_data.h         | 2 ++
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/video/vidconsole-uclass.c b/drivers/video/vidconsole-uclass.c
+index 6f3988d49ea..5553d629b98 100644
+--- a/drivers/video/vidconsole-uclass.c
++++ b/drivers/video/vidconsole-uclass.c
+@@ -13,7 +13,7 @@
+ #include <dm.h>
+ #include <video.h>
+ #include <video_console.h>
+-#include <video_font.h>		/* Get font data, width and height */
++#include <video_font.h>		/* Bitmap font for code page 437 */
+ 
+ /*
+  * Structure to describe a console color
+diff --git a/include/video_font_4x6.h b/include/video_font_4x6.h
+index 6aeed092ad4..64c5ed2eda4 100644
+--- a/include/video_font_4x6.h
++++ b/include/video_font_4x6.h
+@@ -1,5 +1,5 @@
+-/* Hand composed "Minuscule" 4x6 font, with binary data generated using
+- * Perl stub.
++/* Hand composed "Minuscule" 4x6 font for code page 437, with binary data
++ * generated using Perl stub.
+  *
+  * Use 'perl -x mini_4x6.c < mini_4x6.c > new_version.c' to regenerate
+  * binary data.
+diff --git a/include/video_font_data.h b/include/video_font_data.h
+index 346a162f56f..d52526a63c8 100644
+--- a/include/video_font_data.h
++++ b/include/video_font_data.h
+@@ -3,6 +3,8 @@
+  * Paolo Scaffardi, AIRVENT SAM s.p.a - RIMINI(ITALY), arsenio@tin.it
+  *
+  * SPDX-License-Identifier:	GPL-2.0+
++ *
++ * This file contains an 8x16 bitmap font for code page 437.
+  */
+ 
+ #ifndef _VIDEO_FONT_DATA_
+-- 
+2.16.1
+
