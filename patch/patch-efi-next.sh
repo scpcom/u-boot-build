@@ -22,6 +22,7 @@ git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
 git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
 git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
 git am ../patch/0001-video-indicate-code-page-of-bitmap-fonts.patch
+git am ../patch/0001-sunxi-video-mark-framebuffer-as-EFI-reserved-memory.patch
 
 # USB keyboard
 git am ../patch/0001-input-indicate-that-code-page-437-is-used.patch
