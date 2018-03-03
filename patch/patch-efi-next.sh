@@ -55,11 +55,9 @@ git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
 # diverse protocols
 git am ../patch/0001-efi_selftest-unit-test-for-EFI_SIMPLE_TEXT_INPUT_PRO.patch
 git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
-git am ../patch/0001-efi-Add-a-comment-about-duplicated-ELF-constants.patch
 git am ../patch/0001-efi_loader-add-missing-EFI_RESET_PLATFORM_SPECIFIC.patch
 git am ../patch/0001-efi_loader-remove-deprecated-ConsoleControlProtocol.patch
 git am ../patch/0001-efi_loader-show-UEFI-revision-in-helloworld.patch
-git am ../patch/0001-efi_loader-provide-firmware-revision.patch
 git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
 git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
@@ -72,6 +70,9 @@ git am ../patch/0001-efi_loader-manage-events-in-a-linked-list.patch
 git am ../patch/0001-efi_loader-define-GUIDS-for-event-groups.patch
 git am ../patch/0001-efi_loader-implement-event-groups.patch
 git am ../patch/0001-efi_selftest-unit-test-for-event-groups.patch
+
+# From Robert's Shell support series
+git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
 
 exit
 # From Simon's Sandbox support series
@@ -88,9 +89,6 @@ git am ../patch/0001-efi-sandbox-no-support-for-DHCP-EFI-boot.patch
 git am ../patch/0001-efi_selftest-cannot-launch-EFI-binary-in-sandbox.patch
 git am ../patch/0001-sandbox-alignment-of-memory.patch
 git am ../patch/0001-efi-sandbox-Enable-EFI-loader-builder-for-sandbox.patch # rebased
-
-# From Robert's Shell support series 
-git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
 
 # To be reworked
 # git am ../patch/0001-efi_loader-memory-reservations-according-to-e820-tab.patch
