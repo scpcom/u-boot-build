@@ -1,0 +1,29 @@
+From 25bbc7e8b8432521d6147e31afb65a151d744d9a Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 3 Mar 2018 11:32:43 +0100
+Subject: [PATCH 1/1] video: if EFI_LOADER is enabled, enable CFB_CONSOLE_ANSI
+
+EFI applications like GRUB issue ANSI sequences for setting colors
+and for positioning. So if the EFI subsystem is enabled we should
+also enable ANSI control sequences by default.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/video/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 2fc0defcd0..343ef31031 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -557,6 +557,7 @@ config CFB_CONSOLE
+ config CFB_CONSOLE_ANSI
+ 	bool "Support ANSI escape sequences"
+ 	depends on CFB_CONSOLE
++	default y if EFI_LOADER
+ 	help
+ 	  This allows the colour buffer frame buffer driver to support
+ 	  a limited number of ANSI escape sequences (cursor control,
+-- 
+2.11.0
+
