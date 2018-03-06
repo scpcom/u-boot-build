@@ -24,7 +24,7 @@ index d980e730ffa..95f9ff0a140 100644
  #include <malloc.h>
 +#include <watchdog.h>
  #include <asm/global_data.h>
--#include <libfdt_env.h>
+-#include <linux/libfdt_env.h>
  #include <linux/list_sort.h>
 -#include <inttypes.h>
 -#include <watchdog.h>
