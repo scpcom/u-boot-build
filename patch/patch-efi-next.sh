@@ -26,7 +26,6 @@ git am ../patch/0001-sunxi-video-mark-framebuffer-as-EFI-reserved-memory.patch
 git am ../patch/0001-video-if-EFI_LOADER-is-enabled-enable-CFB_CONSOLE_AN.patch
 
 # USB keyboard
-git am ../patch/0001-input-indicate-that-code-page-437-is-used.patch
 git am ../patch/0001-usb-proper-error-handling-for-circular-buffer.patch
 git am ../patch/0001-usb-kbd-allow-multibyte-sequences-to-be-put-into-rin.patch
 git am ../patch/0001-usb-kbd-implement-special-keys.patch
