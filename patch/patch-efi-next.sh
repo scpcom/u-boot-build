@@ -17,6 +17,7 @@ git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-get_clu.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
 git am ../patch/0001-scripts-coccinelle-add-some-more-coccinelle-tests.patch
 git am ../patch/0001-yaffs2-iterator-variable-cannot-be-NULL.patch
+git am ../patch/0001-net-mvpp2x-add-check-after-calloc.patch
 
 # Video console
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
