@@ -60,6 +60,7 @@ git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
 git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
+git am ../patch/0001-efi_loader-parameter-checks-for-LoadImage.patch
 
 # Event groups
 # git am ../patch/0001-efi_loader-check-parameters-of-guidcmp.patch

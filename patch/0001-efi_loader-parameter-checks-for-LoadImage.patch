@@ -1,0 +1,56 @@
+From 288ced510a8c4ea09e03d33591084ea38bb560c7 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Wed, 7 Mar 2018 02:27:47 +0100
+Subject: [PATCH 1/1] efi_loader: parameter checks for LoadImage
+
+Add parameter checks in efi_load_image().
+Check memory allocation is successful in efi_load_image().
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 6c7a2ebf95..1ff0568d47 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -1573,8 +1573,27 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
+ 	EFI_ENTRY("%d, %p, %pD, %p, %ld, %p", boot_policy, parent_image,
+ 		  file_path, source_buffer, source_size, image_handle);
+ 
++	if (!image_handle || !parent_image) {
++		ret = EFI_INVALID_PARAMETER;
++		goto error;
++	}
++
++	if (!source_buffer && !file_path) {
++		ret = EFI_NOT_FOUND;
++		goto error;
++	}
++
+ 	info = calloc(1, sizeof(*info));
++	if (!info) {
++		ret = EFI_OUT_OF_RESOURCES;
++		goto error;
++	}
+ 	obj = calloc(1, sizeof(*obj));
++	if (!obj) {
++		free(info);
++		ret = EFI_OUT_OF_RESOURCES;
++		goto error;
++	}
+ 
+ 	if (!source_buffer) {
+ 		struct efi_device_path *dp, *fp;
+@@ -1610,6 +1629,7 @@ static efi_status_t EFIAPI efi_load_image(bool boot_policy,
+ failure:
+ 	free(info);
+ 	efi_delete_handle(obj);
++error:
+ 	return EFI_EXIT(ret);
+ }
+ 
+-- 
+2.14.2
+
