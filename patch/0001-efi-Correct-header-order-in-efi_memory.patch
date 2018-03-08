@@ -1,13 +1,21 @@
 From f790bc87becfd31440a6e53b8b21f0723088cc2e Mon Sep 17 00:00:00 2001
 From: Simon Glass <sjg@chromium.org>
 Date: Mon, 4 Dec 2017 14:28:21 -0700
-Subject: [PATCH 1/1] efi: Correct header order in efi_memory
+Subject: [PATCH v4 1/1] efi: Correct header order in efi_memory
 
 The headers are not in the correct order. Fix this. Also drop libfdt_env.h
 since it is not needed.
 
 Signed-off-by: Simon Glass <sjg@chromium.org>
-Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Rebased
+Reviewed-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v4
+	rebased (linux/libfdt_env.h instead of libfdt_env.h)
+v3
+	no change
+v2
+	update commit message to dropping libfdt_env.h
 ---
  lib/efi_loader/efi_memory.c | 5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)

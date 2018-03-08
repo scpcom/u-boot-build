@@ -1,7 +1,7 @@
-From 41d030ba42273c67a3f465096bc07cbece4e19ae Mon Sep 17 00:00:00 2001
+From 300649c264467fa3af76ad883aab755a5198f9e5 Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 7 Mar 2018 02:48:46 +0100
-Subject: [PATCH 1/1] scripts/coccinelle: add some more coccinelle tests
+Subject: [PATCH v2 1/1] scripts/coccinelle: add some more coccinelle tests
 
 kmerr: verify that malloc and calloc are followed by a check to verify
 that we are not out of memory.
@@ -12,18 +12,21 @@ Both checks are copied from the Linux kernel archive.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
- scripts/coccinelle/null/badzero.cocci | 238 ++++++++++++++++++++++++++++++++++
- scripts/coccinelle/null/kmerr.cocci   |  72 ++++++++++
- 2 files changed, 310 insertions(+)
+v2
+	Add SPDX license identifier
+---
+ scripts/coccinelle/null/badzero.cocci | 241 ++++++++++++++++++++++++++++++++++
+ scripts/coccinelle/null/kmerr.cocci   |  75 +++++++++++
+ 2 files changed, 316 insertions(+)
  create mode 100644 scripts/coccinelle/null/badzero.cocci
  create mode 100644 scripts/coccinelle/null/kmerr.cocci
 
 diff --git a/scripts/coccinelle/null/badzero.cocci b/scripts/coccinelle/null/badzero.cocci
 new file mode 100644
-index 0000000000..f597c8007b
+index 00000000000..619b058f93f
 --- /dev/null
 +++ b/scripts/coccinelle/null/badzero.cocci
-@@ -0,0 +1,238 @@
+@@ -0,0 +1,241 @@
 +/// Compare pointer-typed values to NULL rather than 0
 +///
 +//# This makes an effort to choose between !x and x == NULL.  !x is used
@@ -38,6 +41,9 @@ index 0000000000..f597c8007b
 +// URL: http://coccinelle.lip6.fr/
 +// Requires: 1.0.0
 +// Options:
++//
++// SPDX-License-Identifier:	GPL-2.0
++//
 +
 +virtual patch
 +virtual context
@@ -264,10 +270,10 @@ index 0000000000..f597c8007b
 +coccilib.report.print_report(p[0], "WARNING comparing pointer to 0")
 diff --git a/scripts/coccinelle/null/kmerr.cocci b/scripts/coccinelle/null/kmerr.cocci
 new file mode 100644
-index 0000000000..2d600694a5
+index 00000000000..a1e75e617d0
 --- /dev/null
 +++ b/scripts/coccinelle/null/kmerr.cocci
-@@ -0,0 +1,72 @@
+@@ -0,0 +1,75 @@
 +/// This semantic patch looks for malloc etc that are not followed by a
 +/// NULL check.  It only gives a report in the case where there is some
 +/// error handling code later in the function, which may be helpful
@@ -281,6 +287,9 @@ index 0000000000..2d600694a5
 +// URL: http://coccinelle.lip6.fr/
 +// Comments:
 +// Options: --no-includes --include-headers
++//
++// SPDX-License-Identifier:	GPL-2.0
++//
 +
 +virtual context
 +virtual org
@@ -341,5 +350,5 @@ index 0000000000..2d600694a5
 +msg = "alloc with no test, possible model on line %s" % (p2[0].line)
 +coccilib.report.print_report(p1[0],msg)
 -- 
-2.14.2
+2.16.1
 
