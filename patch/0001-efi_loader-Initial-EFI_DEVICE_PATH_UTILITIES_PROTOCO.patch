@@ -1,7 +1,7 @@
 From 5c1469bb57ea1e1df513f904c8d1743c657321d2 Mon Sep 17 00:00:00 2001
 From: Leif Lindholm <leif.lindholm@linaro.org>
 Date: Tue, 10 Oct 2017 08:22:57 -0400
-Subject: [PATCH 1/1] efi_loader: Initial EFI_DEVICE_PATH_UTILITIES_PROTOCOL
+Subject: [PATCH v3 1/1] efi_loader: Initial EFI_DEVICE_PATH_UTILITIES_PROTOCOL
 
 Not complete, but enough for Shell.efi and SCT.efi.  We'll implement the
 rest as needed or once we have SCT running properly so there is a way to
@@ -9,11 +9,20 @@ validate the interface against the conformance test suite.
 
 Initial skeleton written by Leif, and then implementation by Rob.
 
-Rebased on v2018.03-rc1.
-
-Suggested-by: Leif Lindholm <leif.lindholm@linaro.org>
-Suggested-by: Rob Clark <robdclark@gmail.com>
+Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
+[Fill initial skeleton]
+Signed-off-by: Rob Clark <robdclark@gmail.com>
+[Rebase on v2018.03-rc1]
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v3
+	Rebase on v2018.03-rc1
+v2
+	Fill initial skeleton
+	https://lists.denx.de/pipermail/u-boot/2017-October/308997.html
+v1 
+	Initial patch by Leif
+	https://lists.denx.de/pipermail/u-boot/2017-September/305230.html
 ---
  include/efi_api.h                          | 29 ++++++++++
  include/efi_loader.h                       |  4 ++
