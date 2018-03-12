@@ -16,7 +16,7 @@ git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
 git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-get_clu.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
 git am ../patch/0001-net-mvpp2x-add-check-after-calloc.patch
-git am ../patch/add 0001-wandboard-remove-superfluous-include.patch
+git am ../patch/0001-wandboard-remove-superfluous-include.patch
 
 # Video console
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
