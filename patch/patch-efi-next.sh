@@ -40,6 +40,7 @@ git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
 # git am ../patch/0001-efi_loader-check-parameters-of-guidcmp.patch
 git am ../patch/0001-efi_selftest-unit-test-for-event-groups.patch
 
+git am ../patch/0001-efi_selftest-fix-device-tree-efi_selftest.patch
 exit
 # From Simon's Sandbox support series
 git am ../patch/0001-sandbox-set-available-memory-address.patch
