@@ -1,0 +1,49 @@
+From 360f931b177be4c53278448fb7074d82e4ddfdd1 Mon Sep 17 00:00:00 2001
+From: Simon Glass <sjg@chromium.org>
+Date: Mon, 19 Feb 2018 08:48:11 -0700
+Subject: [PATCH v4 1/1] efi: Add a TODO to efi_init_obj_list()
+
+This function repeats data structures provided by driver model. They are
+only created once so can be stale if the EFI loader is called twice (e.g.
+for testing or on boot failure).
+
+Add a TODO to address this. It should be possible to attach EFI devices
+and data structures to driver-model devices and avoid having a parallel
+set of data structures.
+
+Signed-off-by: Simon Glass <sjg@chromium.org>
+[Rebased]
+Reviewed-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v4
+	rebased
+v3
+	no change
+v2
+	no change
+---
+ cmd/bootefi.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/cmd/bootefi.c b/cmd/bootefi.c
+index 6afece10bc1..269cc71d0bd 100644
+--- a/cmd/bootefi.c
++++ b/cmd/bootefi.c
+@@ -29,7 +29,13 @@ static efi_status_t efi_obj_list_initialized = OBJ_LIST_NOT_INITIALIZED;
+ static struct efi_device_path *bootefi_image_path;
+ static struct efi_device_path *bootefi_device_path;
+ 
+-/* Initialize and populate EFI object list */
++/*
++ * Initialize and populate EFI object list
++ *
++ * TODO(sjg@chromium.org): Move this to a dynamic list based on driver model,
++ * so that it does not need to be created before running EFI applications
++ * and updates when devices change.
++ */
+ efi_status_t efi_init_obj_list(void)
+ {
+ 	efi_status_t ret = EFI_SUCCESS;
+-- 
+2.16.1
+

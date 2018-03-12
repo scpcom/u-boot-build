@@ -38,8 +38,9 @@ git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
 # Event groups
 # git am ../patch/0001-efi_loader-check-parameters-of-guidcmp.patch
 
-exit
 # From Simon's Sandbox support series
+git am ../patch/0001-efi-Add-a-TODO-to-efi_init_obj_list.patch # rebased
+exit
 git am ../patch/0001-sandbox-set-available-memory-address.patch
 git am ../patch/0001-efi-sandbox-Adjust-memory-usage-for-sandbox.patch # no change
 git am ../patch/0001-sandbox-smbios-Update-to-support-sandbox.patch # no change
