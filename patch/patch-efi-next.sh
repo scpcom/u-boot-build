@@ -20,6 +20,8 @@ git am ../patch/0001-wandboard-remove-superfluous-include.patch
 git am ../patch/0001-MAINTAINERS-ARM-FREESCALE-IMX-remove-invalid-path.patch
 git am ../patch/0001-MAINTAINERS-ARM-HISILICON-correct-maintained-path.patch
 git am ../patch/0001-MAINTAINERS-FLATTENED-DEVICE-TREE-correct-maintained.patch
+git am ../patch/0001-MAINTAINERS-ARM-SAMSUNG-remove-invalid-paths.patch
+git am ../patch/0001-MAINTAINERS-ARM-TI-remove-invalid-paths.patch
 
 # Video console
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
