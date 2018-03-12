@@ -15,8 +15,6 @@ git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
 git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-get_clu.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
-git am ../patch/0001-scripts-coccinelle-add-some-more-coccinelle-tests.patch
-git am ../patch/0001-yaffs2-iterator-variable-cannot-be-NULL.patch
 git am ../patch/0001-net-mvpp2x-add-check-after-calloc.patch
 git am ../patch/add 0001-wandboard-remove-superfluous-include.patch
 
@@ -34,48 +32,13 @@ git am ../patch/0001-usb-proper-error-handling-for-circular-buffer.patch
 git am ../patch/0001-usb-kbd-allow-multibyte-sequences-to-be-put-into-rin.patch
 git am ../patch/0001-usb-kbd-implement-special-keys.patch
 
-# EFI
-git am ../patch/0001-efi_loader-delete-doc-README.efi.patch
-git am ../patch/0001-efi_loader-provide-new-doc-README.uefi.patch
-git am ../patch/0001-efi_loader-check-parameter-in-InstallConfigurationTa.patch
-git am ../patch/0001-efi_loader-clear-signaled-state-in-CheckEvent.patch
-git am ../patch/0001-efi_loader-correct-input-of-special-keys.patch
-
-# cmd/bootefi series
-git am ../patch/0001-efi_loader-efi_smbios_register-should-have-a-return-.patch
-git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_gop_register.patch
-git am ../patch/0001-efi_loader-return-efi_status_t-from-efi_net_register.patch
-git am ../patch/0001-efi_loader-consistently-return-efi_status_t-efi_watc.patch
-git am ../patch/0001-efi_loader-simplify-calling-efi_init_obj_list.patch
-git am ../patch/0001-efi_loader-exit-status-for-efi_reset_system_init.patch
-git am ../patch/0001-efi_loader-efi_get_time_init-should-return-status-co.patch
-git am ../patch/0001-efi_loader-do_bootefi_exec-should-always-return-an-E.patch
-git am ../patch/0001-efi_loader-check-initialization-of-EFI-subsystem-is-.patch
-git am ../patch/0001-efi_loader-support-device-tree-for-bootefi-selftest.patch
-git am ../patch/0001-efi_selftest-check-installation-of-the-device-tree.patch
-
 # diverse protocols
-git am ../patch/0001-efi_selftest-unit-test-for-EFI_SIMPLE_TEXT_INPUT_PRO.patch
-git am ../patch/0001-efi_loader-use-constants-in-efi_allocate_pages.patch
-git am ../patch/0001-efi_loader-add-missing-EFI_RESET_PLATFORM_SPECIFIC.patch
-git am ../patch/0001-efi_loader-remove-deprecated-ConsoleControlProtocol.patch
-git am ../patch/0001-efi_loader-show-UEFI-revision-in-helloworld.patch
-git am ../patch/0001-efi_loader-implement-missing-bit-blit-operations-in-.patch
-git am ../patch/0001-efi_selftest-test-gop-bitblt.patch
 git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
-git am ../patch/0001-efi_loader-parameter-checks-for-LoadImage.patch
 
 # Event groups
 # git am ../patch/0001-efi_loader-check-parameters-of-guidcmp.patch
-git am ../patch/0001-efi_loader-fix-formatting-errors.patch
-git am ../patch/0001-efi_loader-manage-events-in-a-linked-list.patch
-git am ../patch/0001-efi_loader-define-GUIDS-for-event-groups.patch
-git am ../patch/0001-efi_loader-implement-event-groups.patch
 git am ../patch/0001-efi_selftest-unit-test-for-event-groups.patch
-
-# From Robert's Shell support series
-git am ../patch/0001-efi_loader-Initial-EFI_DEVICE_PATH_UTILITIES_PROTOCO.patch
 
 exit
 # From Simon's Sandbox support series
