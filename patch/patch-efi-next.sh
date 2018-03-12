@@ -17,6 +17,9 @@ git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-get_clu.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
 git am ../patch/0001-net-mvpp2x-add-check-after-calloc.patch
 git am ../patch/0001-wandboard-remove-superfluous-include.patch
+git am ../patch/0001-MAINTAINERS-ARM-FREESCALE-IMX-remove-invalid-path.patch
+git am ../patch/0001-MAINTAINERS-ARM-HISILICON-correct-maintained-path.patch
+git am ../patch/0001-MAINTAINERS-FLATTENED-DEVICE-TREE-correct-maintained.patch
 
 # Video console
 git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch

@@ -1,0 +1,30 @@
+From cb326d140de8a067baa4ce75d6b92b31613ccc3b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 12 Mar 2018 23:04:44 +0100
+Subject: [PATCH 1/1] MAINTAINERS: FLATTENED DEVICE TREE: correct maintained
+ path
+
+Change due to commit b08c8c487083 ("libfdt: move headers to
+<linux/libfdt.h> and <linux/libfdt_env.h>")
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c80c42f4794..2177bfc2ef7 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -306,7 +306,7 @@ T:	git git://git.denx.de/u-boot-fdt.git
+ F:	lib/fdtdec*
+ F:	lib/libfdt/
+ F:	include/fdt*
+-F:	include/libfdt*
++F:	include/linux/libfdt*
+ F:	cmd/fdt.c
+ F:	common/fdt_support.c
+ 
+-- 
+2.16.1
+
