@@ -33,14 +33,11 @@ git am ../patch/0001-usb-kbd-allow-multibyte-sequences-to-be-put-into-rin.patch
 git am ../patch/0001-usb-kbd-implement-special-keys.patch
 
 # diverse protocols
-git am ../patch/0001-efi-Correct-header-order-in-efi_memory.patch
 git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
 
 # Event groups
 # git am ../patch/0001-efi_loader-check-parameters-of-guidcmp.patch
-git am ../patch/0001-efi_selftest-unit-test-for-event-groups.patch
 
-git am ../patch/0001-efi_selftest-fix-device-tree-efi_selftest.patch
 exit
 # From Simon's Sandbox support series
 git am ../patch/0001-sandbox-set-available-memory-address.patch
