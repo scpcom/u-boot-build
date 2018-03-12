@@ -1,0 +1,27 @@
+From 7a47b5966b8e8e5e80ce49be32dcee8db6a56b09 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Mon, 12 Mar 2018 23:56:21 +0100
+Subject: [PATCH 1/1] MAINTAINERS: TI SYSTEM SECURITY: remove invalid file
+
+Remove a link to a non-existent file.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ MAINTAINERS | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 50e82d4d245..2414bcced2d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -470,7 +470,6 @@ TI SYSTEM SECURITY
+ M:	Andrew F. Davis <afd@ti.com>
+ S:	Supported
+ F:	arch/arm/mach-omap2/omap5/sec_entry_cpu1.S
+-F:	arch/arm/mach-omap2/omap5/sec-fxns.c
+ F:	arch/arm/mach-omap2/sec-common.c
+ F:	arch/arm/mach-omap2/config_secure.mk
+ F:	configs/am335x_hs_evm_defconfig
+-- 
+2.16.1
+
