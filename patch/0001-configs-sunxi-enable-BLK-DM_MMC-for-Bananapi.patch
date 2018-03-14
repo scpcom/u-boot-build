@@ -3,10 +3,17 @@ From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Wed, 10 Jan 2018 21:33:51 +0100
 Subject: [PATCH 1/1] configs: sunxi: enable BLK, DM_MMC for Bananapi
 
-We want to move the device driver model. So make the switch for
-the Bananapi block drivers.
+doc/driver-model/MIGRATION.txt requires to move block drivers to the
+the driver model by v2018.05
+
+So make the switch for the Bananapi block drivers.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+This patch depends on
+mmc: sunxi: support cd-inverted
+https://lists.denx.de/pipermail/u-boot/2018-February/319309.html
+which has been applied to u-boot-sunxi/master.
 ---
  configs/Bananapi_defconfig | 2 ++
  1 file changed, 2 insertions(+)
