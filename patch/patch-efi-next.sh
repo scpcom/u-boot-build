@@ -25,12 +25,6 @@ git am ../patch/0001-MAINTAINERS-ARM-TI-remove-invalid-paths.patch
 git am ../patch/0001-MAINTAINERS-TI-SYSTEM-SECURITY-remove-invalid-file.patch
 
 # Video console
-git am ../patch/0001-dm-video-show-correct-colors-in-graphical-console.patch
-git am ../patch/0001-dm-video-correctly-clean-background-in-16bit-mode.patch
-git am ../patch/0001-dm-video-use-constants-to-refer-to-colors.patch
-git am ../patch/0001-dm-video-support-increased-intensity-bold.patch
-git am ../patch/0001-video-indicate-code-page-of-bitmap-fonts.patch
-git am ../patch/0001-sunxi-video-mark-framebuffer-as-EFI-reserved-memory.patch
 git am ../patch/0001-video-if-EFI_LOADER-is-enabled-enable-CFB_CONSOLE_AN.patch
 
 # USB keyboard
