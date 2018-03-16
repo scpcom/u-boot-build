@@ -1,12 +1,15 @@
 From 1de5cd43a11e50ad6e74881c53d80aea1f2646da Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Fri, 16 Mar 2018 08:16:30 +0100
-Subject: [PATCH 1/1] efi_loader: use __always_inline for pixel conversion
+Subject: [PATCH v2 1/1] efi_loader: use __always_inline for pixel conversion
 
-We optimize for size suing -Os so gcc might ignore 'inline'.
+We optimize for size using -Os so gcc might ignore 'inline'.
 Pixel conversions are called so often that we always want to inline them.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	fix typo in commit message
 ---
  lib/efi_loader/efi_gop.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
