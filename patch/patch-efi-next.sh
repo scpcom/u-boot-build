@@ -7,7 +7,6 @@ git am ../patch/0001-vexpress_ca15_tc2_defconfig-build-EFI.patch
 git am ../patch/0001-spl-u-boot-spl-nodtb.bin-remove-.got-and-.got.plt-se.patch
 
 # Support EFI block device on BananaPi
-git am ../patch/0001-mmc-sunxi-support-cd-inverted.patch
 git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 
 # Various fixes
@@ -37,9 +36,6 @@ git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
 
 # From Simon's Sandbox support series
 git am ../patch/0001-efi-Add-a-TODO-to-efi_init_obj_list.patch # rebased
-
-# graphical output protocol
-git am ../patch/0001-efi_loader-correctly-support-parameter-delta-in-Blt.patch
 
 exit
 # From Simon's Sandbox support series
