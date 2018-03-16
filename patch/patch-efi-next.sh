@@ -40,6 +40,7 @@ git am ../patch/0001-efi-Add-a-TODO-to-efi_init_obj_list.patch # rebased
 # GOP
 git am ../patch/0001-efi_loader-Optimize-GOP-switch.patch
 git am ../patch/0001-efi_loader-Optimize-GOP-more.patch
+git am ../patch/0001-efi_loader-use-__always_inline-for-pixel-conversion.patch
 
 exit
 # From Simon's Sandbox support series
