@@ -37,6 +37,10 @@ git am ../patch/0001-efi_loader-efi_allocate_pages-is-too-restrictive.patch
 # From Simon's Sandbox support series
 git am ../patch/0001-efi-Add-a-TODO-to-efi_init_obj_list.patch # rebased
 
+# GOP
+git am ../patch/0001-efi_loader-Optimize-GOP-switch.patch
+git am ../patch/0001-efi_loader-Optimize-GOP-more.patch
+
 exit
 # From Simon's Sandbox support series
 git am ../patch/0001-sandbox-set-available-memory-address.patch
