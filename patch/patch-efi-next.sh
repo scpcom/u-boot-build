@@ -11,7 +11,7 @@ git am ../patch/0001-configs-sunxi-enable-BLK-DM_MMC-for-Bananapi.patch
 
 # Various fixes
 git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
-git am ../patch/0001-mmc-meson_gx_mmc-avoid-division-by-zero.patch
+git am ../patch/0001-mmc-avoid-division-by-zero-in-meson_mmc_config_clock.patch
 git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-get_clu.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
 git am ../patch/0001-net-mvpp2x-add-check-after-calloc.patch

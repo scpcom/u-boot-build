@@ -1,10 +1,15 @@
-From 0131ee32348d058803eb460e9f723feed96be343 Mon Sep 17 00:00:00 2001
+From 7f0a669b9b283d14927c2ac89d05e2d24dd31ecb Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Date: Mon, 29 Jan 2018 00:16:11 +0000
-Subject: [PATCH 1/1] mmc: meson_gx_mmc: avoid division by zero
+Date: Sat, 17 Mar 2018 12:24:44 +0100
+Subject: [PATCH 1/1] mmc: avoid division by zero in meson_mmc_config_clock
 
-Add a check for the divisor.
+The Odroid C2 fails to read from mmc with U-Boot v2018.03.
+The change avoids a division by zero.
 
+The fix was suggested by Jaehoon in
+https://lists.denx.de/pipermail/u-boot/2018-January/318577.html
+
+Reported-by: Vagrant Cascadian <vagrant@debian.org>
 Suggested-by: Jaehoon Chung <jh80.chung@samsung.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
@@ -26,5 +31,5 @@ index a2cd5d3a44..454593eec4 100644
  	if (mmc->clock > 16000000) {
  		clk = SD_EMMC_CLKSRC_DIV2;
 -- 
-2.15.1
+2.14.2
 
