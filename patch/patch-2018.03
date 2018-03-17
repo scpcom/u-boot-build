@@ -1,0 +1,2 @@
+#!/bin/sh
+git am ../patch/0001-mmc-avoid-division-by-zero-in-meson_mmc_config_clock.patch
