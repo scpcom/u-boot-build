@@ -22,6 +22,7 @@ git am ../patch/0001-MAINTAINERS-FLATTENED-DEVICE-TREE-correct-maintained.patch
 git am ../patch/0001-MAINTAINERS-ARM-SAMSUNG-remove-invalid-paths.patch
 git am ../patch/0001-MAINTAINERS-ARM-TI-remove-invalid-paths.patch
 git am ../patch/0001-MAINTAINERS-TI-SYSTEM-SECURITY-remove-invalid-file.patch
+git am ../patch/0001-env-typo-in-description-of-ENV_IS_IN_REMOTE.patch
 
 # Video console
 git am ../patch/0001-video-if-EFI_LOADER-is-enabled-enable-CFB_CONSOLE_AN.patch

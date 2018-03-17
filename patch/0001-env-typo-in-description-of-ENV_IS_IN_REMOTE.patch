@@ -1,0 +1,28 @@
+From fef491952fb1c6ab8a51b8aefc1019c210117828 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 17 Mar 2018 22:16:34 +0000
+Subject: [PATCH 1/1] env: typo in description of ENV_IS_IN_REMOTE
+
+%s/remove/remote/
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ env/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/env/Kconfig b/env/Kconfig
+index a3c6298273e..5c673a0aaac 100644
+--- a/env/Kconfig
++++ b/env/Kconfig
+@@ -277,7 +277,7 @@ config ENV_IS_IN_ONENAND
+ 	  provision.
+ 
+ config ENV_IS_IN_REMOTE
+-	bool "Environment is in remove memory space"
++	bool "Environment is in remote memory space"
+ 	depends on !CHAIN_OF_TRUST
+ 	help
+ 	  Define this if you have a remote memory space which you
+-- 
+2.16.2
+
