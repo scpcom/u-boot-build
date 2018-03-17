@@ -9,3 +9,5 @@ tar-ignore = "job.log"
 # ignore last build
 tar-ignore = "debian/odroid-c2-u-boot-image"
 tar-ignore = "u-boot.bin"
+tar-ignore = "foo"
+tar-ignore = "ipxe"
