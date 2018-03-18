@@ -7,6 +7,9 @@ No need to initialize variables if the next usage is an assignment.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+v2
+	add missing semicolon
+---
  drivers/video/exynos/exynos_dp.c | 12 ++++++------
  1 file changed, 6 insertions(+), 6 deletions(-)
 
@@ -37,7 +40,7 @@ index 30e4020686..2f724ee745 100644
  						unsigned char enhance_mode)
  {
 -	unsigned int ret = EXYNOS_DP_SUCCESS;
-+	unsigned int ret
++	unsigned int ret;
  
  	ret = exynos_dp_enable_rx_to_enhanced_mode(regs, enhance_mode);
  	if (ret != EXYNOS_DP_SUCCESS) {
