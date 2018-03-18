@@ -214,12 +214,12 @@ index 2582bf36eb..d5a839c1a0 100644
  	}
  
  	free(qtd);
-@@ -1124,9 +1122,7 @@ int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
+@@ -1124,9 +1122,6 @@ int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
  	if (rc)
  		return rc;
  #endif
 -#ifdef CONFIG_USB_EHCI_FARADAY
- 	tweaks |= EHCI_TWEAK_NO_INIT_CF;
+-	tweaks |= EHCI_TWEAK_NO_INIT_CF;
 -#endif
  	rc = ehci_common_init(ctrl, tweaks);
  	if (rc)

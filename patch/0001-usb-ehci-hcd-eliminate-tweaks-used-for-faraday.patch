@@ -1,0 +1,89 @@
+From 69a92d54c04f37175c5fb3f27c3f9ce3b3457ca4 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 17:00:27 +0100
+Subject: [PATCH 1/1] usb: ehci-hcd: eliminate tweaks used for faraday
+
+Remove tweaks only used by removed ehci-faraday driver.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/host/ehci-hcd.c | 18 +++++++-----------
+ drivers/usb/host/ehci.h     |  6 ------
+ 2 files changed, 7 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index d5a839c1a0..940efd75ef 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -977,7 +977,7 @@ void *ehci_get_controller_priv(int index)
+ }
+ #endif
+ 
+-static int ehci_common_init(struct ehci_ctrl *ctrl, uint tweaks)
++static int ehci_common_init(struct ehci_ctrl *ctrl)
+ {
+ 	struct QH *qh_list;
+ 	struct QH *periodic;
+@@ -1070,12 +1070,10 @@ static int ehci_common_init(struct ehci_ctrl *ctrl, uint tweaks)
+ 	cmd |= CMD_RUN;
+ 	ehci_writel(&ctrl->hcor->or_usbcmd, cmd);
+ 
+-	if (!(tweaks & EHCI_TWEAK_NO_INIT_CF)) {
+-		/* take control over the ports */
+-		cmd = ehci_readl(&ctrl->hcor->or_configflag);
+-		cmd |= FLAG_CF;
+-		ehci_writel(&ctrl->hcor->or_configflag, cmd);
+-	}
++	/* take control over the ports */
++	cmd = ehci_readl(&ctrl->hcor->or_configflag);
++	cmd |= FLAG_CF;
++	ehci_writel(&ctrl->hcor->or_configflag, cmd);
+ 
+ 	/* unblock posted write */
+ 	cmd = ehci_readl(&ctrl->hcor->or_usbcmd);
+@@ -1096,7 +1094,6 @@ int usb_lowlevel_stop(int index)
+ int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
+ {
+ 	struct ehci_ctrl *ctrl = &ehcic[index];
+-	uint tweaks = 0;
+ 	int rc;
+ 
+ 	/**
+@@ -1122,7 +1119,7 @@ int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
+ 	if (rc)
+ 		return rc;
+ #endif
+-	rc = ehci_common_init(ctrl, tweaks);
++	rc = ehci_common_init(ctrl);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -1638,7 +1634,7 @@ int ehci_register(struct udevice *dev, struct ehci_hccr *hccr,
+ 			goto err;
+ 	}
+ 
+-	ret = ehci_common_init(ctrl, tweaks);
++	ret = ehci_common_init(ctrl);
+ 	if (ret)
+ 		goto err;
+ done:
+diff --git a/drivers/usb/host/ehci.h b/drivers/usb/host/ehci.h
+index 18692b732e..9874de5a71 100644
+--- a/drivers/usb/host/ehci.h
++++ b/drivers/usb/host/ehci.h
+@@ -223,12 +223,6 @@ struct QH {
+ 	};
+ };
+ 
+-/* Tweak flags for EHCI, used to control operation */
+-enum {
+-	/* don't use or_configflag in init */
+-	EHCI_TWEAK_NO_INIT_CF		= 1 << 0,
+-};
+-
+ struct ehci_ctrl;
+ 
+ struct ehci_ops {
+-- 
+2.16.2
+
