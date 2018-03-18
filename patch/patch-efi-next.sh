@@ -16,12 +16,6 @@ git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-get_clu.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
 git am ../patch/0001-net-mvpp2x-add-check-after-calloc.patch
 git am ../patch/0001-wandboard-remove-superfluous-include.patch
-git am ../patch/0001-MAINTAINERS-ARM-FREESCALE-IMX-remove-invalid-path.patch
-git am ../patch/0001-MAINTAINERS-ARM-HISILICON-correct-maintained-path.patch
-git am ../patch/0001-MAINTAINERS-FLATTENED-DEVICE-TREE-correct-maintained.patch
-git am ../patch/0001-MAINTAINERS-ARM-SAMSUNG-remove-invalid-paths.patch
-git am ../patch/0001-MAINTAINERS-ARM-TI-remove-invalid-paths.patch
-git am ../patch/0001-MAINTAINERS-TI-SYSTEM-SECURITY-remove-invalid-file.patch
 git am ../patch/0001-env-typo-in-description-of-ENV_IS_IN_REMOTE.patch
 git am ../patch/0001-bios_emulator-remove-assignment-without-effect.patch
 git am ../patch/0001-i2c-lpi2c-remove-superfluous-assignments.patch
