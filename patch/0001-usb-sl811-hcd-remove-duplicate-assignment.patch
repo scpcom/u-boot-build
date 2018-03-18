@@ -1,0 +1,28 @@
+From c71e66c7d681aaaf6c7d7734a9f1117893671813 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 13:27:44 +0100
+Subject: [PATCH 1/1] usb: sl811-hcd: remove duplicate assignment
+
+Don't make the same assignment twice.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/host/sl811-hcd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/sl811-hcd.c b/drivers/usb/host/sl811-hcd.c
+index b29c67e189..e587895bfc 100644
+--- a/drivers/usb/host/sl811-hcd.c
++++ b/drivers/usb/host/sl811-hcd.c
+@@ -93,7 +93,7 @@ static void inline sl811_write_buf(__u8 offset, __u8 *buf, __u8 size)
+ int usb_init_kup4x (void)
+ {
+ 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
+-	volatile memctl8xx_t *memctl = &immap->im_memctl;
++	volatile memctl8xx_t *memctl;
+ 	int i;
+ 	unsigned char tmp;
+ 
+-- 
+2.16.2
+

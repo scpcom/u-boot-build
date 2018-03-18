@@ -1,0 +1,29 @@
+From 26f0a8f2457be6ae397cfcb09cb5152a78a25e7b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 15:11:51 +0100
+Subject: [PATCH 1/1] video: rk3399_mipi: correct error checking
+
+Pointers are never negative. Use macro IS_ERR() for checking.
+cf. rk3288_mipi.c
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/video/rockchip/rk3399_mipi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/rockchip/rk3399_mipi.c b/drivers/video/rockchip/rk3399_mipi.c
+index 9ef202bf09..7560e0c07b 100644
+--- a/drivers/video/rockchip/rk3399_mipi.c
++++ b/drivers/video/rockchip/rk3399_mipi.c
+@@ -128,7 +128,7 @@ static int rk_mipi_ofdata_to_platdata(struct udevice *dev)
+ 	struct rk_mipi_priv *priv = dev_get_priv(dev);
+ 
+ 	priv->grf = syscon_get_first_range(ROCKCHIP_SYSCON_GRF);
+-	if (priv->grf <= 0) {
++	if (!priv->grf || IS_ERR(priv->grf)) {
+ 		debug("%s: Get syscon grf failed (ret=%p)\n",
+ 		      __func__, priv->grf);
+ 		return  -ENXIO;
+-- 
+2.16.2
+

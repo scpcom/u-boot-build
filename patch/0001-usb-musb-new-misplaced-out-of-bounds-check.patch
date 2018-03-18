@@ -1,0 +1,44 @@
+From f04a5c13a871846ca52159ce32fe6fa9fa4c7dc0 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 14:15:07 +0100
+Subject: [PATCH 1/1] usb: musb-new: misplaced out of bounds check
+
+musb->endpoints[] has array size MUSB_C_NUM_EPS.
+We must check array bounds before accessing the array and not afterwards.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/musb-new/musb_gadget_ep0.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/usb/musb-new/musb_gadget_ep0.c b/drivers/usb/musb-new/musb_gadget_ep0.c
+index 3cfcb2205a..7a249e55a1 100644
+--- a/drivers/usb/musb-new/musb_gadget_ep0.c
++++ b/drivers/usb/musb-new/musb_gadget_ep0.c
+@@ -95,6 +95,11 @@ static int service_tx_status_request(
+ 			break;
+ 		}
+ 
++		if (epnum >= MUSB_C_NUM_EPS || !ep->desc) {
++			handled = -EINVAL;
++			break;
++		}
++
+ 		is_in = epnum & USB_DIR_IN;
+ 		if (is_in) {
+ 			epnum &= 0x0f;
+@@ -104,11 +109,6 @@ static int service_tx_status_request(
+ 		}
+ 		regs = musb->endpoints[epnum].regs;
+ 
+-		if (epnum >= MUSB_C_NUM_EPS || !ep->desc) {
+-			handled = -EINVAL;
+-			break;
+-		}
+-
+ 		musb_ep_select(mbase, epnum);
+ 		if (is_in)
+ 			tmp = musb_readw(regs, MUSB_TXCSR)
+-- 
+2.16.2
+

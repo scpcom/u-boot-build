@@ -1,0 +1,28 @@
+From 3c2c48de3ad10132ba363cba0d44569faf0e983e Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 13:04:05 +0100
+Subject: [PATCH 1/1] usb: gadget: remove duplicate assignment.
+
+We should not make the same assignement twice.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/gadget/composite.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/gadget/composite.c b/drivers/usb/gadget/composite.c
+index d0ee7847b9..7dd1e13b92 100644
+--- a/drivers/usb/gadget/composite.c
++++ b/drivers/usb/gadget/composite.c
+@@ -165,7 +165,7 @@ static int config_buf(struct usb_configuration *config,
+ 	int				len = USB_BUFSIZ - USB_DT_CONFIG_SIZE;
+ 	void				*next = buf + USB_DT_CONFIG_SIZE;
+ 	struct usb_descriptor_header    **descriptors;
+-	struct usb_config_descriptor	*c = buf;
++	struct usb_config_descriptor	*c;
+ 	int				status;
+ 	struct usb_function		*f;
+ 
+-- 
+2.16.2
+

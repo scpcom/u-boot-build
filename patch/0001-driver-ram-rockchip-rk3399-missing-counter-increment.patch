@@ -1,0 +1,30 @@
+From 638f47e01d4b59b65eaa4b0a54803ac40b4c4bfc Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 12:06:13 +0100
+Subject: [RFC 1/1] driver: ram: rockchip: rk3399: missing counter increment
+
+If we want to check the duration we need to increment the counter.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+I do not have the hardware for testing. But the current coding is
+obviously flawed.
+---
+ drivers/ram/rockchip/sdram_rk3399.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/ram/rockchip/sdram_rk3399.c b/drivers/ram/rockchip/sdram_rk3399.c
+index 76c1fe80a7..5cb470c209 100644
+--- a/drivers/ram/rockchip/sdram_rk3399.c
++++ b/drivers/ram/rockchip/sdram_rk3399.c
+@@ -1015,6 +1015,7 @@ static int switch_to_phy_index1(struct dram_info *dram,
+ 	writel(RK_CLRSETBITS(1 << 1, 1 << 1), &dram->cic->cic_ctrl0);
+ 	while (!(readl(&dram->cic->cic_status0) & (1 << 0))) {
+ 		mdelay(10);
++		i++;
+ 		if (i > 10) {
+ 			debug("index1 frequency done overtime\n");
+ 			return -ETIME;
+-- 
+2.16.2
+

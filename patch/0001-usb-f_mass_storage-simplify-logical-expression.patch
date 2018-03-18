@@ -1,0 +1,28 @@
+From 79c7bfc61ea2b773bba0788cc3cf9b1a0182ec6f Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 13:10:29 +0100
+Subject: [PATCH 1/1] usb: f_mass_storage: simplify logical expression
+
+An unsigned int is always >= 0.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/gadget/f_mass_storage.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/gadget/f_mass_storage.c b/drivers/usb/gadget/f_mass_storage.c
+index 1ecb92ac6b..7d7ed4242b 100644
+--- a/drivers/usb/gadget/f_mass_storage.c
++++ b/drivers/usb/gadget/f_mass_storage.c
+@@ -1744,7 +1744,7 @@ static int check_command(struct fsg_common *common, int cmnd_size,
+ 		    common->lun, lun);
+ 
+ 	/* Check the LUN */
+-	if (common->lun >= 0 && common->lun < common->nluns) {
++	if (common->lun < common->nluns) {
+ 		curlun = &common->luns[common->lun];
+ 		if (common->cmnd[0] != SC_REQUEST_SENSE) {
+ 			curlun->sense_data = SS_NO_SENSE;
+-- 
+2.16.2
+

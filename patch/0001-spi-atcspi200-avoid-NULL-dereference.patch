@@ -1,0 +1,35 @@
+From d99d53a1c3923a33086975afcab6d92a460abc63 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 12:32:43 +0100
+Subject: [PATCH 1/1] spi: atcspi200: avoid NULL dereference
+
+For SPI_XFER_BEGIN | SPI_XFER_END the code sets data_out = NULL.
+In the debug statement we should not dereference this value.
+As we do not transfer any data the debug statement is not needed in this
+case anyway.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/spi/atcspi200_spi.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/spi/atcspi200_spi.c b/drivers/spi/atcspi200_spi.c
+index bc08914b9e..2638f2ab25 100644
+--- a/drivers/spi/atcspi200_spi.c
++++ b/drivers/spi/atcspi200_spi.c
+@@ -230,8 +230,10 @@ static int __atcspi200_spi_xfer(struct nds_spi_slave *ns,
+ 			__atcspi200_spi_start(ns);
+ 			break;
+ 		}
+-		debug("spi_xfer: data_out %08X(%p) data_in %08X(%p) data_len %u\n",
+-		      *(uint *)data_out, data_out, *(uint *)data_in, data_in, data_len);
++		if (data_out)
++			debug("spi_xfer: data_out %08X(%p) data_in %08X(%p) data_len %u\n",
++			      *(uint *)data_out, data_out, *(uint *)data_in,
++			      data_in, data_len);
+ 		num_chunks = DIV_ROUND_UP(data_len, max_tran_len);
+ 		din = data_in;
+ 		dout = data_out;
+-- 
+2.16.2
+

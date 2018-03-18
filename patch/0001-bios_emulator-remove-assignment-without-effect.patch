@@ -1,0 +1,27 @@
+From 3c6c2db6bce71d810d657e39130314d213f7d6ac Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 10:56:37 +0100
+Subject: [PATCH 1/1] bios_emulator: remove assignment without effect
+
+Assigning a parameter which is not used afterwards has not effect.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/bios_emulator/atibios.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/bios_emulator/atibios.c b/drivers/bios_emulator/atibios.c
+index 2d5b5dc562..545ccd6f1e 100644
+--- a/drivers/bios_emulator/atibios.c
++++ b/drivers/bios_emulator/atibios.c
+@@ -602,7 +602,6 @@ int biosemu_run(pci_dev_t pcidev, uchar *bios_rom, int bios_len,
+ 		    (ulong)(vga_info->BIOSImage) != 0xc0000)
+ 			free(vga_info->BIOSImage);
+ 		free(vga_info);
+-		vga_info = NULL;
+ 	}
+ 
+ 	return 0;
+-- 
+2.16.2
+

@@ -1,0 +1,29 @@
+From d27f20d7f96ccb3b6637ba97ce66bcdcfef9bb0f Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 13:23:58 +0100
+Subject: [PATCH 1/1] usb: ehci-farady: remove redundant assignment
+
+Assigning a value to ret if it is immediately overwritten does not make
+sense.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/host/ehci-faraday.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/ehci-faraday.c b/drivers/usb/host/ehci-faraday.c
+index 821222cc5d..80a06bb2c0 100644
+--- a/drivers/usb/host/ehci-faraday.c
++++ b/drivers/usb/host/ehci-faraday.c
+@@ -36,7 +36,7 @@ void faraday_ehci_set_usbmode(struct ehci_ctrl *ctrl)
+ 
+ int faraday_ehci_get_port_speed(struct ehci_ctrl *ctrl, uint32_t reg)
+ {
+-	int spd, ret = PORTSC_PSPD_HS;
++	int spd, ret;
+ 	union ehci_faraday_regs *regs;
+ 
+ 	ret = (void __iomem *)((ulong)ctrl->hcor - 0x10);
+-- 
+2.16.2
+

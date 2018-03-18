@@ -1,0 +1,28 @@
+From a577298a429b9a5e771716ee7fdf7a871e4993c7 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 14:29:22 +0100
+Subject: [PATCH 1/1] video: stb_truetype: simplify expression
+
+Eliminate (x2 - x2) which is always zero.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/video/stb_truetype.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/stb_truetype.h b/drivers/video/stb_truetype.h
+index 26e483cf56..5d00bff9fd 100644
+--- a/drivers/video/stb_truetype.h
++++ b/drivers/video/stb_truetype.h
+@@ -1993,7 +1993,7 @@ static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill,
+ 
+                STBTT_assert(fabs(area) <= 1.01f);
+ 
+-               scanline[x2] += area + sign * (1-((x2-x2)+(x_bottom-x2))/2) * (sy1-y_crossing);
++               scanline[x2] += area + sign * (1-(x_bottom-x2)/2) * (sy1-y_crossing);
+ 
+                scanline_fill[x2] += sign * (sy1-sy0);
+             }
+-- 
+2.16.2
+

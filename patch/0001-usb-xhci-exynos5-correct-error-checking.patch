@@ -1,0 +1,29 @@
+From 22ae1b4479cc60ab1f1e15278caca53ece0695ed Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 13:47:02 +0100
+Subject: [PATCH 1/1] usb: xhci-exynos5: correct error checking
+
+If fdtdec_next_compatible_subnode() fails it returns a negative value.
+The check (node <= 0) cannot identify this if node is unsigned.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/host/xhci-exynos5.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci-exynos5.c b/drivers/usb/host/xhci-exynos5.c
+index 6f08d5d5a2..4cbfbdee3d 100644
+--- a/drivers/usb/host/xhci-exynos5.c
++++ b/drivers/usb/host/xhci-exynos5.c
+@@ -55,7 +55,7 @@ static int xhci_usb_ofdata_to_platdata(struct udevice *dev)
+ {
+ 	struct exynos_xhci_platdata *plat = dev_get_platdata(dev);
+ 	const void *blob = gd->fdt_blob;
+-	unsigned int node;
++	int node;
+ 	int depth;
+ 
+ 	/*
+-- 
+2.16.2
+

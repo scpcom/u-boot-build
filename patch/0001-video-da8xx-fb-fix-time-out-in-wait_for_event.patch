@@ -1,0 +1,32 @@
+From 75b2fe988198d84c13e30976be84d563ec545967 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 14:41:01 +0100
+Subject: [PATCH 1/1] video, da8xx-fb: fix time out in wait_for_event()
+
+If an event does not occur the current coding stays in an endless loop.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/video/da8xx-fb.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 6ec4f89e34..26db73b138 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -853,9 +853,10 @@ static u32 wait_for_event(u32 event)
+ 	do {
+ 		ret = lcdc_irq_handler();
+ 		udelay(1000);
+-	} while (!(ret & event));
++		--timeout;
++	} while (!(ret & event) && timeout);
+ 
+-	if (timeout <= 0) {
++	if (!(ret & event)) {
+ 		printf("%s: event %d not hit\n", __func__, event);
+ 		return -1;
+ 	}
+-- 
+2.16.2
+

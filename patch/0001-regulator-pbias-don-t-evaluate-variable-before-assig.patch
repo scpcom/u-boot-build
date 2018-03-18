@@ -1,0 +1,40 @@
+From 367a26f59d62391e290f2d858b6df011dddae0a0 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 11:57:32 +0100
+Subject: [PATCH 1/1] regulator: pbias: don't evaluate variable before
+ assignment
+
+We should not evaluate the value of reg before its value is set.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/power/regulator/pbias_regulator.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/power/regulator/pbias_regulator.c b/drivers/power/regulator/pbias_regulator.c
+index 116b7f480a..adf589b224 100644
+--- a/drivers/power/regulator/pbias_regulator.c
++++ b/drivers/power/regulator/pbias_regulator.c
+@@ -225,9 +225,6 @@ static int pbias_regulator_set_value(struct udevice *dev, int uV)
+ 	int rc;
+ 	u32 reg;
+ 
+-	debug("Setting %s voltage to %s\n", p->name,
+-	      (reg & p->vmode) ? "3.0v" : "1.8v");
+-
+ 	rc = pmic_read(dev->parent, 0, (uint8_t *)&reg, sizeof(reg));
+ 	if (rc)
+ 		return rc;
+@@ -239,6 +236,9 @@ static int pbias_regulator_set_value(struct udevice *dev, int uV)
+ 	else
+ 		return -EINVAL;
+ 
++	debug("Setting %s voltage to %s\n", p->name,
++	      (reg & p->vmode) ? "3.0v" : "1.8v");
++
+ 	return pmic_write(dev->parent, 0, (uint8_t *)&reg, sizeof(reg));
+ }
+ 
+-- 
+2.16.2
+

@@ -1,0 +1,28 @@
+From d45ea3f5484604fa74462be66a0876b46edb9c4d Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 14:06:43 +0100
+Subject: [PATCH 1/1] usb: musb: remove superfluous assignment
+
+Setting ret = -EINVAL is superfluous.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/musb-new/musb_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/musb-new/musb_core.c b/drivers/usb/musb-new/musb_core.c
+index 79e118ef85..19c072a67e 100644
+--- a/drivers/usb/musb-new/musb_core.c
++++ b/drivers/usb/musb-new/musb_core.c
+@@ -1691,7 +1691,7 @@ musb_mode_show(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct musb *musb = dev_to_musb(dev);
+ 	unsigned long flags;
+-	int ret = -EINVAL;
++	int ret;
+ 
+ 	spin_lock_irqsave(&musb->lock, flags);
+ 	ret = sprintf(buf, "%s\n", otg_state_string(musb->xceiv->state));
+-- 
+2.16.2
+

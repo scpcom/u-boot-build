@@ -1,0 +1,28 @@
+From b11a037db4a1848c323648c2d1ffe0e92f4a5821 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 12:49:51 +0100
+Subject: [PATCH 1/1] spi: lpc32xx: simplify logical expression
+
+A & A & B == A & B
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/spi/lpc32xx_ssp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/spi/lpc32xx_ssp.c b/drivers/spi/lpc32xx_ssp.c
+index e2a593b934..b8bce3d6e8 100644
+--- a/drivers/spi/lpc32xx_ssp.c
++++ b/drivers/spi/lpc32xx_ssp.c
+@@ -130,7 +130,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
+ 		int status = readl(&lslave->regs->sr);
+ 		if ((idx_out < bytelen) && (status & SSP_SR_TNF))
+ 			writel(((u8 *)dout)[idx_out++], &lslave->regs->data);
+-		if ((idx_in < bytelen) && (status & status & SSP_SR_RNE))
++		if ((idx_in < bytelen) && (status & SSP_SR_RNE))
+ 			((u8 *)din)[idx_in++] = readl(&lslave->regs->data);
+ 		if (get_timer(start_time) >= CONFIG_LPC32XX_SSP_TIMEOUT)
+ 			return -1;
+-- 
+2.16.2
+

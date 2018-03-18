@@ -1,0 +1,31 @@
+From 9e863e3902c14ba941c6c6e45bf08e392c4083d6 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 13:54:08 +0100
+Subject: [PATCH 1/1] usb: xhci-keystone: remove superfluous assignment
+
+There is no need to set variables to NULL if they are not used before
+the next assignment.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/host/xhci-keystone.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/xhci-keystone.c b/drivers/usb/host/xhci-keystone.c
+index f322a803fe..1a3dcf5edb 100644
+--- a/drivers/usb/host/xhci-keystone.c
++++ b/drivers/usb/host/xhci-keystone.c
+@@ -154,8 +154,8 @@ static int keystone_xhci_phy_suspend(void)
+ {
+ 	int loop_cnt = 0;
+ 	struct xhci_hcor *hcor;
+-	uint32_t *portsc_1 = NULL;
+-	uint32_t *portsc_2 = NULL;
++	uint32_t *portsc_1;
++	uint32_t *portsc_2;
+ 	u32 val, usb2_pls, usb3_pls, event_q;
+ 	struct dwc3 *dwc3_reg = keystone.dwc3_reg;
+ 
+-- 
+2.16.2
+

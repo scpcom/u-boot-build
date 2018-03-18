@@ -1,0 +1,30 @@
+From 481eeb31f87505096ae46512299e7a972302901b Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 14:02:26 +0100
+Subject: [PATCH 1/1] usb: xhci: remove superfluous assignment
+
+There is not need to set variables to NULL before an assignment.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/usb/host/xhci.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index 4673738d1e..7e3c373e64 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -544,8 +544,8 @@ static int xhci_set_configuration(struct usb_device *udev)
+ 
+ 	/* filling up ep contexts */
+ 	for (cur_ep = 0; cur_ep < num_of_ep; cur_ep++) {
+-		struct usb_endpoint_descriptor *endpt_desc = NULL;
+-		struct usb_ss_ep_comp_descriptor *ss_ep_comp_desc = NULL;
++		struct usb_endpoint_descriptor *endpt_desc;
++		struct usb_ss_ep_comp_descriptor *ss_ep_comp_desc;
+ 
+ 		endpt_desc = &ifdesc->ep_desc[cur_ep];
+ 		ss_ep_comp_desc = &ifdesc->ss_ep_comp_desc[cur_ep];
+-- 
+2.16.2
+

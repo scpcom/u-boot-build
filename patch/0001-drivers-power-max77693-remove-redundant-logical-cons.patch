@@ -1,0 +1,30 @@
+From cdff5062f90641a2a7e78549d3d42ded80fd30f7 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 11:49:33 +0100
+Subject: [PATCH 1/1] drivers:power:max77693: remove redundant logical
+ constraint
+
+As ret is not set when calling max77693_get_vcell() there is no
+need to check ret again.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ drivers/power/mfd/fg_max77693.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/power/mfd/fg_max77693.c b/drivers/power/mfd/fg_max77693.c
+index df1550816e..a1407318ef 100644
+--- a/drivers/power/mfd/fg_max77693.c
++++ b/drivers/power/mfd/fg_max77693.c
+@@ -60,8 +60,6 @@ static int power_update_battery(struct pmic *p, struct pmic *bat)
+ 		return ret;
+ 
+ 	max77693_get_vcell(&pb->bat->voltage_uV);
+-	if (ret)
+-		return ret;
+ 
+ 	return 0;
+ }
+-- 
+2.16.2
+

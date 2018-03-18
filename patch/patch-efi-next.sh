@@ -23,9 +23,37 @@ git am ../patch/0001-MAINTAINERS-ARM-SAMSUNG-remove-invalid-paths.patch
 git am ../patch/0001-MAINTAINERS-ARM-TI-remove-invalid-paths.patch
 git am ../patch/0001-MAINTAINERS-TI-SYSTEM-SECURITY-remove-invalid-file.patch
 git am ../patch/0001-env-typo-in-description-of-ENV_IS_IN_REMOTE.patch
+git am ../patch/0001-bios_emulator-remove-assignment-without-effect.patch
+git am ../patch/0001-i2c-lpi2c-remove-superfluous-assignments.patch
+git am ../patch/0001-drivers-net-cpsw-remove-superfluous-assignment.patch
+git am ../patch/0001-net-macb-remove-superfluous-logical-constraint.patch
+git am ../patch/0001-drivers-power-max77693-remove-redundant-logical-cons.patch
+git am ../patch/0001-regulator-pbias-don-t-evaluate-variable-before-assig.patch
+git am ../patch/0001-driver-ram-rockchip-rk3399-missing-counter-increment.patch
+git am ../patch/0001-spi-atcspi200-avoid-NULL-dereference.patch
+git am ../patch/0001-spi-fsl_qspi-remove-superfluous-assignment.patch
+git am ../patch/0001-spi-lpc32xx-simplify-logical-expression.patch
+git am ../patch/0001-usb-dwc3-remove-superfluous-assignment.patch
+git am ../patch/0001-usb-gadget-remove-duplicate-assignment.patch
+git am ../patch/0001-usb-f_mass_storage-simplify-logical-expression.patch
+git am ../patch/0001-usb-rockchip-remove-duplicate-assignement.patch
+git am ../patch/0001-usb-ehci-farady-remove-redundant-assignment.patch
+git am ../patch/0001-usb-sl811-hcd-remove-duplicate-assignment.patch
+git am ../patch/0001-usb-xhci-exynos5-correct-error-checking.patch
+git am ../patch/0001-usb-xhci-keystone-remove-superfluous-assignment.patch
+git am ../patch/0001-usb-xhci-ring-remove-superfluous-assignment.patch
+git am ../patch/0001-usb-xhci-remove-superfluous-assignment.patch
+git am ../patch/0001-usb-musb-remove-superfluous-assignment.patch
+git am ../patch/0001-usb-musb-new-misplaced-out-of-bounds-check.patch
+git am ../patch/0001-video-stb_truetype-simplify-expression.patch
+git am ../patch/0001-video-da8xx-fb-fix-time-out-in-wait_for_event.patch
+git am ../patch/0001-video-exynos-remove-redundant-assignments.patch
+git am ../patch/0001-video-rk3399_mipi-correct-error-checking.patch
+git am ../patch/0001-video-rk3288_mipi-check-in-rk_mipi_ofdata_to_platdat.patch
 
 # Video console
 git am ../patch/0001-video-if-EFI_LOADER-is-enabled-enable-CFB_CONSOLE_AN.patch
+git am ../patch/0001-video-cfb_console-simplify-logical-constraint.patch
 
 # USB keyboard
 git am ../patch/0001-usb-proper-error-handling-for-circular-buffer.patch
