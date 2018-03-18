@@ -1,0 +1,32 @@
+From 70b99f158ab6444b0400a3e0a01e0599f0e1b214 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 23:05:14 +0100
+Subject: [PATCH v2 1/1] lib/slre: remove superfluous assignment
+
+It makes no sense to assign a value to 'res' if the next use of the
+variable is an assignment.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+v2
+	correct commit message
+---
+ lib/slre.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/lib/slre.c b/lib/slre.c
+index e26d344865..969c46a859 100644
+--- a/lib/slre.c
++++ b/lib/slre.c
+@@ -703,8 +703,6 @@ int main(int argc, char *argv[])
+ 
+ 		(void) memset(caps, 0, sizeof(caps));
+ 
+-		res = 0;
+-
+ 		res = slre_match(&slre, data, len, caps);
+ 		printf("Result [%d]: %d\n", i, res);
+ 
+-- 
+2.16.2
+

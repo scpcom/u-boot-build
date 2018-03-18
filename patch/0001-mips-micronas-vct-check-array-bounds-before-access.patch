@@ -1,0 +1,36 @@
+From b4fb94ff67bb2f75a9b2cac0aa493441b3f2b7b5 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 23:31:48 +0100
+Subject: [PATCH 1/1] mips: micronas/vct: check array bounds before access
+
+If we check an index against array bounds, we should do so before
+accessing the array and not afterwards.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ board/micronas/vct/scc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/board/micronas/vct/scc.c b/board/micronas/vct/scc.c
+index 0d33cc4c28..8dbf4100e7 100644
+--- a/board/micronas/vct/scc.c
++++ b/board/micronas/vct/scc.c
+@@ -524,12 +524,14 @@ int scc_setup_dma(enum scc_id id, u32 buffer_tag,
+ 	struct scc_dma_state *dma_state;
+ 	int return_value = 0;
+ 	union scc_dma_cfg dma_cfg;
+-	u32 *buffer_tag_list = scc_descriptor_table[id].buffer_tag_list;
++	u32 *buffer_tag_list;
+ 	u32 tag_count, t, t_valid;
+ 
+ 	if ((id >= SCC_MAX) || (id < 0))
+ 		return -EINVAL;
+ 
++	buffer_tag_list = scc_descriptor_table[id].buffer_tag_list;
++
+ 	/* if the register is only configured by hw, cannot write! */
+ 	if (1 == scc_descriptor_table[id].hw_dma_cfg)
+ 		return -EACCES;
+-- 
+2.16.2
+
