@@ -1,0 +1,266 @@
+From e8fb6ba3118c85b1f6969c7ffd823fe09cbb59f6 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sun, 18 Mar 2018 09:33:56 +0100
+Subject: [PATCH 1/1] Travis: test only SUNXI
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ .travis.yml | 238 +-----------------------------------------------------------
+ 1 file changed, 1 insertion(+), 237 deletions(-)
+
+diff --git a/.travis.yml b/.travis.yml
+index 7b53b3dddc..7d94125a42 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -144,48 +144,6 @@ matrix:
+   include:
+   # we need to build by vendor due to 50min time limit for builds
+   # each env setting here is a dedicated build
+-    - env:
+-        - BUILDMAN="arc"
+-          TOOLCHAIN="arc"
+-    - env:
+-        - BUILDMAN="arm11"
+-    - env:
+-        - BUILDMAN="arm7"
+-    - env:
+-        - BUILDMAN="arm920t"
+-    - env:
+-        - JOB="arm926ejs"
+-          BUILDMAN="arm926ejs -x mx,siemens,atmel"
+-    - env:
+-        - BUILDMAN="arm946es"
+-    - env:
+-        - BUILDMAN="atmel"
+-    - env:
+-        - BUILDMAN="aries"
+-    - env:
+-        - JOB="Boundary Devices"
+-          BUILDMAN="boundary"
+-    - env:
+-        - JOB="engicam"
+-          BUILDMAN="engicam"
+-    - env:
+-        - JOB="Freescale ARM32"
+-          BUILDMAN="freescale -x powerpc,m68k,aarch64"
+-    - env:
+-        - JOB="Freescale AArch64"
+-          BUILDMAN="freescale&aarch64"
+-    - env:
+-        - JOB="i.MX6 (non-Freescale)"
+-          BUILDMAN="mx6 -x freescale,toradex,boundary,engicam"
+-    - env:
+-        - JOB="i.MX (non-Freescale, non-i.MX6)"
+-          BUILDMAN="mx -x freescale,mx6,toradex"
+-    - env:
+-        - BUILDMAN="k2"
+-    - env:
+-        - BUILDMAN="samsung"
+-    - env:
+-        - BUILDMAN="socfpga"
+     - env:
+         - BUILDMAN="sun4i"
+     - env:
+@@ -202,198 +160,4 @@ matrix:
+         - BUILDMAN="sun50i"
+     - env:
+         - JOB="Catch-all ARM"
+-          BUILDMAN="arm -x arm11,arm7,arm9,aarch64,atmel,aries,freescale,kirkwood,mvebu,siemens,tegra,uniphier,mx,samsung,sunxi,am33xx,omap3,omap4,omap5,pxa,rockchip,toradex,socfpga,k2,xilinx"
+-    - env:
+-        - BUILDMAN="sandbox x86"
+-          TOOLCHAIN="x86_64"
+-    - env:
+-        - BUILDMAN="toradex"
+-    - env:
+-        - BUILDMAN="kirkwood"
+-    - env:
+-        - BUILDMAN="mvebu"
+-    - env:
+-        - JOB="PXA"
+-        - BUILDMAN="pxa -x toradex"
+-    - env:
+-        - BUILDMAN="m68k"
+-          TOOLCHAIN="m68k"
+-    - env:
+-        - BUILDMAN="microblaze"
+-          TOOLCHAIN="microblaze"
+-    - env:
+-        - BUILDMAN="mips"
+-          TOOLCHAIN="mips"
+-    - env:
+-        - BUILDMAN="mpc83xx"
+-    - env:
+-        - BUILDMAN="mpc85xx -x freescale"
+-    - env:
+-        - BUILDMAN="mpc85xx -x t208xrdb -x t4qds -x t102* -x p1_p2_rdb_pc -x p1010rdb -x corenet_ds -x b4860qds -x sbc8548 -x bsc91*"
+-    - env:
+-        - BUILDMAN="t208xrdb"
+-    - env:
+-        - BUILDMAN="t4qds"
+-    - env:
+-        - BUILDMAN="t102*"
+-    - env:
+-        - BUILDMAN="p1_p2_rdb_pc"
+-    - env:
+-        - BUILDMAN="p1010rdb"
+-    - env:
+-        - BUILDMAN="corenet_ds b4860qds sbc8548 bsc91*"
+-    - env:
+-        - BUILDMAN="mpc86xx"
+-    - env:
+-        - BUILDMAN="mpc8xx"
+-    - env:
+-        - BUILDMAN="siemens"
+-    - env:
+-        - JOB="tegra"
+-          BUILDMAN="tegra -x toradex"
+-    - env:
+-        - JOB="am33xx"
+-          BUILDMAN="am33xx -x siemens"
+-    - env:
+-        - BUILDMAN="omap3"
+-    - env:
+-        - BUILDMAN="omap4"
+-    - env:
+-        - BUILDMAN="omap5"
+-    - env:
+-        - BUILDMAN="uniphier"
+-    - env:
+-        - JOB="aarch64"
+-          BUILDMAN="aarch64 -x tegra,freescale,mvebu,uniphier,sunxi,samsung,rockchip"
+-    - env:
+-        - BUILDMAN="rockchip"
+-    - env:
+-        - BUILDMAN="sh4"
+-          TOOLCHAIN="sh4"
+-    - env:
+-        - JOB="Xilinx (ARM)"
+-          BUILDMAN="xilinx -x microblaze"
+-    - env:
+-        - BUILDMAN="xtensa"
+-          TOOLCHAIN="xtensa-dc233c-elf"
+-    - env:
+-        - BUILDMAN="riscv"
+-          TOOLCHAIN="riscv"
+-
+-    # QA jobs for code analytics
+-    # static code analysis with cppcheck (we can add --enable=all later)
+-    - env:
+-        - JOB="cppcheck"
+-      script:
+-        - cppcheck --force --quiet --inline-suppr .
+-    # search for TODO within source tree
+-    - env:
+-        - JOB="grep TODO"
+-      script:
+-        - grep -r TODO .
+-    # search for FIXME within source tree
+-    - env:
+-        - JOB="grep FIXME HACK"
+-      script:
+-        - grep -r FIXME .
+-    # search for HACK within source tree and ignore HACKKIT board
+-      script:
+-        - grep -r HACK . | grep -v HACKKIT
+-    # some statistics about the code base
+-    - env:
+-        - JOB="sloccount"
+-      script:
+-        - sloccount .
+-
+-    # test/py
+-    - env:
+-        - TEST_PY_BD="sandbox"
+-          BUILDMAN="^sandbox$"
+-          TOOLCHAIN="x86_64"
+-    - env:
+-        - TEST_PY_BD="sandbox_spl"
+-          TEST_PY_TEST_SPEC="test_ofplatdata"
+-          BUILDMAN="^sandbox$"
+-          TOOLCHAIN="x86_64"
+-          TEST_PY_TOOLS="yes"
+-    - env:
+-        - TEST_PY_BD="sandbox_flattree"
+-          BUILDMAN="^sandbox_flattree$"
+-          TOOLCHAIN="x86_64"
+-    - env:
+-        - TEST_PY_BD="vexpress_ca15_tc2"
+-          TEST_PY_ID="--id qemu"
+-          QEMU_TARGET="arm-softmmu"
+-          BUILDMAN="^vexpress_ca15_tc2$"
+-    - env:
+-        - TEST_PY_BD="vexpress_ca9x4"
+-          TEST_PY_ID="--id qemu"
+-          QEMU_TARGET="arm-softmmu"
+-          BUILDMAN="^vexpress_ca9x4$"
+-    - env:
+-        - TEST_PY_BD="integratorcp_cm926ejs"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          TEST_PY_ID="--id qemu"
+-          QEMU_TARGET="arm-softmmu"
+-          BUILDMAN="^integratorcp_cm926ejs$"
+-    - env:
+-        - TEST_PY_BD="qemu_arm"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="arm-softmmu"
+-          BUILDMAN="^qemu_arm$"
+-    - env:
+-        - TEST_PY_BD="qemu_arm64"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="aarch64-softmmu"
+-          BUILDMAN="^qemu_arm64$"
+-    - env:
+-        - TEST_PY_BD="qemu_mips"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="mips-softmmu"
+-          BUILDMAN="^qemu_mips$"
+-          TOOLCHAIN="mips"
+-    - env:
+-        - TEST_PY_BD="qemu_mipsel"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="mipsel-softmmu"
+-          BUILDMAN="^qemu_mipsel$"
+-          TOOLCHAIN="mips"
+-    - env:
+-        - TEST_PY_BD="qemu_mips64"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="mips64-softmmu"
+-          BUILDMAN="^qemu_mips64$"
+-          TOOLCHAIN="mips"
+-    - env:
+-        - TEST_PY_BD="qemu_mips64el"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="mips64el-softmmu"
+-          BUILDMAN="^qemu_mips64el$"
+-          TOOLCHAIN="mips"
+-    - env:
+-        - TEST_PY_BD="qemu-ppce500"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="ppc-softmmu"
+-          BUILDMAN="^qemu-ppce500$"
+-    - env:
+-        - TEST_PY_BD="qemu-x86"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="i386-softmmu"
+-          BUILDMAN="^qemu-x86$"
+-          TOOLCHAIN="x86_64"
+-          BUILD_ROM="yes"
+-    - env:
+-        - TEST_PY_BD="zynq_zc702"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="arm-softmmu"
+-          TEST_PY_ID="--id qemu"
+-          BUILDMAN="^zynq_zc702$"
+-    - env:
+-        - TEST_PY_BD="xtfpga"
+-          TEST_PY_TEST_SPEC="not sleep"
+-          QEMU_TARGET="xtensa-softmmu"
+-          TEST_PY_ID="--id qemu"
+-          BUILDMAN="^xtfpga$"
+-          TOOLCHAIN="xtensa-dc233c-elf"
+-
+-# TODO make it perfect ;-r
++          BUILDMAN="sunxi"
+-- 
+2.16.2
+
