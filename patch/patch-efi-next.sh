@@ -37,7 +37,6 @@ git am ../patch/0001-usb-dwc3-remove-superfluous-assignment.patch
 git am ../patch/0001-usb-gadget-remove-duplicate-assignment.patch
 git am ../patch/0001-usb-f_mass_storage-simplify-logical-expression.patch
 git am ../patch/0001-usb-rockchip-remove-duplicate-assignement.patch
-git am ../patch/0001-usb-ehci-farady-remove-redundant-assignment.patch
 git am ../patch/0001-usb-sl811-hcd-remove-duplicate-assignment.patch
 git am ../patch/0001-usb-xhci-exynos5-correct-error-checking.patch
 git am ../patch/0001-usb-xhci-keystone-remove-superfluous-assignment.patch
@@ -50,6 +49,7 @@ git am ../patch/0001-video-da8xx-fb-fix-time-out-in-wait_for_event.patch
 git am ../patch/0001-video-exynos-remove-redundant-assignments.patch
 git am ../patch/0001-video-rk3399_mipi-correct-error-checking.patch
 git am ../patch/0001-video-rk3288_mipi-check-in-rk_mipi_ofdata_to_platdat.patch
+git am ../patch/add 0001-usb-ehci-faraday-remove-unused-driver.patch
 
 # Video console
 git am ../patch/0001-video-if-EFI_LOADER-is-enabled-enable-CFB_CONSOLE_AN.patch
