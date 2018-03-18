@@ -13,8 +13,8 @@ index 9303f89bb4..c682279ce4 100644
 --- a/configs/vexpress_ca15_tc2_defconfig
 +++ b/configs/vexpress_ca15_tc2_defconfig
 @@ -25,3 +25,4 @@ CONFIG_SMC911X_BASE=0x1a000000
- CONFIG_SMC911X_32_BIT=y
  CONFIG_BAUDRATE=38400
+ CONFIG_CONS_INDEX=0
  CONFIG_OF_LIBFDT=y
 +CONFIG_CMD_BOOTEFI_SELFTEST=y
 -- 
