@@ -1,0 +1,30 @@
+From 51bdae24405364f5af82dbcb39fa60010a98c3f9 Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Fri, 23 Mar 2018 21:07:54 +0100
+Subject: [PATCH 1/1] log: fix typo LOGL_EFI
+
+According to the documentation the EFI log category is called LOGC_EFI.
+All other categories start with LOGC_. So let's fix it.
+
+Fixes: 1973b381a1b3 ("log: add category LOGC_EFI")
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ include/log.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/log.h b/include/log.h
+index 20dc5289c7..3cf08de6d0 100644
+--- a/include/log.h
++++ b/include/log.h
+@@ -46,7 +46,7 @@ enum log_category_t {
+ 	LOGC_CORE,
+ 	LOGC_DM,	/* Core driver-model */
+ 	LOGC_DT,	/* Device-tree */
+-	LOGL_EFI,	/* EFI implementation */
++	LOGC_EFI,	/* EFI implementation */
+ 
+ 	LOGC_COUNT,
+ 	LOGC_END,
+-- 
+2.16.2
+
