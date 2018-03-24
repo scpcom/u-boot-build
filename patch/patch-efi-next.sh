@@ -62,6 +62,9 @@ git am ../patch/0001-efi_loader-Optimize-GOP-switch.patch
 git am ../patch/0001-efi_loader-Optimize-GOP-more.patch
 git am ../patch/0001-efi_loader-use-__always_inline-for-pixel-conversion.patch
 
+# Events
+git am ../patch/0001-efi_loader-RestoreTPL-should-execute-queued-events.patch
+
 exit
 # From Simon's Sandbox support series
 git am ../patch/0001-sandbox-set-available-memory-address.patch

@@ -1,0 +1,36 @@
+From f67bbc66d4e70682e6315d1fac039a67e6b7bc3c Mon Sep 17 00:00:00 2001
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Date: Sat, 24 Mar 2018 17:50:41 +0100
+Subject: [PATCH 1/1] efi_loader: RestoreTPL should execute queued events
+
+When the TPL is lowered queued events may become eligible for execution.
+
+iPXE uses the following pattern to request event execution:
+
+	bs->RestoreTPL ( TPL_APPLICATION );
+	bs->RaiseTPL ( TPL_CALLBACK );
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+---
+ lib/efi_loader/efi_boottime.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/lib/efi_loader/efi_boottime.c b/lib/efi_loader/efi_boottime.c
+index 1ff0568d47..89d97326a8 100644
+--- a/lib/efi_loader/efi_boottime.c
++++ b/lib/efi_loader/efi_boottime.c
+@@ -277,6 +277,11 @@ static void EFIAPI efi_restore_tpl(efi_uintn_t old_tpl)
+ 	efi_tpl = old_tpl;
+ 	if (efi_tpl > TPL_HIGH_LEVEL)
+ 		efi_tpl = TPL_HIGH_LEVEL;
++ 
++ 	/*
++	 * Lowering the TPL may have made queued events eligible for execution.
++	 */
++	efi_timer_check();
+ 
+ 	EFI_EXIT(EFI_SUCCESS);
+ }
+-- 
+2.14.2
+
