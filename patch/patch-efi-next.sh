@@ -15,13 +15,10 @@ git am ../patch/0001-ubifs-avoid-possible-NULL-dereference.patch
 git am ../patch/0001-mmc-avoid-division-by-zero-in-meson_mmc_config_clock.patch
 git am ../patch/0001-fs-fat-avoid-useless-conversion-when-calling-get_clu.patch
 git am ../patch/0001-fs-fat-avoid-superfluous-conversion-calling-set_clus.patch
-git am ../patch/0001-net-mvpp2x-add-check-after-calloc.patch
 git am ../patch/0001-wandboard-remove-superfluous-include.patch
 git am ../patch/0001-env-typo-in-description-of-ENV_IS_IN_REMOTE.patch
 git am ../patch/0001-bios_emulator-remove-assignment-without-effect.patch
 git am ../patch/0001-i2c-lpi2c-remove-superfluous-assignments.patch
-git am ../patch/0001-drivers-net-cpsw-remove-superfluous-assignment.patch
-git am ../patch/0001-net-macb-remove-superfluous-logical-constraint.patch
 git am ../patch/0001-drivers-power-max77693-remove-redundant-logical-cons.patch
 git am ../patch/0001-regulator-pbias-don-t-evaluate-variable-before-assig.patch
 git am ../patch/0001-driver-ram-rockchip-rk3399-missing-counter-increment.patch
@@ -39,19 +36,14 @@ git am ../patch/0001-usb-xhci-ring-remove-superfluous-assignment.patch
 git am ../patch/0001-usb-xhci-remove-superfluous-assignment.patch
 git am ../patch/0001-usb-musb-remove-superfluous-assignment.patch
 git am ../patch/0001-usb-musb-new-misplaced-out-of-bounds-check.patch
-git am ../patch/0001-video-stb_truetype-simplify-expression.patch
-git am ../patch/0001-video-da8xx-fb-fix-time-out-in-wait_for_event.patch
-git am ../patch/0001-video-exynos-remove-redundant-assignments.patch
 git am ../patch/0001-video-rk3399_mipi-correct-error-checking.patch
 git am ../patch/0001-video-rk3288_mipi-check-in-rk_mipi_ofdata_to_platdat.patch
 git am ../patch/0001-usb-ehci-faraday-remove-unused-driver.patch
 git am ../patch/0001-usb-ehci-hcd-eliminate-tweaks-used-for-faraday.patch
 git am ../patch/0001-lib-slre-remove-superfluous-assignment.patch
-git am ../patch/0001-mips-micronas-vct-check-array-bounds-before-access.patch
 
 # Video console
 git am ../patch/0001-video-if-EFI_LOADER-is-enabled-enable-CFB_CONSOLE_AN.patch
-git am ../patch/0001-video-cfb_console-simplify-logical-constraint.patch
 
 # USB keyboard
 git am ../patch/0001-usb-proper-error-handling-for-circular-buffer.patch
