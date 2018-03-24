@@ -13,6 +13,8 @@ Reported-by: Vagrant Cascadian <vagrant@debian.org>
 Suggested-by: Jaehoon Chung <jh80.chung@samsung.com>
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 ---
+Resent due to missing cc u-boot@lists.denx.de.
+---
  drivers/mmc/meson_gx_mmc.c | 3 +++
  1 file changed, 3 insertions(+)
 
