@@ -1,7 +1,7 @@
 From f67bbc66d4e70682e6315d1fac039a67e6b7bc3c Mon Sep 17 00:00:00 2001
 From: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Date: Sat, 24 Mar 2018 17:50:41 +0100
-Subject: [PATCH 1/1] efi_loader: RestoreTPL should execute queued events
+Subject: [PATCH 1/2] efi_loader: RestoreTPL should execute queued events
 
 When the TPL is lowered queued events may become eligible for execution.
 
@@ -23,8 +23,8 @@ index 1ff0568d47..89d97326a8 100644
  	efi_tpl = old_tpl;
  	if (efi_tpl > TPL_HIGH_LEVEL)
  		efi_tpl = TPL_HIGH_LEVEL;
-+ 
-+ 	/*
++
++	/*
 +	 * Lowering the TPL may have made queued events eligible for execution.
 +	 */
 +	efi_timer_check();

@@ -64,6 +64,7 @@ git am ../patch/0001-efi_loader-use-__always_inline-for-pixel-conversion.patch
 
 # Events
 git am ../patch/0001-efi_loader-RestoreTPL-should-execute-queued-events.patch
+git am ../patch/0001-efi_loader-use-TPL_NOTIFY-for-network-timer-event.patch
 
 exit
 # From Simon's Sandbox support series
