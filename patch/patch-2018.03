@@ -1,2 +1,4 @@
 #!/bin/sh
 git am ../patch/0001-mmc-avoid-division-by-zero-in-meson_mmc_config_clock.patch
+git am ../patch/0001-efi_loader-RestoreTPL-should-execute-queued-events.patch
+git am ../patch/0001-efi_loader-use-TPL_NOTIFY-for-network-timer-event.patch
