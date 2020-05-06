@@ -1,7 +1,7 @@
-u-boot-odroid-c2
+u-boot-rockpro64
 ================
 
-Build U-Boot for Odroid C2.
+Build U-Boot for RockPro64.
 
 Install prerequisites
 ---------------------
@@ -26,7 +26,7 @@ Build
 Write to SD card
 ----------------
 
-    cd /usr/lib/u-boot/odroid-c2/
+    cd /usr/lib/u-boot/rockpro64/
     sudo ./sd_fusing.sh DEVICE
 
 Replace DEVICE by the relevant SD card (e.g. /dev/sdg).

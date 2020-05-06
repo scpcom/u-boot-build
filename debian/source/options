@@ -1,13 +1,13 @@
 # ignore kernel source
 tar-ignore = "denx*"
 tar-ignore = "hardkernel*"
-tar-ignore = "meson-tools*"
+tar-ignore = "rkbin*"
 # ignore git related files
 tar-ignore = ".git*"
 # ignore log file
 tar-ignore = "job.log"
 # ignore last build
-tar-ignore = "debian/odroid-c2-u-boot-image"
+tar-ignore = "debian/rockpro64-u-boot-image"
 tar-ignore = "u-boot.bin"
 tar-ignore = "foo"
 tar-ignore = "ipxe"
