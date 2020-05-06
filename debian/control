@@ -1,4 +1,4 @@
-Source: odroid-c2-u-boot
+Source: odroid-n1-u-boot
 Section: kernel
 Priority: optional
 Maintainer: Heinrich Schuchardt <xypron.glpk@gmx.de>
@@ -7,9 +7,9 @@ Build-Depends: bc, ca-certificates, debhelper, device-tree-compiler, dirmngr,
 Standards-Version: 3.9.4.0
 Homepage: https://www.kernel.org/
 
-Package: odroid-c2-u-boot-image
+Package: odroid-n1-u-boot-image
 Architecture: arm64
 Section: debian-installer
 Priority: standard
-Description: U-boot image for Odroid C2
- This package contains the u-boot image for the Odroid C2.
+Description: U-boot image for Odroid N1
+ This package contains the u-boot image for the Odroid N1.
